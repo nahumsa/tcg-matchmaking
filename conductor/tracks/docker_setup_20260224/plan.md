@@ -43,6 +43,6 @@ This plan outlines the steps to containerize the backend, frontend, and database
 
 ## Phase 4: Documentation and Cleanup
 
-- [ ] **Task: Update README.md with Docker instructions.**
-    - [ ] Add instructions for running the app with Docker.
-- [ ] **Task: Final Verification and Checkpoint.**
+- [x] **Task: Update README.md with Docker instructions. 75084bd**
+    - [x] Add instructions for running the app with Docker.
+- [x] **Task: Final Verification and Checkpoint. 32ead19**
