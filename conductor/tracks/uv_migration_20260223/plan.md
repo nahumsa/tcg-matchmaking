@@ -3,7 +3,7 @@
 ## Overview
 This plan outlines the steps to migrate the Python backend from `pip` and `requirements.txt` to `uv` and `pyproject.toml`.
 
-## Phase 1: uv Initialization & Dependency Migration
+## Phase 1: uv Initialization & Dependency Migration [checkpoint: ea6c56a]
 
 - [x] **Task: Initialize uv project and create pyproject.toml. 14ddedf**
     - [x] Run `uv init --no-workspace` to create the initial `pyproject.toml` in `backend/`.
@@ -14,7 +14,7 @@ This plan outlines the steps to migrate the Python backend from `pip` and `requi
     - [x] Verify that `pyproject.toml` contains all necessary packages with correct version constraints (if any).
 - [x] **Task: Generate the uv.lock file. 2112754**
     - [x] Run `uv lock` to ensure a reproducible dependency graph in `backend/`.
-- [ ] **Task: Conductor - User Manual Verification 'uv Initialization & Dependency Migration' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'uv Initialization & Dependency Migration' (Protocol in workflow.md)**
 
 ## Phase 2: Environment Transition & Verification
 
