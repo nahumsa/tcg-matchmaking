@@ -37,7 +37,7 @@ This plan outlines the steps for building the core Swiss tournament system, incl
 
 ## Phase 3: Swiss Pairing Engine & Results
 
-- [ ] **Task: Implement the core Swiss pairing engine.**
+- [~] **Task: Implement the core Swiss pairing engine.**
     - [ ] Develop the logic for pairing participants based on their current points.
     - [ ] Implement checks to prevent repeat pairings within the same tournament.
     - [ ] Correctly handle byes for tournaments with an odd number of players.
