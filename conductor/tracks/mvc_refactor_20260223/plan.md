@@ -21,7 +21,7 @@ This plan outlines the incremental refactor of the FastAPI backend into a domain
 
 ## Phase 2: Participant & Match Domains
 
-- [ ] **Task: Migrate the Participant domain.**
+- [~] **Task: Migrate the Participant domain.**
     - [ ] Create `backend/app/api/participants/` directory.
     - [ ] Move participant-related models, schemas, and endpoints to their respective domain files.
     - [ ] Write/update tests for the Participant domain.

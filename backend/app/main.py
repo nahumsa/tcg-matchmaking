@@ -6,7 +6,9 @@ from typing import Optional, Dict, List
 
 from . import models, utils, pairing
 from .core.database import get_db
+from .core.manager import manager
 from .api.tournaments.router import router as tournaments_router
+from .api.participants.router import router as participants_router
 
 app = FastAPI(title="Swiss Matchmaking System")
 
@@ -20,33 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(tournaments_router)
-
-
-# WebSocket connection manager
-class ConnectionManager:
-    def __init__(self):
-        # tournament_code -> list of websockets
-        self.active_connections: Dict[str, List[WebSocket]] = {}
-
-    async def connect(self, websocket: WebSocket, code: str):
-        await websocket.accept()
-        if code not in self.active_connections:
-            self.active_connections[code] = []
-        self.active_connections[code].append(websocket)
-
-    def disconnect(self, websocket: WebSocket, code: str):
-        if code in self.active_connections:
-            self.active_connections[code].remove(websocket)
-            if not self.active_connections[code]:
-                del self.active_connections[code]
-
-    async def broadcast(self, code: str, message: dict):
-        if code in self.active_connections:
-            for connection in self.active_connections[code]:
-                await connection.send_json(message)
-
-
-manager = ConnectionManager()
+app.include_router(participants_router)
 
 
 @app.websocket("/ws/{code}")
@@ -61,19 +37,6 @@ async def websocket_endpoint(websocket: WebSocket, code: str):
 
 
 # Pydantic models for request and response
-class ParticipantJoin(BaseModel):
-    name: str
-
-
-class ParticipantResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    name: str
-    tournament_id: int
-    points: int
-
-
 class MatchResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -96,33 +59,6 @@ class MatchUpdate(BaseModel):
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
-
-
-@app.post("/tournaments/{code}/join", response_model=ParticipantResponse)
-async def join_tournament(
-    code: str, participant: ParticipantJoin, db: Session = Depends(get_db)
-):
-    # Find tournament by code
-    db_tournament = (
-        db.query(models.Tournament).filter(models.Tournament.code == code).first()
-    )
-    if not db_tournament:
-        raise HTTPException(status_code=404, detail="Tournament not found")
-
-    # Create and save participant
-    db_participant = models.Participant(
-        name=participant.name, tournament_id=db_tournament.id
-    )
-    db.add(db_participant)
-    db.commit()
-    db.refresh(db_participant)
-
-    # Broadcast update
-    await manager.broadcast(
-        code, {"event": "participant_joined", "data": {"name": db_participant.name}}
-    )
-
-    return db_participant
 
 
 @app.post("/tournaments/{code}/pairings", response_model=list[MatchResponse])

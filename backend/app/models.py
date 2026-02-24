@@ -2,19 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from .core.database import Base
 from .api.tournaments.models import Tournament
-
-
-class Participant(Base):
-    __tablename__ = "participants"
-
-    id = Column(Integer, primary_key=True, index=True)
-    tournament_id = Column(Integer, ForeignKey("tournaments.id"), nullable=False)
-    name = Column(String, index=True, nullable=False)
-    points = Column(Integer, default=0)
-
-    tournament = relationship("Tournament", back_populates="participants")
-    matches_as_p1 = relationship("Match", foreign_keys="Match.player1_id", back_populates="player1")
-    matches_as_p2 = relationship("Match", foreign_keys="Match.player2_id", back_populates="player2")
+from .api.participants.models import Participant
 
 class Match(Base):
     __tablename__ = "matches"
