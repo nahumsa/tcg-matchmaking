@@ -125,7 +125,7 @@ def create_tournament(tournament: TournamentCreate, db: Session = Depends(get_db
 
 
 @app.post("/tournaments/{code}/join", response_model=ParticipantResponse)
-def join_tournament(
+async def join_tournament(
     code: str, participant: ParticipantJoin, db: Session = Depends(get_db)
 ):
     # Find tournament by code
