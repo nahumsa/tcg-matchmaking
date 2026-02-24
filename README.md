@@ -41,10 +41,9 @@ backend/app/
 
 ### Backend
 
-1. Create a virtual environment: `python -m venv venv`
-2. Activate it: `source venv/bin/activate`
-3. Install dependencies: `pip install -r requirements.txt`
-4. Run the app: `uvicorn backend.app.main:app --reload`
+1. Install `uv` if you haven't already: [astral.sh/uv](https://astral.sh/uv)
+2. Sync the project environment: `cd backend && uv sync`
+3. Run the app: `PYTHONPATH=.. uv --project backend run uvicorn backend.app.main:app --reload`
 
 ### Frontend
 
@@ -64,7 +63,7 @@ The easiest way to run the entire stack (Backend, Frontend, and PostgreSQL) is u
 3. Access the application:
    - **Frontend:** [http://localhost:8080](http://localhost:8080)
    - **Backend API:** [http://localhost:8000](http://localhost:8000)
-   - **Health Check:** [http://localhost:8080/api/health](http://localhost:8080/api/health)
+   - **Health Check:** [http://localhost:8000/health](http://localhost:8000/health)
 
 ## Testing
 
@@ -72,9 +71,7 @@ The easiest way to run the entire stack (Backend, Frontend, and PostgreSQL) is u
 
 Run tests with coverage:
 ```bash
-source venv/bin/activate
-export PYTHONPATH=$PYTHONPATH:.
-pytest --cov=backend/app backend/tests/
+PYTHONPATH=. uv --project backend run pytest --cov=backend/app backend/tests/
 ```
 
 ### Frontend
