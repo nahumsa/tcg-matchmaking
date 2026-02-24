@@ -5,10 +5,10 @@ This plan outlines the incremental refactor of the FastAPI backend into a domain
 
 ## Phase 1: Infrastructure & Tournament Domain
 
-- [~] **Task: Set up base infrastructure for domain-driven structure.**
-    - [ ] Create `backend/app/api/` and `backend/app/core/` for shared components.
-    - [ ] Move `config.py` and `database.py` into `backend/app/core/`.
-    - [ ] Update imports across the backend to reflect the new infrastructure.
+- [x] **Task: Set up base infrastructure for domain-driven structure. fcc6481**
+    - [x] Create `backend/app/api/` and `backend/app/core/` for shared components.
+    - [x] Move `config.py` and `database.py` into `backend/app/core/`.
+    - [x] Update imports across the backend to reflect the new infrastructure.
 - [ ] **Task: Migrate the Tournament domain.**
     - [ ] Create `backend/app/api/tournaments/` directory.
     - [ ] Move tournament-related models to `backend/app/api/tournaments/models.py`.
