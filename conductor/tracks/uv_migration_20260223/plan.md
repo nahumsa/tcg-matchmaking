@@ -18,9 +18,9 @@ This plan outlines the steps to migrate the Python backend from `pip` and `requi
 
 ## Phase 2: Environment Transition & Verification
 
-- [ ] **Task: Create and sync the uv-managed virtual environment.**
-    - [ ] Run `uv venv` in `backend/` to create a new virtual environment.
-    - [ ] Run `uv sync` in `backend/` to install all dependencies into the new environment.
+- [x] **Task: Create and sync the uv-managed virtual environment. ea6c56a**
+    - [x] Run `uv venv` in `backend/` to create a new virtual environment.
+    - [x] Run `uv sync` in `backend/` to install all dependencies into the new environment.
 - [ ] **Task: Verify backend functionality with uv.**
     - [ ] Run the backend automated test suite using `cd backend && uv run pytest --cov=app ../tests/`.
     - [ ] Confirm that all 14 tests pass and coverage is maintained (approx. 85%).
