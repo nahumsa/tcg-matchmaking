@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-interface Participant {
-  id: number;
-  name: string;
-  tournament_id: number;
-  points: number;
-}
-
 export default function ParticipantJoin() {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
@@ -34,7 +27,6 @@ export default function ParticipantJoin() {
         throw new Error(errorData.detail || 'Failed to join tournament');
       }
 
-      const data = await response.json();
       // Redirect to the tournament view for the specific code
       navigate(`/${code.toUpperCase()}`);
     } catch (err: any) {

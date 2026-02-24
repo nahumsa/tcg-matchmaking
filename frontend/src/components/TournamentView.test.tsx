@@ -6,13 +6,13 @@ import TournamentView from './TournamentView';
 describe('TournamentView', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
-    vi.stubGlobal('WebSocket', vi.fn().mockImplementation(class {
-      send = vi.fn();
-      close = vi.fn();
-      onmessage = vi.fn();
-      onerror = vi.fn();
-      onopen = vi.fn();
-    }));
+    vi.stubGlobal('WebSocket', vi.fn(() => ({
+      send: vi.fn(),
+      close: vi.fn(),
+      onmessage: null,
+      onerror: null,
+      onopen: null,
+    })));
   });
 
   it('renders loading state and then matches', async () => {

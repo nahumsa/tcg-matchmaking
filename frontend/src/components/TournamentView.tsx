@@ -6,8 +6,8 @@ interface Match {
   round_number: number;
   player1_id: number;
   player2_id: number | null;
-  player1_score: int;
-  player2_score: int;
+  player1_score: number;
+  player2_score: number;
   is_bye: number;
   is_completed: number;
 }
