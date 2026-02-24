@@ -19,5 +19,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: add docker image for the backend, frontend and database**
+- [x] **Track: add docker image for the backend, frontend and database**
   *Link: [./tracks/docker_setup_20260224/](./tracks/docker_setup_20260224/)*
