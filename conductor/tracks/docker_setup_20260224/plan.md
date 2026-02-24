@@ -30,16 +30,16 @@ This plan outlines the steps to containerize the backend, frontend, and database
 
 ## Phase 3: Orchestration with Docker Compose
 
-- [ ] **Task: Create docker-compose.yml.**
-    - [ ] Define `db` service using `postgres:16-alpine`.
-    - [ ] Define `backend` service with build context `./backend`.
-    - [ ] Define `frontend` service with build context `./frontend`.
-    - [ ] Configure networking and environment variables.
-    - [ ] Set up volume for `db` data.
-- [ ] **Task: Verify Full Stack Orchestration.**
-    - [ ] Run `docker-compose up`.
-    - [ ] Verify backend connects to `db`.
-    - [ ] Verify frontend can reach backend (may need CORS or proxy configuration).
+- [x] **Task: Create docker-compose.yml. 29181bc**
+    - [x] Define `db` service using `postgres:16-alpine`.
+    - [x] Define `backend` service with build context `./backend`.
+    - [x] Define `frontend` service with build context `./frontend`.
+    - [x] Configure networking and environment variables.
+    - [x] Set up volume for `db` data.
+- [x] **Task: Verify Full Stack Orchestration. 29181bc**
+    - [x] Run `docker-compose up`.
+    - [x] Verify backend connects to `db`.
+    - [x] Verify frontend can reach backend (may need CORS or proxy configuration).
 
 ## Phase 4: Documentation and Cleanup
 
