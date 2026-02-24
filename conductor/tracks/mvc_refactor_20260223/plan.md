@@ -32,7 +32,7 @@ This plan outlines the incremental refactor of the FastAPI backend into a domain
     - [x] Write/update tests for the Match domain and pairing logic.
 - [x] **Task: Conductor - User Manual Verification 'Participant & Match Domains' (Protocol in workflow.md)**
 
-## Phase 3: Cleanup & Finalization
+## Phase 3: Cleanup & Finalization [checkpoint: 79c2238]
 
 - [x] **Task: Final backend structure cleanup. 5184569**
     - [x] Remove old `models.py`, `utils.py`, and `pairing.py` from `backend/app/`.
@@ -40,4 +40,4 @@ This plan outlines the incremental refactor of the FastAPI backend into a domain
     - [x] Run the full backend test suite to ensure 100% regression coverage.
 - [x] **Task: Update documentation and README. ca4ef94**
     - [x] Update any internal developer documentation to reflect the new MVC/domain-driven structure.
-- [ ] **Task: Conductor - User Manual Verification 'Cleanup & Finalization' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Cleanup & Finalization' (Protocol in workflow.md)**
