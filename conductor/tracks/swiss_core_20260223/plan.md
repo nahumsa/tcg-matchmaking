@@ -20,7 +20,7 @@ This plan outlines the steps for building the core Swiss tournament system, incl
     - [x] Write unit tests for participant registration and tournament membership validation.
 - [x] **Task: Conductor - User Manual Verification 'Core Backend & Data Model' (Protocol in workflow.md)**
 
-## Phase 2: Core Frontend & Tournament Creation
+## Phase 2: Core Frontend & Tournament Creation [checkpoint: 420fce1]
 
 - [x] **Task: Set up frontend project structure with TailwindCSS. de4062b**
     - [x] Initialize React project and configure TailwindCSS for styling.
@@ -33,7 +33,7 @@ This plan outlines the steps for building the core Swiss tournament system, incl
     - [x] Build a form for players to enter their name and the room code.
     - [x] Implement the API call to join the tournament and display a success message.
     - [x] Write component tests for the join tournament form.
-- [~] **Task: Conductor - User Manual Verification 'Core Frontend & Tournament Creation' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Core Frontend & Tournament Creation' (Protocol in workflow.md)**
 
 ## Phase 3: Swiss Pairing Engine & Results
 
