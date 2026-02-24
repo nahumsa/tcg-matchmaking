@@ -3,7 +3,7 @@
 ## Overview
 This plan outlines the incremental refactor of the FastAPI backend into a domain-driven MVC architecture.
 
-## Phase 1: Infrastructure & Tournament Domain
+## Phase 1: Infrastructure & Tournament Domain [checkpoint: 92f458e]
 
 - [x] **Task: Set up base infrastructure for domain-driven structure. fcc6481**
     - [x] Create `backend/app/api/` and `backend/app/core/` for shared components.
@@ -17,7 +17,7 @@ This plan outlines the incremental refactor of the FastAPI backend into a domain
     - [x] Move tournament endpoints to `backend/app/api/tournaments/router.py`.
     - [x] Update `main.py` to include the tournament router.
     - [x] Write/update tests for the Tournament domain.
-- [ ] **Task: Conductor - User Manual Verification 'Infrastructure & Tournament Domain' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Infrastructure & Tournament Domain' (Protocol in workflow.md)**
 
 ## Phase 2: Participant & Match Domains
 
