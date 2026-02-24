@@ -38,6 +38,6 @@ This plan outlines the incremental refactor of the FastAPI backend into a domain
     - [x] Remove old `models.py`, `utils.py`, and `pairing.py` from `backend/app/`.
     - [x] Ensure all imports are optimized and relative where appropriate.
     - [x] Run the full backend test suite to ensure 100% regression coverage.
-- [ ] **Task: Update documentation and README.**
-    - [ ] Update any internal developer documentation to reflect the new MVC/domain-driven structure.
+- [x] **Task: Update documentation and README. ca4ef94**
+    - [x] Update any internal developer documentation to reflect the new MVC/domain-driven structure.
 - [ ] **Task: Conductor - User Manual Verification 'Cleanup & Finalization' (Protocol in workflow.md)**
