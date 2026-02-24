@@ -16,17 +16,17 @@ This plan outlines the steps to migrate the Python backend from `pip` and `requi
     - [x] Run `uv lock` to ensure a reproducible dependency graph in `backend/`.
 - [x] **Task: Conductor - User Manual Verification 'uv Initialization & Dependency Migration' (Protocol in workflow.md)**
 
-## Phase 2: Environment Transition & Verification
+## Phase 2: Environment Transition & Verification [checkpoint: 0d51822]
 
 - [x] **Task: Create and sync the uv-managed virtual environment. ea6c56a**
     - [x] Run `uv venv` in `backend/` to create a new virtual environment.
     - [x] Run `uv sync` in `backend/` to install all dependencies into the new environment.
 - [x] **Task: Verify backend functionality with uv. ea6c56a**
     - [x] Run the backend automated test suite using `cd backend && uv run pytest --cov=app ../tests/`.
-    - [ ] Confirm that all 14 tests pass and coverage is maintained (approx. 85%).
+    - [x] Confirm that all 14 tests pass and coverage is maintained (approx. 85%).
 - [x] **Task: Verify server startup with uv. ea6c56a**
     - [x] Run the FastAPI server using `cd backend && uv run uvicorn app.main:app --reload` and perform a basic health check.
-- [ ] **Task: Conductor - User Manual Verification 'Environment Transition & Verification' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Environment Transition & Verification' (Protocol in workflow.md)**
 
 ## Phase 3: Cleanup & Documentation
 
