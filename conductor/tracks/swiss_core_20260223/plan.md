@@ -29,10 +29,10 @@ This plan outlines the steps for building the core Swiss tournament system, incl
     - [x] Build a form for administrators to create a tournament (name, round count).
     - [x] Implement the API call to the backend and display the generated room code.
     - [x] Write component tests for the tournament creation form.
-- [~] **Task: Create participant view for joining a tournament.**
-    - [ ] Build a form for players to enter their name and the room code.
-    - [ ] Implement the API call to join the tournament and display a success message.
-    - [ ] Write component tests for the join tournament form.
+- [x] **Task: Create participant view for joining a tournament. 2303773**
+    - [x] Build a form for players to enter their name and the room code.
+    - [x] Implement the API call to join the tournament and display a success message.
+    - [x] Write component tests for the join tournament form.
 - [ ] **Task: Conductor - User Manual Verification 'Core Frontend & Tournament Creation' (Protocol in workflow.md)**
 
 ## Phase 3: Swiss Pairing Engine & Results
