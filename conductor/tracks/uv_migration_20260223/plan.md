@@ -8,10 +8,10 @@ This plan outlines the steps to migrate the Python backend from `pip` and `requi
 - [x] **Task: Initialize uv project and create pyproject.toml. 14ddedf**
     - [x] Run `uv init --no-workspace` to create the initial `pyproject.toml`.
     - [x] Configure the project name and version in `pyproject.toml`.
-- [ ] **Task: Migrate dependencies from requirements.txt.**
-    - [ ] Extract main dependencies from `requirements.txt` and add them using `uv add`.
-    - [ ] Extract dev dependencies (`pytest`, `pytest-cov`, `httpx`) and add them to a `dev` group using `uv add --group dev`.
-    - [ ] Verify that `pyproject.toml` contains all necessary packages with correct version constraints (if any).
+- [x] **Task: Migrate dependencies from requirements.txt. 2112754**
+    - [x] Extract main dependencies from `requirements.txt` and add them using `uv add`.
+    - [x] Extract dev dependencies (`pytest`, `pytest-cov`, `httpx`) and add them to a `dev` group using `uv add --group dev`.
+    - [x] Verify that `pyproject.toml` contains all necessary packages with correct version constraints (if any).
 - [ ] **Task: Generate the uv.lock file.**
     - [ ] Run `uv lock` to ensure a reproducible dependency graph.
 - [ ] **Task: Conductor - User Manual Verification 'uv Initialization & Dependency Migration' (Protocol in workflow.md)**
