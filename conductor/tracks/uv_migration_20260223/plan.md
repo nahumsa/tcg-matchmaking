@@ -36,6 +36,6 @@ This plan outlines the steps to migrate the Python backend from `pip` and `requi
 - [x] **Task: Update README.md. f13baa8**
     - [x] Update "Getting Started" section to use `cd backend && uv sync` and `uv run`.
     - [x] Update "Testing" section to use `uv run pytest`.
-- [ ] **Task: Update Dockerfile (if applicable).**
-    - [ ] Update the `Dockerfile` to install `uv` and use it for building the image and installing dependencies.
+- [x] **Task: Update Dockerfile (if applicable). f13baa8**
+    - [x] Update the `Dockerfile` to install `uv` and use it for building the image and installing dependencies.
 - [ ] **Task: Conductor - User Manual Verification 'Cleanup & Finalization' (Protocol in workflow.md)**
