@@ -24,8 +24,8 @@ This plan outlines the steps to migrate the Python backend from `pip` and `requi
 - [x] **Task: Verify backend functionality with uv. ea6c56a**
     - [x] Run the backend automated test suite using `cd backend && uv run pytest --cov=app ../tests/`.
     - [ ] Confirm that all 14 tests pass and coverage is maintained (approx. 85%).
-- [ ] **Task: Verify server startup with uv.**
-    - [ ] Run the FastAPI server using `cd backend && uv run uvicorn app.main:app --reload` and perform a basic health check.
+- [x] **Task: Verify server startup with uv. ea6c56a**
+    - [x] Run the FastAPI server using `cd backend && uv run uvicorn app.main:app --reload` and perform a basic health check.
 - [ ] **Task: Conductor - User Manual Verification 'Environment Transition & Verification' (Protocol in workflow.md)**
 
 ## Phase 3: Cleanup & Documentation
