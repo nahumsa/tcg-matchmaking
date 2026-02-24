@@ -25,7 +25,7 @@ This plan outlines the steps for building the core Swiss tournament system, incl
 - [x] **Task: Set up frontend project structure with TailwindCSS. de4062b**
     - [x] Initialize React project and configure TailwindCSS for styling.
     - [x] Implement basic routing for admin and participant views.
-- [ ] **Task: Create admin dashboard for tournament creation.**
+- [~] **Task: Create admin dashboard for tournament creation.**
     - [ ] Build a form for administrators to create a tournament (name, round count).
     - [ ] Implement the API call to the backend and display the generated room code.
     - [ ] Write component tests for the tournament creation form.

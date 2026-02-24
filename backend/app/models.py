@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
 
+
 class Tournament(Base):
     __tablename__ = "tournaments"
 
@@ -11,6 +12,7 @@ class Tournament(Base):
     rounds = Column(Integer, default=3)
 
     participants = relationship("Participant", back_populates="tournament")
+
 
 class Participant(Base):
     __tablename__ = "participants"
