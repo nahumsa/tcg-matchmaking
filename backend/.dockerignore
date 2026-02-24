@@ -1,0 +1,12 @@
+__pycache__
+*.pyc
+.venv
+.pytest_cache
+.coverage
+htmlcov
+.pytest_cache
+.ruff_cache
+uv.lock
+# We don't want to copy the local venv
+venv
+.venv
