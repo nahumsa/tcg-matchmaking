@@ -1,0 +1,27 @@
+# Initial Concept
+I want to build a backend and frontend for a swiss matchmaking system. The backend must be written in python and the frontend on react.
+Users should connect to a random letter code which is created when an administrator create a tournament.
+
+# Product Definition: Swiss Matchmaking System
+
+## Product Vision
+To provide a simple, robust, and accessible Swiss-system matchmaking platform for tournament organizers and participants, using a minimalist and focused interface for clear communication of pairings and standings.
+
+## Target Users
+- **Tournament Administrators:** Responsible for creating tournaments, generating codes, and overseeing match progress.
+- **Tournament Participants:** Players who join with a code, view pairings, and report their match results.
+- **Spectators:** Users who want to view current standings and match history without participating.
+
+## Core Goals
+- **Automated Swiss Pairings:** Automatically calculate pairings for each round based on Swiss-system rules.
+- **Real-time Updates:** Instantly show new pairings and updated standings to all connected users as results are reported.
+- **Easy Access via Code:** Allow participants to join a tournament quickly using a simple, unique room code.
+
+## Key Features
+- **Tournament Management:** Creation of tournaments, setting round counts, and generating room codes.
+- **Match Result Reporting:** A way for players or admins to submit scores for each round.
+- **Swiss Pairing Engine:** An algorithm that correctly pairs players with similar scores and prevents repeat matches.
+
+## User Experience & UI Style
+- **Minimalist and Focused:** A simple, direct interface that prioritizes pairings and results with minimal distractions.
+- **Real-time Synchronization:** Data will be updated in real-time to ensure all users see the latest pairings and results without manual refreshes.
