@@ -52,6 +52,20 @@ backend/app/
 2. Install dependencies: `npm install`
 3. Run the development server: `npm run dev`
 
+## Running with Docker
+
+The easiest way to run the entire stack (Backend, Frontend, and PostgreSQL) is using Docker Compose:
+
+1. Ensure you have Docker and Docker Compose installed.
+2. Run the following command from the project root:
+   ```bash
+   docker compose up -d
+   ```
+3. Access the application:
+   - **Frontend:** [http://localhost:8080](http://localhost:8080)
+   - **Backend API:** [http://localhost:8000](http://localhost:8000)
+   - **Health Check:** [http://localhost:8080/api/health](http://localhost:8080/api/health)
+
 ## Testing
 
 ### Backend
