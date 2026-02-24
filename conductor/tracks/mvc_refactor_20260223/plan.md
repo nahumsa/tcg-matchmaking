@@ -25,11 +25,11 @@ This plan outlines the incremental refactor of the FastAPI backend into a domain
     - [x] Create `backend/app/api/participants/` directory.
     - [x] Move participant-related models, schemas, and endpoints to their respective domain files.
     - [x] Write/update tests for the Participant domain.
-- [~] **Task: Migrate the Match domain and Swiss Pairing.**
-    - [ ] Create `backend/app/api/matches/` directory.
-    - [ ] Move match models, schemas, and reporting endpoints to the Match domain.
-    - [ ] Integrate `pairing.py` as a service within the Match domain.
-    - [ ] Write/update tests for the Match domain and pairing logic.
+- [x] **Task: Migrate the Match domain and Swiss Pairing. 61d866b**
+    - [x] Create `backend/app/api/matches/` directory.
+    - [x] Move match models, schemas, and reporting endpoints to the Match domain.
+    - [x] Integrate `pairing.py` as a service within the Match domain.
+    - [x] Write/update tests for the Match domain and pairing logic.
 - [ ] **Task: Conductor - User Manual Verification 'Participant & Match Domains' (Protocol in workflow.md)**
 
 ## Phase 3: Cleanup & Finalization
