@@ -1,6 +1,6 @@
 import pytest
 from backend.app.models import Participant, Match
-from backend.app.pairing import get_pairings
+from backend.app.api.matches.pairing import get_pairings
 
 def test_even_players_pairing():
     p1 = Participant(id=1, name="P1", points=3)

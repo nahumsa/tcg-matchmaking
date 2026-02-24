@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 from backend.app.core.database import get_db
 from . import schemas, services
+from backend.app.api.matches.schemas import MatchResponse
+from backend.app import models
 
 router = APIRouter(prefix="/tournaments", tags=["tournaments"])
 
@@ -18,12 +20,8 @@ def create_tournament(tournament: schemas.TournamentCreate, db: Session = Depend
 # I'll move everything that starts with /tournaments for now, 
 # and then refactor them into sub-routers in Phase 2.
 
-@router.get("/{code}/matches")
+@router.get("/{code}/matches", response_model=List[MatchResponse])
 def get_matches(code: str, db: Session = Depends(get_db)):
-    # This might need Match schemas from another domain later
-    from backend.app.main import MatchResponse # Temporary import to avoid circular dependency
-    from backend.app import models
-    
     db_tournament = services.get_tournament_by_code(db, code)
     if not db_tournament:
         raise HTTPException(status_code=404, detail="Tournament not found")

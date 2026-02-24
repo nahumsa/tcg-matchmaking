@@ -1,6 +1,7 @@
 import random
 from typing import List, Tuple, Set, Optional
-from .models import Participant, Match
+from .models import Match
+from backend.app.api.participants.models import Participant
 
 
 def get_pairings(
