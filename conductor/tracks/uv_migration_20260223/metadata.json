@@ -1,0 +1,8 @@
+{
+  "track_id": "uv_migration_20260223",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-02-23T13:00:00Z",
+  "updated_at": "2026-02-23T13:00:00Z",
+  "description": "migrate from pip to uv"
+}

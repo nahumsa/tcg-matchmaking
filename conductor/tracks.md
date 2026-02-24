@@ -11,3 +11,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: I want to rewrite the backend using a model view controller architecture**
   *Link: [./tracks/mvc_refactor_20260223/](./tracks/mvc_refactor_20260223/)*
+
+---
+
+- [ ] **Track: migrate from pip to uv**
+  *Link: [./tracks/uv_migration_20260223/](./tracks/uv_migration_20260223/)*
