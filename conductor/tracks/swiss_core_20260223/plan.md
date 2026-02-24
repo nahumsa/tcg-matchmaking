@@ -47,8 +47,9 @@ This plan outlines the steps for building the core Swiss tournament system, incl
   - [x] Create API endpoints for reporting match scores.
   - [x] Develop the logic for updating participant points and standings after each round.
   - [x] Write unit tests for results reporting and standings calculation.
-- [~] **Task: Implement real-time updates via WebSockets.**
-  - [ ] Set up a WebSocket endpoint in FastAPI to broadcast tournament updates.
-  - [ ] Update the React frontend to listen for WebSocket messages and update pairings and standings in real-time.
-  - [ ] Write tests for real-time data synchronization across clients.
+- [x] **Task: Implement real-time updates via WebSockets. 98952f7**
+    - [x] Set up a WebSocket endpoint in FastAPI to broadcast tournament updates.
+    - [x] Update the React frontend to listen for WebSocket messages and update pairings and standings in real-time.
+    - [x] Write tests for real-time data synchronization across clients.
+
 - [ ] **Task: Conductor - User Manual Verification 'Swiss Pairing Engine & Results' (Protocol in workflow.md)**
