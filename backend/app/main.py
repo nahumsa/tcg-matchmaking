@@ -118,7 +118,9 @@ async def join_tournament(
     db.refresh(db_participant)
 
     # Broadcast update
-    await manager.broadcast(code, {"event": "participant_joined", "data": {"name": db_participant.name}})
+    await manager.broadcast(
+        code, {"event": "participant_joined", "data": {"name": db_participant.name}}
+    )
 
     return db_participant
 
@@ -187,7 +189,9 @@ async def generate_pairings(code: str, db: Session = Depends(get_db)):
     db.commit()
 
     # Broadcast update
-    await manager.broadcast(code, {"event": "pairings_generated", "round": round_number})
+    await manager.broadcast(
+        code, {"event": "pairings_generated", "round": round_number}
+    )
 
     for m in db_matches:
         db.refresh(m)
@@ -195,7 +199,9 @@ async def generate_pairings(code: str, db: Session = Depends(get_db)):
 
 
 @app.post("/matches/{match_id}/report", response_model=MatchResponse)
-async def report_match(match_id: int, update: MatchUpdate, db: Session = Depends(get_db)):
+async def report_match(
+    match_id: int, update: MatchUpdate, db: Session = Depends(get_db)
+):
     db_match = db.query(models.Match).filter(models.Match.id == match_id).first()
     if not db_match:
         raise HTTPException(status_code=404, detail="Match not found")
@@ -231,8 +237,14 @@ async def report_match(match_id: int, update: MatchUpdate, db: Session = Depends
     db.commit()
 
     # Find tournament code for broadcasting
-    tournament = db.query(models.Tournament).filter(models.Tournament.id == db_match.tournament_id).first()
-    await manager.broadcast(tournament.code, {"event": "match_reported", "match_id": match_id})
+    tournament = (
+        db.query(models.Tournament)
+        .filter(models.Tournament.id == db_match.tournament_id)
+        .first()
+    )
+    await manager.broadcast(
+        tournament.code, {"event": "match_reported", "match_id": match_id}
+    )
 
     db.refresh(db_match)
     return db_match
