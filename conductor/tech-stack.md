@@ -14,4 +14,5 @@
 
 ## Common Tools & Practices
 - **Version Control:** Git
-- **Deployment:** Docker (Containerization for consistent environments across development and production)
+- **Containerization:** Docker (Consistent environments across development and production)
+- **Orchestration:** Docker Compose (Managing multi-container applications)
