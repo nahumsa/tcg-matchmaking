@@ -1,0 +1,8 @@
+node_modules
+dist
+.gitignore
+README.md
+*.log
+.eslint.config.js
+.pytest_cache
+.venv
