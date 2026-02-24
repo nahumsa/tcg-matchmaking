@@ -14,8 +14,8 @@ This plan outlines the steps for building the core Swiss tournament system, incl
     - [ ] Implement a function to generate a unique 6-character uppercase letter code.
     - [ ] Create a POST endpoint for creating a tournament and saving it to the database.
     - [ ] Write unit tests for tournament creation and code uniqueness.
-- [~] **Task: Implement player joining via room code.**
-    - [ ] Define the `Participant` model with fields for `id`, `tournament_id`, `name`, and `points`.
+- [x] **Task: Implement player joining via room code. 971df4a**
+    - [x] Define the `Participant` model with fields for `id`, `tournament_id`, `name`, and `points`.
     - [ ] Create a POST endpoint for participants to join an existing tournament by code.
     - [ ] Write unit tests for participant registration and tournament membership validation.
 - [ ] **Task: Conductor - User Manual Verification 'Core Backend & Data Model' (Protocol in workflow.md)**
