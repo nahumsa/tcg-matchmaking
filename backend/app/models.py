@@ -1,17 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from .core.database import Base
-
-
-class Tournament(Base):
-    __tablename__ = "tournaments"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True, nullable=False)
-    code = Column(String, unique=True, index=True, nullable=False)
-    rounds = Column(Integer, default=3)
-
-    participants = relationship("Participant", back_populates="tournament")
+from .api.tournaments.models import Tournament
 
 
 class Participant(Base):
@@ -43,5 +33,4 @@ class Match(Base):
     player1 = relationship("Participant", foreign_keys=[player1_id], back_populates="matches_as_p1")
     player2 = relationship("Participant", foreign_keys=[player2_id], back_populates="matches_as_p2")
 
-# Update Tournament to include matches
-Tournament.matches = relationship("Match", back_populates="tournament")
+# Update Tournament to include matches - already in api/tournaments/models.py

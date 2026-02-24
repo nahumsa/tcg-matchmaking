@@ -6,6 +6,7 @@ from typing import Optional, Dict, List
 
 from . import models, utils, pairing
 from .core.database import get_db
+from .api.tournaments.router import router as tournaments_router
 
 app = FastAPI(title="Swiss Matchmaking System")
 
@@ -17,6 +18,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(tournaments_router)
 
 
 # WebSocket connection manager
@@ -58,20 +61,6 @@ async def websocket_endpoint(websocket: WebSocket, code: str):
 
 
 # Pydantic models for request and response
-class TournamentCreate(BaseModel):
-    name: str
-    rounds: Optional[int] = 3
-
-
-class TournamentResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    name: str
-    code: str
-    rounds: int
-
-
 class ParticipantJoin(BaseModel):
     name: str
 
@@ -107,21 +96,6 @@ class MatchUpdate(BaseModel):
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
-
-
-@app.post("/tournaments", response_model=TournamentResponse)
-def create_tournament(tournament: TournamentCreate, db: Session = Depends(get_db)):
-    # Generate unique code
-    code = utils.generate_room_code(db)
-
-    # Create and save tournament
-    db_tournament = models.Tournament(
-        name=tournament.name, code=code, rounds=tournament.rounds
-    )
-    db.add(db_tournament)
-    db.commit()
-    db.refresh(db_tournament)
-    return db_tournament
 
 
 @app.post("/tournaments/{code}/join", response_model=ParticipantResponse)
@@ -218,21 +192,6 @@ async def generate_pairings(code: str, db: Session = Depends(get_db)):
     for m in db_matches:
         db.refresh(m)
     return db_matches
-
-
-@app.get("/tournaments/{code}/matches", response_model=list[MatchResponse])
-def get_matches(code: str, db: Session = Depends(get_db)):
-    db_tournament = (
-        db.query(models.Tournament).filter(models.Tournament.code == code).first()
-    )
-    if not db_tournament:
-        raise HTTPException(status_code=404, detail="Tournament not found")
-
-    return (
-        db.query(models.Match)
-        .filter(models.Match.tournament_id == db_tournament.id)
-        .all()
-    )
 
 
 @app.post("/matches/{match_id}/report", response_model=MatchResponse)
