@@ -5,8 +5,8 @@ This plan outlines the steps for building the core Swiss tournament system, incl
 
 ## Phase 1: Core Backend & Data Model
 
-- [~] **Task: Set up backend project structure and database connection.**
-    - [ ] Initialize FastAPI project with dependencies (PostgreSQL, SQLAlchemy).
+- [x] **Task: Set up backend project structure and database connection. afacb6a**
+    - [x] Initialize FastAPI project with dependencies (PostgreSQL, SQLAlchemy).
     - [ ] Create a migration script to set up `tournaments`, `participants`, and `matches` tables.
     - [ ] Write unit tests for database connection and basic CRUD operations.
 - [ ] **Task: Implement tournament creation with random room codes.**
