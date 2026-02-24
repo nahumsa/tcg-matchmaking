@@ -42,10 +42,10 @@ This plan outlines the steps for building the core Swiss tournament system, incl
     - [x] Implement checks to prevent repeat pairings within the same tournament.
     - [x] Correctly handle byes for tournaments with an odd number of players.
     - [x] Write comprehensive unit tests for the pairing engine with various scenarios.
-- [~] **Task: Implement match results reporting and standings update.**
-    - [ ] Create API endpoints for reporting match scores.
-    - [ ] Develop the logic for updating participant points and standings after each round.
-    - [ ] Write unit tests for results reporting and standings calculation.
+- [x] **Task: Implement match results reporting and standings update. 61fff69**
+    - [x] Create API endpoints for reporting match scores.
+    - [x] Develop the logic for updating participant points and standings after each round.
+    - [x] Write unit tests for results reporting and standings calculation.
 - [ ] **Task: Implement real-time updates via WebSockets.**
     - [ ] Set up a WebSocket endpoint in FastAPI to broadcast tournament updates.
     - [ ] Update the React frontend to listen for WebSocket messages and update pairings and standings in real-time.
