@@ -1,4 +1,4 @@
-# Implementation Plan: Docker Setup
+# Implementation Plan: Docker Setup [checkpoint: 32ead19]
 
 ## Overview
 This plan outlines the steps to containerize the backend, frontend, and database using Docker and Docker Compose.
