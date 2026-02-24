@@ -9,7 +9,7 @@ This plan outlines the steps for building the core Swiss tournament system, incl
     - [x] Initialize FastAPI project with dependencies (PostgreSQL, SQLAlchemy).
     - [ ] Create a migration script to set up `tournaments`, `participants`, and `matches` tables.
     - [ ] Write unit tests for database connection and basic CRUD operations.
-- [ ] **Task: Implement tournament creation with random room codes.**
+- [~] **Task: Implement tournament creation with random room codes.**
     - [ ] Define the `Tournament` model with fields for `id`, `name`, `code`, and `rounds`.
     - [ ] Implement a function to generate a unique 6-character uppercase letter code.
     - [ ] Create a POST endpoint for creating a tournament and saving it to the database.
