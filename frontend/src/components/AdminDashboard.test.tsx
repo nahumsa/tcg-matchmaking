@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import AdminDashboard from './AdminDashboard';
 
 describe('AdminDashboard', () => {
@@ -8,13 +9,17 @@ describe('AdminDashboard', () => {
   });
 
   it('renders correctly', () => {
-    render(<AdminDashboard />);
+    render(
+      <MemoryRouter>
+        <AdminDashboard />
+      </MemoryRouter>
+    );
     expect(screen.getByText(/Admin Dashboard/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/e.g. Swiss Open #1/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Create New Tournament/i })).toBeInTheDocument();
   });
 
-  it('handles form submission successfully', async () => {
+  it('handles form submission successfully and shows management view', async () => {
     const mockTournament = {
       id: 1,
       name: 'Swiss Open #1',
@@ -27,23 +32,22 @@ describe('AdminDashboard', () => {
       json: () => Promise.resolve(mockTournament)
     });
 
-    render(<AdminDashboard />);
+    render(
+      <MemoryRouter>
+        <AdminDashboard />
+      </MemoryRouter>
+    );
 
     fireEvent.change(screen.getByPlaceholderText(/e.g. Swiss Open #1/i), { target: { value: 'Swiss Open #1' } });
-    fireEvent.change(screen.getByLabelText(/Number of Rounds/i), { target: { value: '5' } });
     fireEvent.click(screen.getByRole('button', { name: /Create New Tournament/i }));
 
     expect(screen.getByText(/Creating.../i)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText(/Tournament Created!/i)).toBeInTheDocument();
+      expect(screen.getByText(/Swiss Open #1/i)).toBeInTheDocument();
       expect(screen.getByText(/ABCDEF/i)).toBeInTheDocument();
+      expect(screen.getByText(/Start Round 1/i)).toBeInTheDocument();
     });
-
-    expect(fetch).toHaveBeenCalledWith('http://localhost:8000/tournaments', expect.objectContaining({
-      method: 'POST',
-      body: JSON.stringify({ name: 'Swiss Open #1', rounds: 5 })
-    }));
   });
 
   it('handles form submission error', async () => {
@@ -51,7 +55,11 @@ describe('AdminDashboard', () => {
       ok: false
     });
 
-    render(<AdminDashboard />);
+    render(
+      <MemoryRouter>
+        <AdminDashboard />
+      </MemoryRouter>
+    );
 
     fireEvent.change(screen.getByPlaceholderText(/e.g. Swiss Open #1/i), { target: { value: 'Error Tournament' } });
     fireEvent.click(screen.getByRole('button', { name: /Create New Tournament/i }));

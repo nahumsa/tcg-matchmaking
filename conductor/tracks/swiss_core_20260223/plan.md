@@ -1,53 +1,54 @@
 # Implementation Plan: Swiss Core System
 
 ## Overview
+
 This plan outlines the steps for building the core Swiss tournament system, including tournament creation with random room codes, player joining, and a basic Swiss pairing engine.
 
 ## Phase 1: Core Backend & Data Model [checkpoint: 6514213]
 
 - [x] **Task: Set up backend project structure and database connection. afacb6a**
-    - [x] Initialize FastAPI project with dependencies (PostgreSQL, SQLAlchemy).
-    - [x] Create a migration script to set up `tournaments`, `participants`, and `matches` tables.
-    - [x] Write unit tests for database connection and basic CRUD operations.
+  - [x] Initialize FastAPI project with dependencies (PostgreSQL, SQLAlchemy).
+  - [x] Create a migration script to set up `tournaments`, `participants`, and `matches` tables.
+  - [x] Write unit tests for database connection and basic CRUD operations.
 - [x] **Task: Implement tournament creation with random room codes. 870ab3d**
-    - [x] Define the `Tournament` model with fields for `id`, `name`, `code`, and `rounds`.
-    - [x] Implement a function to generate a unique 6-character uppercase letter code.
-    - [x] Create a POST endpoint for creating a tournament and saving it to the database.
-    - [x] Write unit tests for tournament creation and code uniqueness.
+  - [x] Define the `Tournament` model with fields for `id`, `name`, `code`, and `rounds`.
+  - [x] Implement a function to generate a unique 6-character uppercase letter code.
+  - [x] Create a POST endpoint for creating a tournament and saving it to the database.
+  - [x] Write unit tests for tournament creation and code uniqueness.
 - [x] **Task: Implement player joining via room code. 971df4a**
-    - [x] Define the `Participant` model with fields for `id`, `tournament_id`, `name`, and `points`.
-    - [x] Create a POST endpoint for participants to join an existing tournament by code.
-    - [x] Write unit tests for participant registration and tournament membership validation.
+  - [x] Define the `Participant` model with fields for `id`, `tournament_id`, `name`, and `points`.
+  - [x] Create a POST endpoint for participants to join an existing tournament by code.
+  - [x] Write unit tests for participant registration and tournament membership validation.
 - [x] **Task: Conductor - User Manual Verification 'Core Backend & Data Model' (Protocol in workflow.md)**
 
 ## Phase 2: Core Frontend & Tournament Creation [checkpoint: 420fce1]
 
 - [x] **Task: Set up frontend project structure with TailwindCSS. de4062b**
-    - [x] Initialize React project and configure TailwindCSS for styling.
-    - [x] Implement basic routing for admin and participant views.
+  - [x] Initialize React project and configure TailwindCSS for styling.
+  - [x] Implement basic routing for admin and participant views.
 - [x] **Task: Create admin dashboard for tournament creation. 2e5f479**
-    - [x] Build a form for administrators to create a tournament (name, round count).
-    - [x] Implement the API call to the backend and display the generated room code.
-    - [x] Write component tests for the tournament creation form.
+  - [x] Build a form for administrators to create a tournament (name, round count).
+  - [x] Implement the API call to the backend and display the generated room code.
+  - [x] Write component tests for the tournament creation form.
 - [x] **Task: Create participant view for joining a tournament. 2303773**
-    - [x] Build a form for players to enter their name and the room code.
-    - [x] Implement the API call to join the tournament and display a success message.
-    - [x] Write component tests for the join tournament form.
+  - [x] Build a form for players to enter their name and the room code.
+  - [x] Implement the API call to join the tournament and display a success message.
+  - [x] Write component tests for the join tournament form.
 - [x] **Task: Conductor - User Manual Verification 'Core Frontend & Tournament Creation' (Protocol in workflow.md)**
 
 ## Phase 3: Swiss Pairing Engine & Results
 
 - [x] **Task: Implement the core Swiss pairing engine. ebff4cb**
-    - [x] Develop the logic for pairing participants based on their current points.
-    - [x] Implement checks to prevent repeat pairings within the same tournament.
-    - [x] Correctly handle byes for tournaments with an odd number of players.
-    - [x] Write comprehensive unit tests for the pairing engine with various scenarios.
+  - [x] Develop the logic for pairing participants based on their current points.
+  - [x] Implement checks to prevent repeat pairings within the same tournament.
+  - [x] Correctly handle byes for tournaments with an odd number of players.
+  - [x] Write comprehensive unit tests for the pairing engine with various scenarios.
 - [x] **Task: Implement match results reporting and standings update. 61fff69**
-    - [x] Create API endpoints for reporting match scores.
-    - [x] Develop the logic for updating participant points and standings after each round.
-    - [x] Write unit tests for results reporting and standings calculation.
-- [ ] **Task: Implement real-time updates via WebSockets.**
-    - [ ] Set up a WebSocket endpoint in FastAPI to broadcast tournament updates.
-    - [ ] Update the React frontend to listen for WebSocket messages and update pairings and standings in real-time.
-    - [ ] Write tests for real-time data synchronization across clients.
+  - [x] Create API endpoints for reporting match scores.
+  - [x] Develop the logic for updating participant points and standings after each round.
+  - [x] Write unit tests for results reporting and standings calculation.
+- [~] **Task: Implement real-time updates via WebSockets.**
+  - [ ] Set up a WebSocket endpoint in FastAPI to broadcast tournament updates.
+  - [ ] Update the React frontend to listen for WebSocket messages and update pairings and standings in real-time.
+  - [ ] Write tests for real-time data synchronization across clients.
 - [ ] **Task: Conductor - User Manual Verification 'Swiss Pairing Engine & Results' (Protocol in workflow.md)**

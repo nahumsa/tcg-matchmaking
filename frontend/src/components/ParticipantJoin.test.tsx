@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import ParticipantJoin from './ParticipantJoin';
 
 describe('ParticipantJoin', () => {
@@ -8,7 +9,11 @@ describe('ParticipantJoin', () => {
   });
 
   it('renders correctly', () => {
-    render(<ParticipantJoin />);
+    render(
+      <MemoryRouter>
+        <ParticipantJoin />
+      </MemoryRouter>
+    );
     expect(screen.getByRole('heading', { name: /Join Tournament/i })).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/e.g. Ash Ketchum/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/e.g. ABCDEF/i)).toBeInTheDocument();
@@ -28,7 +33,11 @@ describe('ParticipantJoin', () => {
       json: () => Promise.resolve(mockParticipant)
     });
 
-    render(<ParticipantJoin />);
+    render(
+      <MemoryRouter>
+        <ParticipantJoin />
+      </MemoryRouter>
+    );
 
     fireEvent.change(screen.getByPlaceholderText(/e.g. Ash Ketchum/i), { target: { value: 'Ash Ketchum' } });
     fireEvent.change(screen.getByPlaceholderText(/e.g. ABCDEF/i), { target: { value: 'ABCDEF' } });
@@ -37,14 +46,12 @@ describe('ParticipantJoin', () => {
     expect(screen.getByText(/Joining.../i)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText(/Success!/i)).toBeInTheDocument();
-      expect(screen.getByText(/Ash Ketchum/i)).toBeInTheDocument();
+      // Should have redirected, but we check if it called fetch correctly
+      expect(fetch).toHaveBeenCalledWith('http://localhost:8000/tournaments/ABCDEF/join', expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ name: 'Ash Ketchum' })
+      }));
     });
-
-    expect(fetch).toHaveBeenCalledWith('http://localhost:8000/tournaments/ABCDEF/join', expect.objectContaining({
-      method: 'POST',
-      body: JSON.stringify({ name: 'Ash Ketchum' })
-    }));
   });
 
   it('handles form submission error', async () => {
@@ -53,7 +60,11 @@ describe('ParticipantJoin', () => {
       json: () => Promise.resolve({ detail: 'Tournament not found' })
     });
 
-    render(<ParticipantJoin />);
+    render(
+      <MemoryRouter>
+        <ParticipantJoin />
+      </MemoryRouter>
+    );
 
     fireEvent.change(screen.getByPlaceholderText(/e.g. Ash Ketchum/i), { target: { value: 'Ash' } });
     fireEvent.change(screen.getByPlaceholderText(/e.g. ABCDEF/i), { target: { value: 'WRONG' } });

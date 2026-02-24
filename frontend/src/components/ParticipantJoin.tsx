@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Participant {
   id: number;
@@ -10,15 +11,14 @@ interface Participant {
 export default function ParticipantJoin() {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
-  const [participant, setParticipant] = useState<Participant | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setParticipant(null);
 
     try {
       const response = await fetch(`http://localhost:8000/tournaments/${code.toUpperCase()}/join`, {
@@ -35,38 +35,14 @@ export default function ParticipantJoin() {
       }
 
       const data = await response.json();
-      setParticipant(data);
+      // Redirect to the tournament view for the specific code
+      navigate(`/${code.toUpperCase()}`);
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
-
-  if (participant) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-        <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-green-100 text-center animate-in fade-in zoom-in duration-300">
-          <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Success!</h2>
-          <p className="text-gray-600 mb-6">
-            Welcome, <span className="font-semibold text-green-600">{participant.name}</span>! You have successfully joined the tournament.
-          </p>
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-sm text-gray-500 uppercase font-semibold tracking-wider mb-1">Current Points</p>
-            <p className="text-3xl font-black text-gray-800">{participant.points}</p>
-          </div>
-          <p className="mt-8 text-sm text-gray-400 italic">
-            Waiting for the administrator to start the round...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">

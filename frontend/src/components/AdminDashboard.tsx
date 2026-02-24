@@ -1,24 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 interface Tournament {
   id: number;
-  name: str;
-  code: str;
+  name: string;
+  code: string;
   rounds: number;
+}
+
+interface Match {
+  id: number;
+  round_number: number;
+  player1_id: number;
+  player2_id: number | null;
+  player1_score: number;
+  player2_score: number;
+  is_bye: number;
+  is_completed: number;
 }
 
 export default function AdminDashboard() {
   const [name, setName] = useState('');
   const [rounds, setRounds] = useState(3);
   const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (tournament) {
+      fetchMatches();
+      const ws = new WebSocket(`ws://localhost:8000/ws/${tournament.code}`);
+      ws.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.event === 'participant_joined' || message.event === 'match_reported' || message.event === 'pairings_generated') {
+          fetchMatches();
+        }
+      };
+      return () => ws.close();
+    }
+  }, [tournament]);
+
+  const fetchMatches = async () => {
+    if (!tournament) return;
+    try {
+      const response = await fetch(`http://localhost:8000/tournaments/${tournament.code}/matches`);
+      if (response.ok) {
+        const data = await response.json();
+        setMatches(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch matches', err);
+    }
+  };
+
+  const handleCreateTournament = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setTournament(null);
 
     try {
       const response = await fetch('http://localhost:8000/tournaments', {
@@ -42,66 +81,128 @@ export default function AdminDashboard() {
     }
   };
 
+  const generatePairings = async () => {
+    if (!tournament) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`http://localhost:8000/tournaments/${tournament.code}/pairings`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || 'Failed to generate pairings');
+      }
+      await fetchMatches();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reportResult = async (matchId: number, p1Score: number, p2Score: number) => {
+    try {
+      const response = await fetch(`http://localhost:8000/matches/${matchId}/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player1_score: p1Score, player2_score: p2Score }),
+      });
+      if (!response.ok) throw new Error('Failed to report result');
+      await fetchMatches();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  if (tournament) {
+    const currentRound = matches.length > 0 ? Math.max(...matches.map(m => m.round_number)) : 0;
+    const roundMatches = matches.filter(m => m.round_number === currentRound);
+    const allCompleted = roundMatches.every(m => m.is_completed);
+
+    return (
+      <div className="flex flex-col items-center min-h-screen p-4 sm:p-8 bg-gray-50">
+        <div className="w-full max-w-4xl">
+          <div className="flex justify-between items-end mb-8">
+            <div>
+              <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter mb-2">{tournament.name}</h1>
+              <div className="flex items-center space-x-4">
+                <span className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold tracking-widest uppercase">{tournament.code}</span>
+                <Link to={`/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">Public View ↗</Link>
+              </div>
+            </div>
+            <button 
+              onClick={generatePairings}
+              disabled={loading || (currentRound > 0 && !allCompleted)}
+              className="py-3 px-6 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+            >
+              {currentRound === 0 ? 'Start Round 1' : 'Next Round'}
+            </button>
+          </div>
+
+          {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl">{error}</div>}
+
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-700">Current Round: {currentRound}</h2>
+            <div className="grid gap-4">
+              {roundMatches.map(match => (
+                <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                  <div className="flex-1 font-bold text-lg">Player {match.player1_id}</div>
+                  
+                  {match.is_bye ? (
+                    <div className="px-8 font-black text-blue-600 uppercase tracking-widest">BYE</div>
+                  ) : match.is_completed ? (
+                    <div className="flex items-center space-x-4 px-8">
+                      <span className="text-2xl font-black">{match.player1_score}</span>
+                      <span className="text-gray-300">-</span>
+                      <span className="text-2xl font-black">{match.player2_score}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2 px-4">
+                      <input type="number" id={`p1-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
+                      <span className="text-gray-300">-</span>
+                      <input type="number" id={`p2-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
+                      <button 
+                        onClick={() => {
+                           const s1 = (document.getElementById(`p1-${match.id}`) as HTMLInputElement).value;
+                           const s2 = (document.getElementById(`p2-${match.id}`) as HTMLInputElement).value;
+                           reportResult(match.id, parseInt(s1), parseInt(s2));
+                        }}
+                        className="ml-4 px-4 py-2 bg-gray-800 text-white text-sm font-bold rounded-lg hover:bg-black transition"
+                      >
+                        Report
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex-1 font-bold text-lg text-right">{match.is_bye ? '-' : `Player ${match.player2_id}`}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
       <h1 className="text-3xl font-bold text-blue-600 mb-6 uppercase tracking-wider">Admin Dashboard</h1>
-      
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-100">
         <h2 className="text-xl font-semibold mb-6 text-gray-800">Create Tournament</h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleCreateTournament} className="space-y-5">
           <div>
             <label htmlFor="tournament-name" className="block text-sm font-medium text-gray-700 mb-1">Tournament Name</label>
-            <input 
-              id="tournament-name"
-              type="text" 
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Swiss Open #1" 
-              className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition outline-none"
-            />
+            <input id="tournament-name" type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Swiss Open #1" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition outline-none" />
           </div>
-          
           <div>
             <label htmlFor="rounds-count" className="block text-sm font-medium text-gray-700 mb-1">Number of Rounds</label>
-            <input 
-              id="rounds-count"
-              type="number" 
-              min="1"
-              max="10"
-              value={rounds}
-              onChange={(e) => setRounds(parseInt(e.target.value))}
-              className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition outline-none"
-            />
+            <input id="rounds-count" type="number" min="1" max="10" value={rounds} onChange={(e) => setRounds(parseInt(e.target.value))} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition outline-none" />
           </div>
-
-          <button 
-            type="submit"
-            disabled={loading}
-            className={`w-full py-3 px-4 bg-blue-600 text-white font-bold rounded-lg transition ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 shadow-md hover:shadow-lg active:scale-[0.98]'}`}
-          >
+          <button type="submit" disabled={loading} className={`w-full py-3 px-4 bg-blue-600 text-white font-bold rounded-lg transition ${loading ? 'opacity-50' : 'hover:bg-blue-700 shadow-md'}`}>
             {loading ? 'Creating...' : 'Create New Tournament'}
           </button>
         </form>
-
-        {error && (
-          <div className="mt-6 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-
-        {tournament && (
-          <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-xl animate-in fade-in slide-in-from-top-4 duration-300">
-            <h3 className="text-sm font-semibold text-blue-800 uppercase mb-2">Tournament Created!</h3>
-            <p className="text-gray-600 text-sm mb-4">Share this code with participants:</p>
-            <div className="flex items-center justify-center p-4 bg-white border border-blue-300 rounded-lg">
-              <span className="text-4xl font-mono font-black text-blue-700 tracking-widest uppercase">
-                {tournament.code}
-              </span>
-            </div>
-          </div>
-        )}
+        {error && <div className="mt-6 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">{error}</div>}
       </div>
     </div>
   );

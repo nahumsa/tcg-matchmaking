@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, ConfigDict
-from typing import Optional
+from typing import Optional, Dict, List
 
 from . import models, utils, database, pairing
 from .database import get_db
@@ -17,6 +17,44 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# WebSocket connection manager
+class ConnectionManager:
+    def __init__(self):
+        # tournament_code -> list of websockets
+        self.active_connections: Dict[str, List[WebSocket]] = {}
+
+    async def connect(self, websocket: WebSocket, code: str):
+        await websocket.accept()
+        if code not in self.active_connections:
+            self.active_connections[code] = []
+        self.active_connections[code].append(websocket)
+
+    def disconnect(self, websocket: WebSocket, code: str):
+        if code in self.active_connections:
+            self.active_connections[code].remove(websocket)
+            if not self.active_connections[code]:
+                del self.active_connections[code]
+
+    async def broadcast(self, code: str, message: dict):
+        if code in self.active_connections:
+            for connection in self.active_connections[code]:
+                await connection.send_json(message)
+
+
+manager = ConnectionManager()
+
+
+@app.websocket("/ws/{code}")
+async def websocket_endpoint(websocket: WebSocket, code: str):
+    await manager.connect(websocket, code)
+    try:
+        while True:
+            # Keep connection alive
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, code)
 
 
 # Pydantic models for request and response
@@ -104,11 +142,15 @@ def join_tournament(
     db.add(db_participant)
     db.commit()
     db.refresh(db_participant)
+
+    # Broadcast update
+    await manager.broadcast(code, {"event": "participant_joined", "data": {"name": db_participant.name}})
+
     return db_participant
 
 
 @app.post("/tournaments/{code}/pairings", response_model=list[MatchResponse])
-def generate_pairings(code: str, db: Session = Depends(get_db)):
+async def generate_pairings(code: str, db: Session = Depends(get_db)):
     # Find tournament by code
     db_tournament = (
         db.query(models.Tournament).filter(models.Tournament.code == code).first()
@@ -169,6 +211,10 @@ def generate_pairings(code: str, db: Session = Depends(get_db)):
         db_matches.append(match)
 
     db.commit()
+
+    # Broadcast update
+    await manager.broadcast(code, {"event": "pairings_generated", "round": round_number})
+
     for m in db_matches:
         db.refresh(m)
     return db_matches
@@ -190,7 +236,7 @@ def get_matches(code: str, db: Session = Depends(get_db)):
 
 
 @app.post("/matches/{match_id}/report", response_model=MatchResponse)
-def report_match(match_id: int, update: MatchUpdate, db: Session = Depends(get_db)):
+async def report_match(match_id: int, update: MatchUpdate, db: Session = Depends(get_db)):
     db_match = db.query(models.Match).filter(models.Match.id == match_id).first()
     if not db_match:
         raise HTTPException(status_code=404, detail="Match not found")
@@ -224,5 +270,10 @@ def report_match(match_id: int, update: MatchUpdate, db: Session = Depends(get_d
         p2.points += 1
 
     db.commit()
+
+    # Find tournament code for broadcasting
+    tournament = db.query(models.Tournament).filter(models.Tournament.id == db_match.tournament_id).first()
+    await manager.broadcast(tournament.code, {"event": "match_reported", "match_id": match_id})
+
     db.refresh(db_match)
     return db_match
