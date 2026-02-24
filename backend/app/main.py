@@ -21,6 +21,17 @@ class TournamentResponse(BaseModel):
     code: str
     rounds: int
 
+class ParticipantJoin(BaseModel):
+    name: str
+
+class ParticipantResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    name: str
+    tournament_id: int
+    points: int
+
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
@@ -40,3 +51,20 @@ def create_tournament(tournament: TournamentCreate, db: Session = Depends(get_db
     db.commit()
     db.refresh(db_tournament)
     return db_tournament
+
+@app.post("/tournaments/{code}/join", response_model=ParticipantResponse)
+def join_tournament(code: str, participant: ParticipantJoin, db: Session = Depends(get_db)):
+    # Find tournament by code
+    db_tournament = db.query(models.Tournament).filter(models.Tournament.code == code).first()
+    if not db_tournament:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    # Create and save participant
+    db_participant = models.Participant(
+        name=participant.name,
+        tournament_id=db_tournament.id
+    )
+    db.add(db_participant)
+    db.commit()
+    db.refresh(db_participant)
+    return db_participant

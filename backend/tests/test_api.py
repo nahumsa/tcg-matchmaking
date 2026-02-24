@@ -49,3 +49,30 @@ def test_create_tournament_default_rounds(setup_db):
     assert response.status_code == 200
     data = response.json()
     assert data["rounds"] == 3
+
+def test_join_tournament(setup_db):
+    # First create a tournament
+    create_resp = client.post(
+        "/tournaments",
+        json={"name": "Tournament for Joining"}
+    )
+    code = create_resp.json()["code"]
+    
+    # Then join it
+    join_resp = client.post(
+        f"/tournaments/{code}/join",
+        json={"name": "Test Player"}
+    )
+    assert join_resp.status_code == 200
+    data = join_resp.json()
+    assert data["name"] == "Test Player"
+    assert data["points"] == 0
+    assert "id" in data
+
+def test_join_non_existent_tournament(setup_db):
+    response = client.post(
+        "/tournaments/NONEXISTENT/join",
+        json={"name": "Lost Player"}
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Tournament not found"
