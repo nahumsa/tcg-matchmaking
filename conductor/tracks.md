@@ -6,3 +6,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Build the core Swiss tournament system including tournament creation with random room codes, player joining, and a basic Swiss pairing engine.**
   *Link: [./tracks/swiss_core_20260223/](./tracks/swiss_core_20260223/)*
+
+---
+
+- [ ] **Track: I want to rewrite the backend using a model view controller architecture**
+  *Link: [./tracks/mvc_refactor_20260223/](./tracks/mvc_refactor_20260223/)*
