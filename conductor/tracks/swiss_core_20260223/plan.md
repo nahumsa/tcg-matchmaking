@@ -36,20 +36,20 @@ This plan outlines the steps for building the core Swiss tournament system, incl
   - [x] Write component tests for the join tournament form.
 - [x] **Task: Conductor - User Manual Verification 'Core Frontend & Tournament Creation' (Protocol in workflow.md)**
 
-## Phase 3: Swiss Pairing Engine & Results
+## Phase 3: Swiss Pairing Engine & Results [checkpoint: 397ebe7]
 
 - [x] **Task: Implement the core Swiss pairing engine. ebff4cb**
-  - [x] Develop the logic for pairing participants based on their current points.
-  - [x] Implement checks to prevent repeat pairings within the same tournament.
-  - [x] Correctly handle byes for tournaments with an odd number of players.
-  - [x] Write comprehensive unit tests for the pairing engine with various scenarios.
+    - [x] Develop the logic for pairing participants based on their current points.
+    - [x] Implement checks to prevent repeat pairings within the same tournament.
+    - [x] Correctly handle byes for tournaments with an odd number of players.
+    - [x] Write comprehensive unit tests for the pairing engine with various scenarios.
 - [x] **Task: Implement match results reporting and standings update. 61fff69**
-  - [x] Create API endpoints for reporting match scores.
-  - [x] Develop the logic for updating participant points and standings after each round.
-  - [x] Write unit tests for results reporting and standings calculation.
+    - [x] Create API endpoints for reporting match scores.
+    - [x] Develop the logic for updating participant points and standings after each round.
+    - [x] Write unit tests for results reporting and standings calculation.
 - [x] **Task: Implement real-time updates via WebSockets. 98952f7**
     - [x] Set up a WebSocket endpoint in FastAPI to broadcast tournament updates.
     - [x] Update the React frontend to listen for WebSocket messages and update pairings and standings in real-time.
     - [x] Write tests for real-time data synchronization across clients.
+- [x] **Task: Conductor - User Manual Verification 'Swiss Pairing Engine & Results' (Protocol in workflow.md)**
 
-- [~] **Task: Conductor - User Manual Verification 'Swiss Pairing Engine & Results' (Protocol in workflow.md)**
