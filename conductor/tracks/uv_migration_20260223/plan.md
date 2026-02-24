@@ -30,9 +30,9 @@ This plan outlines the steps to migrate the Python backend from `pip` and `requi
 
 ## Phase 3: Cleanup & Documentation
 
-- [ ] **Task: Remove old dependency artifacts.**
-    - [ ] Delete the `requirements.txt` file.
-    - [ ] Delete the old `venv/` directory (if separate from uv's `.venv`).
+- [x] **Task: Remove old dependency artifacts. 0e4fffa**
+    - [x] Delete the `requirements.txt` file.
+    - [x] Delete the old `venv/` directory (if separate from uv's `.venv`).
 - [ ] **Task: Update README.md.**
     - [ ] Update "Getting Started" section to use `cd backend && uv sync` and `uv run`.
     - [ ] Update "Testing" section to use `uv run pytest`.
