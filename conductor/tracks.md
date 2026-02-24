@@ -14,7 +14,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: migrate from pip to uv**
+- [x] **Track: migrate from pip to uv**
   *Link: [./tracks/uv_migration_20260223/](./tracks/uv_migration_20260223/)*
 
 ---
