@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, ConfigDict
 from typing import Optional, Dict, List
 
-from . import models, utils, database, pairing
-from .database import get_db
+from . import models, utils, pairing
+from .core.database import get_db
 
 app = FastAPI(title="Swiss Matchmaking System")
 

@@ -2,7 +2,10 @@ import random
 from typing import List, Tuple, Set, Optional
 from .models import Participant, Match
 
-def get_pairings(participants: List[Participant], past_matches: List[Match]) -> List[Tuple[Participant, Optional[Participant]]]:
+
+def get_pairings(
+    participants: List[Participant], past_matches: List[Match]
+) -> List[Tuple[Participant, Optional[Participant]]]:
     """
     Generate Swiss pairings for the next round.
     participants: List of participants in the tournament.
@@ -12,7 +15,9 @@ def get_pairings(participants: List[Participant], past_matches: List[Match]) -> 
     # Actually, to randomize within brackets, we can shuffle first then sort
     shuffled_participants = list(participants)
     random.shuffle(shuffled_participants)
-    sorted_participants = sorted(shuffled_participants, key=lambda p: p.points, reverse=True)
+    sorted_participants = sorted(
+        shuffled_participants, key=lambda p: p.points, reverse=True
+    )
 
     # Track who has played whom
     played_map: Set[Tuple[int, int]] = set()
@@ -20,7 +25,8 @@ def get_pairings(participants: List[Participant], past_matches: List[Match]) -> 
 
     for m in past_matches:
         if m.is_bye:
-            if m.player1_id: bye_players.add(m.player1_id)
+            if m.player1_id:
+                bye_players.add(m.player1_id)
         elif m.player1_id and m.player2_id:
             p1, p2 = sorted([m.player1_id, m.player2_id])
             played_map.add((p1, p2))
@@ -43,22 +49,24 @@ def get_pairings(participants: List[Participant], past_matches: List[Match]) -> 
 
     # Simple matching algorithm (can be improved with Blossom algorithm for perfect matching,
     # but for Swiss, a greedy approach with backtracking is common)
-    def find_matches(remaining: List[Participant]) -> Optional[List[Tuple[Participant, Participant]]]:
+    def find_matches(
+        remaining: List[Participant],
+    ) -> Optional[List[Tuple[Participant, Participant]]]:
         if not remaining:
             return []
-        
+
         p1 = remaining[0]
         for i in range(1, len(remaining)):
             p2 = remaining[i]
             p1_id, p2_id = sorted([p1.id, p2.id])
-            
+
             if (p1_id, p2_id) not in played_map:
                 # Potential match
-                rest = remaining[1:i] + remaining[i+1:]
+                rest = remaining[1:i] + remaining[i + 1 :]
                 sub_matches = find_matches(rest)
                 if sub_matches is not None:
                     return [(p1, p2)] + sub_matches
-        
+
         return None
 
     matches = find_matches(unpaired)
@@ -69,17 +77,18 @@ def get_pairings(participants: List[Participant], past_matches: List[Match]) -> 
         matches = []
         already_paired = set()
         for i in range(len(unpaired)):
-            if unpaired[i].id in already_paired: continue
+            if unpaired[i].id in already_paired:
+                continue
             p1 = unpaired[i]
             already_paired.add(p1.id)
-            
+
             p2 = None
             for j in range(i + 1, len(unpaired)):
                 if unpaired[j].id not in already_paired:
                     p2 = unpaired[j]
                     already_paired.add(p2.id)
                     break
-            
+
             if p2:
                 matches.append((p1, p2))
             else:

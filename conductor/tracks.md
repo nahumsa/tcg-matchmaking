@@ -9,5 +9,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: I want to rewrite the backend using a model view controller architecture**
+- [~] **Track: I want to rewrite the backend using a model view controller architecture**
   *Link: [./tracks/mvc_refactor_20260223/](./tracks/mvc_refactor_20260223/)*

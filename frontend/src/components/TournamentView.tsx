@@ -21,7 +21,7 @@ export default function TournamentView() {
     fetchMatches();
 
     const ws = new WebSocket(`ws://localhost:8000/ws/${code}`);
-    
+
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
       console.log('WS Message:', message);
@@ -80,7 +80,7 @@ export default function TournamentView() {
                     ) : (
                       <div className="flex items-center justify-between">
                         <div className="flex-1 text-right pr-4">
-                           <span className="font-semibold text-gray-800">Player {match.player1_id}</span>
+                          <span className="font-semibold text-gray-800">Player {match.player1_id}</span>
                         </div>
                         <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-lg font-mono font-bold text-lg">
                           <span>{match.player1_score}</span>
@@ -88,7 +88,7 @@ export default function TournamentView() {
                           <span>{match.player2_score}</span>
                         </div>
                         <div className="flex-1 text-left pl-4">
-                           <span className="font-semibold text-gray-800">Player {match.player2_id}</span>
+                          <span className="font-semibold text-gray-800">Player {match.player2_id}</span>
                         </div>
                       </div>
                     )}

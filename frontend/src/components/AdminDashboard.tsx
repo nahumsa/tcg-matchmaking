@@ -130,7 +130,7 @@ export default function AdminDashboard() {
                 <Link to={`/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">Public View ↗</Link>
               </div>
             </div>
-            <button 
+            <button
               onClick={generatePairings}
               disabled={loading || (currentRound > 0 && !allCompleted)}
               className="py-3 px-6 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
               {roundMatches.map(match => (
                 <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                   <div className="flex-1 font-bold text-lg">Player {match.player1_id}</div>
-                  
+
                   {match.is_bye ? (
                     <div className="px-8 font-black text-blue-600 uppercase tracking-widest">BYE</div>
                   ) : match.is_completed ? (
@@ -161,11 +161,11 @@ export default function AdminDashboard() {
                       <input type="number" id={`p1-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
                       <span className="text-gray-300">-</span>
                       <input type="number" id={`p2-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
-                      <button 
+                      <button
                         onClick={() => {
-                           const s1 = (document.getElementById(`p1-${match.id}`) as HTMLInputElement).value;
-                           const s2 = (document.getElementById(`p2-${match.id}`) as HTMLInputElement).value;
-                           reportResult(match.id, parseInt(s1), parseInt(s2));
+                          const s1 = (document.getElementById(`p1-${match.id}`) as HTMLInputElement).value;
+                          const s2 = (document.getElementById(`p2-${match.id}`) as HTMLInputElement).value;
+                          reportResult(match.id, parseInt(s1), parseInt(s2));
                         }}
                         className="ml-4 px-4 py-2 bg-gray-800 text-white text-sm font-bold rounded-lg hover:bg-black transition"
                       >

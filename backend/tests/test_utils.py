@@ -1,9 +1,9 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.app.database import Base
+from backend.app.core.database import Base
 from backend.app import models, utils
-from backend.app.config import settings
+from backend.app.core.config import settings
 
 # Test database setup
 engine = create_engine(settings.TEST_DATABASE_URL, connect_args={"check_same_thread": False})

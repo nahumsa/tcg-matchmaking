@@ -2,9 +2,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.app.main import app, get_db
-from backend.app.database import Base
-from backend.app.config import settings
+from backend.app.main import app
+from backend.app.core.database import get_db, Base
+from backend.app.core.config import settings
 from backend.app import models
 
 # Test database setup
