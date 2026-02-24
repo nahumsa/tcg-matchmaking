@@ -28,7 +28,7 @@ This plan outlines the steps to migrate the Python backend from `pip` and `requi
     - [x] Run the FastAPI server using `cd backend && uv run uvicorn app.main:app --reload` and perform a basic health check.
 - [x] **Task: Conductor - User Manual Verification 'Environment Transition & Verification' (Protocol in workflow.md)**
 
-## Phase 3: Cleanup & Documentation
+## Phase 3: Cleanup & Documentation [checkpoint: 3db6754]
 
 - [x] **Task: Remove old dependency artifacts. 0e4fffa**
     - [x] Delete the `requirements.txt` file.
@@ -38,4 +38,4 @@ This plan outlines the steps to migrate the Python backend from `pip` and `requi
     - [x] Update "Testing" section to use `uv run pytest`.
 - [x] **Task: Update Dockerfile (if applicable). f13baa8**
     - [x] Update the `Dockerfile` to install `uv` and use it for building the image and installing dependencies.
-- [ ] **Task: Conductor - User Manual Verification 'Cleanup & Finalization' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Cleanup & Finalization' (Protocol in workflow.md)**
