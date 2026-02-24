@@ -4,12 +4,12 @@
 This track involves migrating the Python backend dependency management from standard `pip` and `requirements.txt` to `uv`. This will improve dependency resolution speed, provide a reproducible lockfile (`uv.lock`), and modernize the project's configuration using `pyproject.toml`.
 
 ## Functional Requirements
-- **Initialize uv Project:** Create a `pyproject.toml` file in the root directory.
+- **Initialize uv Project:** Create a `pyproject.toml` file in the `backend/` directory.
 - **Dependency Migration:**
     - Parse existing `requirements.txt`.
     - Add core dependencies (`fastapi`, `uvicorn`, `sqlalchemy`, `psycopg2-binary`, `alembic`, `pydantic-settings`) to the main project dependencies.
-    - Add development dependencies (`pytest`, `pytest-cov`, `httpx`) to a separate `dev` dependency group.
-- **Lockfile Generation:** Run `uv lock` to generate a `uv.lock` file.
+    - Add development dependencies (`pytest`, `pytest-cov`, `httpx`, `ruff`) to a separate `dev` dependency group.
+- **Lockfile Generation:** Run `uv lock` to generate a `uv.lock` file in the `backend/` directory.
 - **Environment Management:** Use `uv` to manage the virtual environment, replacing the manual `python -m venv venv` approach.
 - **Documentation Update:**
     - Update `README.md` to use `uv sync`, `uv run`, and `uv add` commands.

@@ -1,10 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, Dict, List
 
-from .core.database import get_db
 from .core.manager import manager
 from .api.tournaments.router import router as tournaments_router
 from .api.participants.router import router as participants_router
