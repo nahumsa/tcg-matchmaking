@@ -4,7 +4,6 @@ from typing import List
 from backend.app.core.database import get_db
 from . import schemas, services
 from backend.app.api.tournaments.services import get_tournament_by_code
-from backend.app import models
 
 router = APIRouter(tags=["matches"])
 

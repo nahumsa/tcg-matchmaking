@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from backend.app.main import app
 from backend.app.core.database import get_db, Base
 from backend.app.core.config import settings
-from backend.app import models
+from backend.app.api.participants import models
 
 # Test database setup
 engine = create_engine(settings.TEST_DATABASE_URL, connect_args={"check_same_thread": False})

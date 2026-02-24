@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from backend.app.core.database import Base
-from backend.app import models, utils
+from backend.app.api.tournaments import models, services as utils
 from backend.app.core.config import settings
 
 # Test database setup

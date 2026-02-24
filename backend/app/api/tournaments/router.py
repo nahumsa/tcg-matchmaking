@@ -4,7 +4,7 @@ from typing import List
 from backend.app.core.database import get_db
 from . import schemas, services
 from backend.app.api.matches.schemas import MatchResponse
-from backend.app import models
+from backend.app.api.matches import models
 
 router = APIRouter(prefix="/tournaments", tags=["tournaments"])
 

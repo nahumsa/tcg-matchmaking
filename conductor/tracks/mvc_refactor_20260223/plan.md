@@ -34,7 +34,7 @@ This plan outlines the incremental refactor of the FastAPI backend into a domain
 
 ## Phase 3: Cleanup & Finalization
 
-- [ ] **Task: Final backend structure cleanup.**
+- [~] **Task: Final backend structure cleanup.**
     - [ ] Remove old `models.py`, `utils.py`, and `pairing.py` from `backend/app/`.
     - [ ] Ensure all imports are optimized and relative where appropriate.
     - [ ] Run the full backend test suite to ensure 100% regression coverage.
