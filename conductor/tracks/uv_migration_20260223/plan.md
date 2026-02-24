@@ -21,8 +21,8 @@ This plan outlines the steps to migrate the Python backend from `pip` and `requi
 - [x] **Task: Create and sync the uv-managed virtual environment. ea6c56a**
     - [x] Run `uv venv` in `backend/` to create a new virtual environment.
     - [x] Run `uv sync` in `backend/` to install all dependencies into the new environment.
-- [ ] **Task: Verify backend functionality with uv.**
-    - [ ] Run the backend automated test suite using `cd backend && uv run pytest --cov=app ../tests/`.
+- [x] **Task: Verify backend functionality with uv. ea6c56a**
+    - [x] Run the backend automated test suite using `cd backend && uv run pytest --cov=app ../tests/`.
     - [ ] Confirm that all 14 tests pass and coverage is maintained (approx. 85%).
 - [ ] **Task: Verify server startup with uv.**
     - [ ] Run the FastAPI server using `cd backend && uv run uvicorn app.main:app --reload` and perform a basic health check.
