@@ -14,5 +14,6 @@
 
 ## Common Tools & Practices
 - **Version Control:** Git
+- **Dependency Management (Backend):** uv (Fast, reliable Python package installer and resolver)
 - **Containerization:** Docker (Consistent environments across development and production)
 - **Orchestration:** Docker Compose (Managing multi-container applications)
