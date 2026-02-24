@@ -18,15 +18,15 @@ This plan outlines the steps to containerize the backend, frontend, and database
 
 ## Phase 2: Frontend Dockerization
 
-- [ ] **Task: Create Frontend Dockerfile.**
-    - [ ] Create `frontend/Dockerfile`.
-    - [ ] Use a multi-stage build: Node for building, Nginx for serving.
-    - [ ] Copy `package.json` and `package-lock.json`.
-    - [ ] Install dependencies.
-    - [ ] Build the Vite app.
-    - [ ] Configure Nginx to serve the build artifacts.
-- [ ] **Task: Verify Frontend Container.**
-    - [ ] Build and run the frontend image manually.
+- [x] **Task: Create Frontend Dockerfile. 69a4723**
+    - [x] Create `frontend/Dockerfile`.
+    - [x] Use a multi-stage build: Node for building, Nginx for serving.
+    - [x] Copy `package.json` and `package-lock.json`.
+    - [x] Install dependencies.
+    - [x] Build the Vite app.
+    - [x] Configure Nginx to serve the build artifacts.
+- [x] **Task: Verify Frontend Container. 69a4723**
+    - [x] Build and run the frontend image manually.
 
 ## Phase 3: Orchestration with Docker Compose
 
