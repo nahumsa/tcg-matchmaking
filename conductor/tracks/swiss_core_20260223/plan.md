@@ -3,22 +3,22 @@
 ## Overview
 This plan outlines the steps for building the core Swiss tournament system, including tournament creation with random room codes, player joining, and a basic Swiss pairing engine.
 
-## Phase 1: Core Backend & Data Model
+## Phase 1: Core Backend & Data Model [checkpoint: 6514213]
 
 - [x] **Task: Set up backend project structure and database connection. afacb6a**
     - [x] Initialize FastAPI project with dependencies (PostgreSQL, SQLAlchemy).
-    - [ ] Create a migration script to set up `tournaments`, `participants`, and `matches` tables.
-    - [ ] Write unit tests for database connection and basic CRUD operations.
+    - [x] Create a migration script to set up `tournaments`, `participants`, and `matches` tables.
+    - [x] Write unit tests for database connection and basic CRUD operations.
 - [x] **Task: Implement tournament creation with random room codes. 870ab3d**
     - [x] Define the `Tournament` model with fields for `id`, `name`, `code`, and `rounds`.
-    - [ ] Implement a function to generate a unique 6-character uppercase letter code.
-    - [ ] Create a POST endpoint for creating a tournament and saving it to the database.
-    - [ ] Write unit tests for tournament creation and code uniqueness.
+    - [x] Implement a function to generate a unique 6-character uppercase letter code.
+    - [x] Create a POST endpoint for creating a tournament and saving it to the database.
+    - [x] Write unit tests for tournament creation and code uniqueness.
 - [x] **Task: Implement player joining via room code. 971df4a**
     - [x] Define the `Participant` model with fields for `id`, `tournament_id`, `name`, and `points`.
-    - [ ] Create a POST endpoint for participants to join an existing tournament by code.
-    - [ ] Write unit tests for participant registration and tournament membership validation.
-- [ ] **Task: Conductor - User Manual Verification 'Core Backend & Data Model' (Protocol in workflow.md)**
+    - [x] Create a POST endpoint for participants to join an existing tournament by code.
+    - [x] Write unit tests for participant registration and tournament membership validation.
+- [x] **Task: Conductor - User Manual Verification 'Core Backend & Data Model' (Protocol in workflow.md)**
 
 ## Phase 2: Core Frontend & Tournament Creation
 
