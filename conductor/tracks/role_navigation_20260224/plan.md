@@ -1,6 +1,6 @@
 # Implementation Plan: Frontend Role-Based Navigation
 
-## Phase 1: Global Role Management
+## Phase 1: Global Role Management [checkpoint: a438d05]
 
 - [x] Task: Create `RoleContext` and hook for global role state be5bddd
   - [x] Define `UserRole` type ('ADMIN', 'PLAYER').
@@ -9,7 +9,7 @@
 - [x] Task: Write tests for `RoleProvider` be5bddd
   - [x] Test that initial role is loaded from `localStorage` (if present) or defaults correctly.
   - [x] Test that updating the role persists it to `localStorage`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Global Role Management' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Global Role Management' (Protocol in workflow.md) a438d05
 
 ## Phase 2: Navigation Component
 
