@@ -23,7 +23,7 @@
 - [x] Task: Frontend - Global Navigation Update (5d70ee2)
   - [x] Add "Standings" link to the Navigation Bar.
   - [x] Ensure it links to the current tournament's standings page.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Activity Feed & Standings' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Activity Feed & Standings' (Protocol in workflow.md) (a28f7d9)
 
 ## Phase 3: Conclusion UI & Export
 
@@ -33,4 +33,4 @@
 - [x] Task: Frontend - Export Summary (5d70ee2)
   - [x] Add "Export Results" button to the completed state banner.
   - [x] Implement logic to generate a formatted text summary of standings.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Conclusion UI' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Conclusion UI' (Protocol in workflow.md) (a28f7d9)
