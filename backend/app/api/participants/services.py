@@ -5,6 +5,20 @@ from . import models, schemas
 from backend.app.core.manager import manager
 
 async def join_tournament(db: Session, tournament_id: int, code: str, participant: schemas.ParticipantJoin) -> models.Participant:
+    """Registers a participant in a tournament.
+    
+    Args:
+        db: Database session.
+        tournament_id: ID of the tournament.
+        code: Room code for broadcasting.
+        participant: Join data.
+        
+    Returns:
+        The created participant model.
+        
+    Raises:
+        HTTPException: If name is already taken.
+    """
     # Check if participant with the same name already exists in this tournament
     existing_participant = db.query(models.Participant).filter(
         models.Participant.tournament_id == tournament_id,
@@ -33,6 +47,14 @@ async def join_tournament(db: Session, tournament_id: int, code: str, participan
     return db_participant
 
 async def remove_participant(db: Session, tournament_id: int, code: str, participant_id: int):
+    """Removes a participant from a tournament.
+    
+    Args:
+        db: Database session.
+        tournament_id: ID of the tournament.
+        code: Room code for broadcasting.
+        participant_id: ID of the participant to remove.
+    """
     db_participant = db.query(models.Participant).filter(
         models.Participant.id == participant_id,
         models.Participant.tournament_id == tournament_id
@@ -50,6 +72,16 @@ async def remove_participant(db: Session, tournament_id: int, code: str, partici
     )
 
 def get_potential_pairings(db: Session, tournament_id: int, participant_id: int) -> List[models.Participant]:
+    """Finds unplayed opponents with similar scores for a player.
+    
+    Args:
+        db: Database session.
+        tournament_id: ID of the tournament.
+        participant_id: ID of the current player.
+        
+    Returns:
+        List of potential opponents.
+    """
     # Get all participants in the tournament
     all_participants = db.query(models.Participant).filter(
         models.Participant.tournament_id == tournament_id

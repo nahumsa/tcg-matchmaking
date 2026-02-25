@@ -5,6 +5,15 @@ from backend.app.api.matches.models import Match
 from backend.app.api.participants.schemas import ParticipantResponse
 
 def calculate_standings(db: Session, tournament_id: int) -> List[ParticipantResponse]:
+    """Calculates tournament standings including points and OMW%.
+    
+    Args:
+        db: Database session.
+        tournament_id: ID of the tournament.
+        
+    Returns:
+        List of participants with their current rank and stats.
+    """
     participants = db.query(Participant).filter(Participant.tournament_id == tournament_id).all()
     matches = db.query(Match).filter(Match.tournament_id == tournament_id, Match.is_completed == 1).all()
     
