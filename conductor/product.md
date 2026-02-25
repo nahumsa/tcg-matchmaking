@@ -16,12 +16,15 @@ To provide a simple, robust, and accessible Swiss-system matchmaking platform fo
 - **Automated Swiss Pairings:** Automatically calculate pairings for each round based on Swiss-system rules.
 - **Real-time Updates:** Instantly show new pairings and updated standings to all connected users as results are reported.
 - **Easy Access via Code:** Allow participants to join a tournament quickly using a simple, unique room code.
+- **Role-Based Interface:** Distinct views and specialized tools for Administrators and Participants.
 
 ## Key Features
 - **Tournament Management:** Creation of tournaments, setting round counts, and generating room codes.
 - **Match Result Reporting:** A way for players or admins to submit scores for each round.
 - **Swiss Pairing Engine:** An algorithm that correctly pairs players with similar scores and prevents repeat matches.
+- **Role-Based Navigation:** A persistent role selection system that provides tailored views for different user types.
 
 ## User Experience & UI Style
 - **Minimalist and Focused:** A simple, direct interface that prioritizes pairings and results with minimal distractions.
 - **Real-time Synchronization:** Data will be updated in real-time to ensure all users see the latest pairings and results without manual refreshes.
+- **Intuitive Role Selection:** A dedicated landing page for first-time users to choose their role, with a persistent dropdown for quick switching.
