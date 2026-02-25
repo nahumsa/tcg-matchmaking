@@ -74,4 +74,25 @@ describe('ParticipantJoin', () => {
       expect(screen.getByText(/Tournament not found/i)).toBeInTheDocument();
     });
   });
+
+  it('displays error when name is already taken', async () => {
+    (fetch as any).mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ detail: 'Participant with this name already exists in this tournament' })
+    });
+
+    render(
+      <MemoryRouter>
+        <ParticipantJoin />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByPlaceholderText(/e.g. Ash Ketchum/i), { target: { value: 'Alice' } });
+    fireEvent.change(screen.getByPlaceholderText(/e.g. ABCDEF/i), { target: { value: 'ABCDEF' } });
+    fireEvent.click(screen.getByRole('button', { name: /Join Tournament/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Participant with this name already exists/i)).toBeInTheDocument();
+    });
+  });
 });

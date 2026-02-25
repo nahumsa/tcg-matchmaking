@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import ParticipantList from './ParticipantList';
 
 interface Tournament {
   id: number;
@@ -120,64 +121,74 @@ export default function AdminDashboard() {
     const allCompleted = roundMatches.every(m => m.is_completed);
 
     return (
-      <div className="flex flex-col items-center min-h-screen p-4 sm:p-8 bg-gray-50">
-        <div className="w-full max-w-4xl">
-          <div className="flex justify-between items-end mb-8">
-            <div>
-              <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter mb-2">{tournament.name}</h1>
-              <div className="flex items-center space-x-4">
-                <span className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold tracking-widest uppercase">{tournament.code}</span>
-                <Link to={`/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">Public View ↗</Link>
+      <div className="flex flex-col min-h-screen bg-gray-50">
+        <div className="flex flex-col md:flex-row flex-1 p-4 sm:p-8 space-y-8 md:space-y-0 md:space-x-8">
+          <div className="flex-1 max-w-4xl">
+            <div className="flex justify-between items-end mb-8">
+              <div>
+                <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter mb-2">{tournament.name}</h1>
+                <div className="flex items-center space-x-4">
+                  <span className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold tracking-widest uppercase">{tournament.code}</span>
+                  <Link to={`/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">Public View ↗</Link>
+                </div>
+              </div>
+              <button
+                onClick={generatePairings}
+                disabled={loading || (currentRound > 0 && !allCompleted)}
+                className="py-3 px-6 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              >
+                {currentRound === 0 ? 'Start Round 1' : 'Next Round'}
+              </button>
+            </div>
+
+            {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl">{error}</div>}
+
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-700">Current Round: {currentRound}</h2>
+              <div className="grid gap-4">
+                {roundMatches.length === 0 ? (
+                  <p className="text-gray-400 italic">No matches generated yet. Start the round to begin.</p>
+                ) : (
+                  roundMatches.map(match => (
+                    <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                      <div className="flex-1 font-bold text-lg">Player {match.player1_id}</div>
+
+                      {match.is_bye ? (
+                        <div className="px-8 font-black text-blue-600 uppercase tracking-widest">BYE</div>
+                      ) : match.is_completed ? (
+                        <div className="flex items-center space-x-4 px-8">
+                          <span className="text-2xl font-black">{match.player1_score}</span>
+                          <span className="text-gray-300">-</span>
+                          <span className="text-2xl font-black">{match.player2_score}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-2 px-4">
+                          <input type="number" id={`p1-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
+                          <span className="text-gray-300">-</span>
+                          <input type="number" id={`p2-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
+                          <button
+                            onClick={() => {
+                              const s1 = (document.getElementById(`p1-${match.id}`) as HTMLInputElement).value;
+                              const s2 = (document.getElementById(`p2-${match.id}`) as HTMLInputElement).value;
+                              reportResult(match.id, parseInt(s1), parseInt(s2));
+                            }}
+                            className="ml-4 px-4 py-2 bg-gray-800 text-white text-sm font-bold rounded-lg hover:bg-black transition"
+                          >
+                            Report
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="flex-1 font-bold text-lg text-right">{match.is_bye ? '-' : `Player ${match.player2_id}`}</div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
-            <button
-              onClick={generatePairings}
-              disabled={loading || (currentRound > 0 && !allCompleted)}
-              className="py-3 px-6 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-            >
-              {currentRound === 0 ? 'Start Round 1' : 'Next Round'}
-            </button>
           </div>
-
-          {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl">{error}</div>}
-
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-700">Current Round: {currentRound}</h2>
-            <div className="grid gap-4">
-              {roundMatches.map(match => (
-                <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                  <div className="flex-1 font-bold text-lg">Player {match.player1_id}</div>
-
-                  {match.is_bye ? (
-                    <div className="px-8 font-black text-blue-600 uppercase tracking-widest">BYE</div>
-                  ) : match.is_completed ? (
-                    <div className="flex items-center space-x-4 px-8">
-                      <span className="text-2xl font-black">{match.player1_score}</span>
-                      <span className="text-gray-300">-</span>
-                      <span className="text-2xl font-black">{match.player2_score}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2 px-4">
-                      <input type="number" id={`p1-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
-                      <span className="text-gray-300">-</span>
-                      <input type="number" id={`p2-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
-                      <button
-                        onClick={() => {
-                          const s1 = (document.getElementById(`p1-${match.id}`) as HTMLInputElement).value;
-                          const s2 = (document.getElementById(`p2-${match.id}`) as HTMLInputElement).value;
-                          reportResult(match.id, parseInt(s1), parseInt(s2));
-                        }}
-                        className="ml-4 px-4 py-2 bg-gray-800 text-white text-sm font-bold rounded-lg hover:bg-black transition"
-                      >
-                        Report
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="flex-1 font-bold text-lg text-right">{match.is_bye ? '-' : `Player ${match.player2_id}`}</div>
-                </div>
-              ))}
-            </div>
+          
+          <div className="w-full md:w-80 lg:w-96">
+            <ParticipantList tournamentCode={tournament.code} />
           </div>
         </div>
       </div>
