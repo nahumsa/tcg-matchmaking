@@ -30,3 +30,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Admin player visibility/management and Player standings/potential pairings**
 *Link: [./tracks/player_management_20260225/](./tracks/player_management_20260225/)*
+
+---
+
+- [ ] **Track: Admin Activity Monitoring & Tournament Conclusion**
+*Link: [./tracks/admin_monitoring_20260225/](./tracks/admin_monitoring_20260225/)*
