@@ -27,6 +27,9 @@ export default function ParticipantJoin() {
         throw new Error(errorData.detail || 'Failed to join tournament');
       }
 
+      const data = await response.json();
+      localStorage.setItem(`participant_id_${code.toUpperCase()}`, data.id.toString());
+
       // Redirect to the tournament view for the specific code
       navigate(`/${code.toUpperCase()}`);
     } catch (err: any) {
