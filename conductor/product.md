@@ -20,8 +20,11 @@ To provide a simple, robust, and accessible Swiss-system matchmaking platform fo
 
 ## Key Features
 - **Tournament Management:** Creation of tournaments, setting round counts, and generating room codes.
+- **Participant Management:** Administrators can view all joined players, manually add participants, and remove them.
 - **Match Result Reporting:** A way for players or admins to submit scores for each round.
 - **Swiss Pairing Engine:** An algorithm that correctly pairs players with similar scores and prevents repeat matches.
+- **Detailed Standings & Tie-breakers:** Real-time standings with win/loss/draw records and OMW% (Opponent Match Win percentage) calculations.
+- **Player Insights:** Players can see their own rank, performance record, and potential future opponents.
 - **Role-Based Navigation:** A persistent role selection system that provides tailored views for different user types.
 
 ## User Experience & UI Style
