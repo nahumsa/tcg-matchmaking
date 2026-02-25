@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, renderHook, act } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { RoleProvider, useRole, UserRole } from './RoleContext';
+import { RoleProvider, useRole } from './RoleContext';
 
 describe('RoleContext', () => {
   beforeEach(() => {

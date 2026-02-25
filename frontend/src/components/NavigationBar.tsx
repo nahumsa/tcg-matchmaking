@@ -1,5 +1,5 @@
 import React from 'react';
-import { useRole, UserRole } from '../context/RoleContext';
+import { useRole, type UserRole } from '../context/RoleContext';
 
 const NavigationBar: React.FC = () => {
   const { role, setRole } = useRole();
