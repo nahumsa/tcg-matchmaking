@@ -47,10 +47,11 @@
 
 
 ## Phase 4: Frontend Integration (Player Standings)
+- [x] Task: Frontend - Player Standings & Pairings View (64fb9d3)
+    - [x] Create failing test: Display standings and potential pairings.
+    - [x] Implement `PlayerDashboard` or update `TournamentView` to show standings.
+    - [x] Connect to Backend API for standings and potential pairings.
+    - [x] Verify tests pass.
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Integration (Player Standings)' (Protocol in workflow.md)
 
-- [ ] Task: Frontend - Player Standings & Pairings View
-  - [ ] Create failing test: Display standings and potential pairings.
-  - [ ] Implement `PlayerDashboard` or update `TournamentView` to show standings.
-  - [ ] Connect to Backend API for standings and potential pairings.
-  - [ ] Verify tests pass.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Integration (Player Standings)' (Protocol in workflow.md)
