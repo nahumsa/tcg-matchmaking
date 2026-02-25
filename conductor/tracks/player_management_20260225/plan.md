@@ -1,6 +1,6 @@
 # Implementation Plan: Player Management & Standings
 
-## Phase 1: Backend Foundations (Uniqueness & Admin Actions)
+## Phase 1: Backend Foundations (Uniqueness & Admin Actions) [checkpoint: 048e7b7]
 - [x] Task: Backend - Implement Unique Name Constraint (c4d3e00)
     - [x] Create failing test: Join tournament with existing name.
     - [x] Update service to enforce name uniqueness per tournament.
@@ -16,7 +16,7 @@
     - [x] Implement service method for participant removal.
     - [x] Add endpoint for participant deletion.
     - [x] Verify tests pass.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Backend Foundations' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Backend Foundations' (Protocol in workflow.md) (048e7b7)
 
 ## Phase 2: Standings & Pairing Logic
 - [ ] Task: Backend - Standings Calculation Engine
