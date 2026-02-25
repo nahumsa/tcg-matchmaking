@@ -11,7 +11,7 @@
   - [x] Test that updating the role persists it to `localStorage`.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Global Role Management' (Protocol in workflow.md) a438d05
 
-## Phase 2: Navigation Component
+## Phase 2: Navigation Component [checkpoint: 3fc8d6e]
 
 - [x] Task: Create `NavigationBar` component with role selection dropdown 6d4f618
   - [x] Use TailwindCSS for a modern look.
@@ -20,7 +20,7 @@
 - [x] Task: Write tests for `NavigationBar` 6d4f618
   - [x] Test that the dropdown correctly displays the current role.
   - [x] Test that selecting a new role calls the update function from the context.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Navigation Component' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Navigation Component' (Protocol in workflow.md) 4a90503
 
 ## Phase 3: Route Protection and Integration
 
