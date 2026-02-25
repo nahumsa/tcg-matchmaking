@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from backend.app.core.database import get_db
-from . import schemas, services
+from . import schemas, services, standings
 from backend.app.api.matches.schemas import MatchResponse
 from backend.app.api.matches import models
+from backend.app.api.participants.schemas import ParticipantResponse
 
 router = APIRouter(prefix="/tournaments", tags=["tournaments"])
 
@@ -36,3 +37,12 @@ def get_matches(code: str, db: Session = Depends(get_db)):
         .filter(models.Match.tournament_id == db_tournament.id)
         .all()
     )
+
+
+@router.get("/{code}/standings", response_model=List[ParticipantResponse])
+def get_standings(code: str, db: Session = Depends(get_db)):
+    db_tournament = services.get_tournament_by_code(db, code)
+    if not db_tournament:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+
+    return standings.calculate_standings(db, db_tournament.id)

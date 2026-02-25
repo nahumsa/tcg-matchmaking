@@ -12,3 +12,8 @@ class ParticipantResponse(ParticipantBase):
     id: int
     tournament_id: int
     points: int
+    rank: int = 0
+    wins: int = 0
+    losses: int = 0
+    draws: int = 0
+    omw_percentage: float = 0.0

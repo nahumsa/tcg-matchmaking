@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from typing import List
 from . import models, schemas
 from backend.app.core.manager import manager
 
@@ -47,3 +48,39 @@ async def remove_participant(db: Session, tournament_id: int, code: str, partici
     await manager.broadcast(
         code, {"event": "participant_removed", "data": {"id": participant_id}}
     )
+
+def get_potential_pairings(db: Session, tournament_id: int, participant_id: int) -> List[models.Participant]:
+    # Get all participants in the tournament
+    all_participants = db.query(models.Participant).filter(
+        models.Participant.tournament_id == tournament_id
+    ).all()
+    
+    current_player = next((p for p in all_participants if p.id == participant_id), None)
+    if not current_player:
+        raise HTTPException(status_code=404, detail="Participant not found")
+    
+    # Get past matches of the current player
+    from backend.app.api.matches.models import Match
+    past_matches = db.query(Match).filter(
+        ((Match.player1_id == participant_id) | (Match.player2_id == participant_id)),
+        Match.tournament_id == tournament_id,
+        Match.is_completed == 1
+    ).all()
+    
+    played_opponent_ids = set()
+    for m in past_matches:
+        if m.player1_id == participant_id:
+            if m.player2_id:
+                played_opponent_ids.add(m.player2_id)
+        else:
+            played_opponent_ids.add(m.player1_id)
+            
+    # Potential opponents: not the same player, not played before, similar points
+    potential = [
+        p for p in all_participants 
+        if p.id != participant_id 
+        and p.id not in played_opponent_ids
+        and abs(p.points - current_player.points) <= 3 # Allow small point difference
+    ]
+    
+    return potential

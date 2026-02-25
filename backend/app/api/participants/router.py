@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.app.core.database import get_db
+from typing import List
 from . import schemas, services
 from backend.app.api.tournaments.services import get_tournament_by_code
 
@@ -37,3 +38,13 @@ async def admin_remove_participant(
     
     await services.remove_participant(db, db_tournament.id, code, participant_id)
     return None
+
+@router.get("/{code}/participants/{participant_id}/potential-pairings", response_model=List[schemas.ParticipantResponse])
+async def get_potential_pairings(
+    code: str, participant_id: int, db: Session = Depends(get_db)
+):
+    db_tournament = get_tournament_by_code(db, code)
+    if not db_tournament:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    return services.get_potential_pairings(db, db_tournament.id, participant_id)
