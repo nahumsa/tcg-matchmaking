@@ -40,8 +40,16 @@ async def join_tournament(db: Session, tournament_id: int, code: str, participan
     db.refresh(db_participant)
 
     # Broadcast update
+    from datetime import datetime, timezone
     await manager.broadcast(
-        code, {"event": "participant_joined", "data": {"name": db_participant.name}}
+        code, 
+        {
+            "event": "participant_joined", 
+            "data": {
+                "name": db_participant.name,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        }
     )
 
     return db_participant

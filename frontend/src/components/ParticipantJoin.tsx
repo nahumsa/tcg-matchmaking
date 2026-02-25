@@ -29,6 +29,7 @@ export default function ParticipantJoin() {
 
       const data = await response.json();
       localStorage.setItem(`participant_id_${code.toUpperCase()}`, data.id.toString());
+      localStorage.setItem('last_tournament_code', code.toUpperCase());
 
       // Redirect to the tournament view for the specific code
       navigate(`/${code.toUpperCase()}`);

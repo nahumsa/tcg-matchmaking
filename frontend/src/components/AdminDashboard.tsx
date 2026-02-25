@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ParticipantList from './ParticipantList';
+import ActivityLog, { ActivityEvent } from './ActivityLog';
 
 interface Tournament {
   id: number;
   name: string;
   code: string;
   rounds: number;
+  status: string;
 }
 
 interface Match {
@@ -25,6 +27,7 @@ export default function AdminDashboard() {
   const [rounds, setRounds] = useState(3);
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,8 +37,30 @@ export default function AdminDashboard() {
       const ws = new WebSocket(`ws://localhost:8000/ws/${tournament.code}`);
       ws.onmessage = (event) => {
         const message = JSON.parse(event.data);
+        
+        // Update matches for UI state
         if (message.event === 'participant_joined' || message.event === 'match_reported' || message.event === 'pairings_generated') {
           fetchMatches();
+          fetchTournament(); // Refresh tournament to get new status
+        }
+
+        // Add to activity log
+        if (message.event === 'participant_joined') {
+          const newEvent: ActivityEvent = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: message.event,
+            message: `${message.data.name} joined the tournament.`,
+            timestamp: message.data.timestamp || new Date().toISOString()
+          };
+          setEvents(prev => [...prev, newEvent]);
+        } else if (message.event === 'match_reported') {
+          const newEvent: ActivityEvent = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: message.event,
+            message: `Match results reported.`,
+            timestamp: new Date().toISOString()
+          };
+          setEvents(prev => [...prev, newEvent]);
         }
       };
       return () => ws.close();
@@ -52,6 +77,19 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       console.error('Failed to fetch matches', err);
+    }
+  };
+
+  const fetchTournament = async () => {
+    if (!tournament) return;
+    try {
+      const response = await fetch(`http://localhost:8000/tournaments/${tournament.code}`);
+      if (response.ok) {
+        const data = await response.json();
+        setTournament(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch tournament', err);
     }
   };
 
@@ -75,6 +113,7 @@ export default function AdminDashboard() {
 
       const data = await response.json();
       setTournament(data);
+      localStorage.setItem('last_tournament_code', data.code);
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
     } finally {
@@ -119,6 +158,29 @@ export default function AdminDashboard() {
     const currentRound = matches.length > 0 ? Math.max(...matches.map(m => m.round_number)) : 0;
     const roundMatches = matches.filter(m => m.round_number === currentRound);
     const allCompleted = roundMatches.every(m => m.is_completed);
+    const isTournamentFinished = tournament.status === 'COMPLETED';
+
+    const handleExport = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/tournaments/${tournament.code}/standings`);
+        if (response.ok) {
+          const standings = await response.json();
+          const summary = standings.map((s: any) => 
+            `${s.rank}. ${s.name} (${s.points} pts, ${s.wins}-${s.losses}-${s.draws})`
+          ).join('\n');
+          
+          const blob = new Blob([summary], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `standings_${tournament.code}.txt`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      } catch (err) {
+        console.error('Failed to export standings', err);
+      }
+    };
 
     return (
       <div className="flex flex-col min-h-screen bg-gray-50">
@@ -134,12 +196,32 @@ export default function AdminDashboard() {
               </div>
               <button
                 onClick={generatePairings}
-                disabled={loading || (currentRound > 0 && !allCompleted)}
+                disabled={loading || (currentRound > 0 && !allCompleted) || isTournamentFinished}
                 className="py-3 px-6 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
                 {currentRound === 0 ? 'Start Round 1' : 'Next Round'}
               </button>
             </div>
+
+            {isTournamentFinished && (
+              <div className="mb-8 p-6 bg-green-600 rounded-2xl text-white shadow-xl shadow-green-100 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-black uppercase tracking-tight">Tournament Completed</h2>
+                  <p className="text-green-100 font-medium">All rounds have been played and results are finalized.</p>
+                </div>
+                <div className="flex space-x-4">
+                  <button 
+                    onClick={handleExport}
+                    className="px-6 py-2 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 transition"
+                  >
+                    Export Results
+                  </button>
+                  <Link to={`/${tournament.code}`} className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-50 transition">
+                    View Final Standings
+                  </Link>
+                </div>
+              </div>
+            )}
 
             {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl">{error}</div>}
 
@@ -155,7 +237,7 @@ export default function AdminDashboard() {
 
                       {match.is_bye ? (
                         <div className="px-8 font-black text-blue-600 uppercase tracking-widest">BYE</div>
-                      ) : match.is_completed ? (
+                      ) : (match.is_completed || isTournamentFinished) ? (
                         <div className="flex items-center space-x-4 px-8">
                           <span className="text-2xl font-black">{match.player1_score}</span>
                           <span className="text-gray-300">-</span>
@@ -187,8 +269,9 @@ export default function AdminDashboard() {
             </div>
           </div>
           
-          <div className="w-full md:w-80 lg:w-96">
+          <div className="w-full md:w-80 lg:w-96 space-y-8">
             <ParticipantList tournamentCode={tournament.code} />
+            <ActivityLog events={events} />
           </div>
         </div>
       </div>

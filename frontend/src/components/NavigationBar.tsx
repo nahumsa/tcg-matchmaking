@@ -1,8 +1,10 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useRole, type UserRole } from '../context/RoleContext';
 
 const NavigationBar: React.FC = () => {
   const { role, setRole } = useRole();
+  const lastCode = localStorage.getItem('last_tournament_code');
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setRole(e.target.value as UserRole);
@@ -10,8 +12,17 @@ const NavigationBar: React.FC = () => {
 
   return (
     <nav className="bg-indigo-600 text-white shadow-md p-4 flex justify-between items-center">
-      <div className="flex items-center space-x-4">
-        <h1 className="text-xl font-bold">TCG Matchmaking</h1>
+      <div className="flex items-center space-x-6">
+        <Link to="/" className="text-xl font-bold hover:text-indigo-100 transition">TCG Matchmaking</Link>
+        
+        <div className="hidden sm:flex items-center space-x-4 border-l border-indigo-500 pl-6">
+          {role === 'ADMIN' && (
+            <Link to="/admin" className="text-sm font-medium hover:text-indigo-100 transition">Dashboard</Link>
+          )}
+          {lastCode && (
+            <Link to={`/${lastCode}`} className="text-sm font-medium hover:text-indigo-100 transition">Standings</Link>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center space-x-4">

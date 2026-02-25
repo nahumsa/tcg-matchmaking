@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { RoleProvider } from '../context/RoleContext';
 import NavigationBar from './NavigationBar';
 
@@ -10,9 +11,11 @@ describe('NavigationBar', () => {
 
   it('renders correctly with default (null) role', () => {
     render(
-      <RoleProvider>
-        <NavigationBar />
-      </RoleProvider>
+      <MemoryRouter>
+        <RoleProvider>
+          <NavigationBar />
+        </RoleProvider>
+      </MemoryRouter>
     );
     expect(screen.getByText(/TCG Matchmaking/i)).toBeInTheDocument();
     expect(screen.getByText(/Role: NOT SET/i)).toBeInTheDocument();
@@ -20,9 +23,11 @@ describe('NavigationBar', () => {
 
   it('allows switching role to ADMIN', () => {
     render(
-      <RoleProvider>
-        <NavigationBar />
-      </RoleProvider>
+      <MemoryRouter>
+        <RoleProvider>
+          <NavigationBar />
+        </RoleProvider>
+      </MemoryRouter>
     );
 
     const dropdown = screen.getByRole('combobox');
@@ -35,9 +40,11 @@ describe('NavigationBar', () => {
   it('allows switching role back to PLAYER', () => {
     localStorage.setItem('tcg_user_role', 'ADMIN');
     render(
-      <RoleProvider>
-        <NavigationBar />
-      </RoleProvider>
+      <MemoryRouter>
+        <RoleProvider>
+          <NavigationBar />
+        </RoleProvider>
+      </MemoryRouter>
     );
 
     expect(screen.getByText(/Role: ADMIN/i)).toBeInTheDocument();

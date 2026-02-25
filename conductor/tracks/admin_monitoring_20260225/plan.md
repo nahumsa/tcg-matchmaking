@@ -15,7 +15,7 @@
 
 ## Phase 2: Activity Feed & Standings Access
 
-- [ ] Task: Backend - Enhanced Join Notification
+- [~] Task: Backend - Enhanced Join Notification
   - [ ] Update join service to broadcast a richer "participant_joined" event including a timestamp.
 - [ ] Task: Frontend - Admin Activity Log Component
   - [ ] Implement `ActivityLog` component to display a scrollable list of events from WebSockets.
