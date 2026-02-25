@@ -8,9 +8,13 @@ from alembic import context
 # Import your models and database configuration
 import sys
 import os
-sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), '..')))
+
+sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), "..")))
 from backend.app.core.database import Base
 from backend.app.core.config import settings
+from backend.app.api.tournaments.models import Tournament
+from backend.app.api.participants.models import Participant
+from backend.app.api.matches.models import Match
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -68,7 +72,7 @@ def run_migrations_online() -> None:
     if configuration is None:
         configuration = {}
     configuration["sqlalchemy.url"] = settings.DATABASE_URL
-    
+
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",
@@ -76,9 +80,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

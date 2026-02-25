@@ -57,9 +57,11 @@ The easiest way to run the entire stack (Backend, Frontend, and PostgreSQL) is u
 
 1. Ensure you have Docker and Docker Compose installed.
 2. Run the following command from the project root:
+
    ```bash
    docker compose up -d
    ```
+
 3. Access the application:
    - **Frontend:** [http://localhost:8080](http://localhost:8080)
    - **Backend API:** [http://localhost:8000](http://localhost:8000)
@@ -70,13 +72,15 @@ The easiest way to run the entire stack (Backend, Frontend, and PostgreSQL) is u
 ### Backend
 
 Run tests with coverage:
+
 ```bash
-PYTHONPATH=. uv --project backend run pytest --cov=backend/app backend/tests/
+uv --project backend run pytest --cov=backend/app backend/tests/
 ```
 
 ### Frontend
 
 Run Vitest tests:
+
 ```bash
 cd frontend
 npm test
