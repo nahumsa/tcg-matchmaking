@@ -1,6 +1,6 @@
 # Implementation Plan: Admin Activity Monitoring & Tournament Conclusion
 
-## Phase 1: Backend Lifecycle & State Management
+## Phase 1: Backend Lifecycle & State Management [checkpoint: 7255772]
 
 - [x] Task: Backend - Update Tournament Model (25b31d0)
   - [x] Add `status` field to `Tournament` model (Enum: `ACTIVE`, `COMPLETED`).
@@ -11,7 +11,7 @@
 - [x] Task: Backend - Data Freeze Enforcement (25b31d0)
   - [x] Update "Join", "Report Match", and "Generate Pairings" endpoints to block requests if the tournament is `COMPLETED`.
   - [x] Verify with unit tests.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Backend Lifecycle' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Backend Lifecycle' (Protocol in workflow.md) (7255772)
 
 ## Phase 2: Activity Feed & Standings Access
 
