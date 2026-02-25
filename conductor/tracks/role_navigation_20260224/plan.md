@@ -22,7 +22,7 @@
   - [x] Test that selecting a new role calls the update function from the context.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Navigation Component' (Protocol in workflow.md) 4a90503
 
-## Phase 3: Route Protection and Integration
+## Phase 3: Route Protection and Integration [checkpoint: 1d2b0e4]
 
 - [x] Task: Update `App.tsx` to include `RoleProvider` and `NavigationBar` a99bc4f
   - [x] Wrap the application with `RoleProvider`.
@@ -33,10 +33,12 @@
   - [x] Wrap `/admin` with a check for 'ADMIN' role.
   - [x] Wrap `/join` and `/:code` with a check for 'PLAYER' role.
 - [x] Task: Write integration tests for route protection a99bc4f
-  - [x] Test that navigating to `/admin` redirects if role is 'PLAYER'.
-  - [x] Test that navigating to `/join` redirects if role is 'ADMIN'.- [x] Task: Create `LandingPage` component for role selection at `/` ec2272c
+    - [x] Test that navigating to `/admin` redirects if role is 'PLAYER'.
+    - [x] Test that navigating to `/join` redirects if role is 'ADMIN'.
+- [x] Task: Create `LandingPage` component for role selection at `/` ec2272c
     - [x] Create a visually appealing landing page with large role buttons.
     - [x] If a role is already set, redirect automatically (Smart Redirect).
 - [x] Task: Update `App.tsx` and integration tests for `LandingPage` ec2272c
     - [x] Replace `/` redirect with `LandingPage` component.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Route Protection and Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Route Protection and Integration' (Protocol in workflow.md) 1d2b0e4
+
