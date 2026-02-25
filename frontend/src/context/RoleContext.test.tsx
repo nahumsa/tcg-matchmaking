@@ -3,24 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { RoleProvider, useRole, UserRole } from './RoleContext';
 
 describe('RoleContext', () => {
-  const localStorageMock = (function() {
-    let store: Record<string, string> = {};
-    return {
-      getItem: (key: string) => store[key] || null,
-      setItem: (key: string, value: string) => {
-        store[key] = value.toString();
-      },
-      clear: () => {
-        store = {};
-      },
-      removeItem: (key: string) => {
-        delete store[key];
-      }
-    };
-  })();
-
   beforeEach(() => {
-    vi.stubGlobal('localStorage', localStorageMock);
     localStorage.clear();
     vi.clearAllMocks();
   });
