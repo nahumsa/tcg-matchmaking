@@ -15,22 +15,22 @@
 
 ## Phase 2: Activity Feed & Standings Access
 
-- [~] Task: Backend - Enhanced Join Notification
-  - [ ] Update join service to broadcast a richer "participant_joined" event including a timestamp.
-- [ ] Task: Frontend - Admin Activity Log Component
-  - [ ] Implement `ActivityLog` component to display a scrollable list of events from WebSockets.
-  - [ ] Integrate component into the Admin Dashboard.
-- [ ] Task: Frontend - Global Navigation Update
-  - [ ] Add "Standings" link to the Navigation Bar.
-  - [ ] Ensure it links to the current tournament's standings page.
+- [x] Task: Backend - Enhanced Join Notification (5d70ee2)
+  - [x] Update join service to broadcast a richer "participant_joined" event including a timestamp.
+- [x] Task: Frontend - Admin Activity Log Component (5d70ee2)
+  - [x] Implement `ActivityLog` component to display a scrollable list of events from WebSockets.
+  - [x] Integrate component into the Admin Dashboard.
+- [x] Task: Frontend - Global Navigation Update (5d70ee2)
+  - [x] Add "Standings" link to the Navigation Bar.
+  - [x] Ensure it links to the current tournament's standings page.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Activity Feed & Standings' (Protocol in workflow.md)
 
 ## Phase 3: Conclusion UI & Export
 
-- [ ] Task: Frontend - Completion UI
-  - [ ] Implement the "Tournament Completed" banner.
-  - [ ] Update dashboard buttons (Pairing, Reporting) to be disabled/hidden if status is `COMPLETED`.
-- [ ] Task: Frontend - Export Summary
-  - [ ] Add "Export Results" button to the completed state banner.
-  - [ ] Implement logic to generate a formatted text summary of standings.
+- [x] Task: Frontend - Completion UI (5d70ee2)
+  - [x] Implement the "Tournament Completed" banner.
+  - [x] Update dashboard buttons (Pairing, Reporting) to be disabled/hidden if status is `COMPLETED`.
+- [x] Task: Frontend - Export Summary (5d70ee2)
+  - [x] Add "Export Results" button to the completed state banner.
+  - [x] Implement logic to generate a formatted text summary of standings.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Conclusion UI' (Protocol in workflow.md)
