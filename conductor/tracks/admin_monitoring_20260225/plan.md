@@ -2,15 +2,15 @@
 
 ## Phase 1: Backend Lifecycle & State Management
 
-- [~] Task: Backend - Update Tournament Model
-  - [ ] Add `status` field to `Tournament` model (Enum: `ACTIVE`, `COMPLETED`).
-  - [ ] Create and run Alembic migration.
-- [ ] Task: Backend - Implementation of Completion Logic
-  - [ ] Update match reporting service to check if the last match of the final round is being submitted.
-  - [ ] Automatically set tournament status to `COMPLETED` when criteria are met.
-- [ ] Task: Backend - Data Freeze Enforcement
-  - [ ] Update "Join", "Report Match", and "Generate Pairings" endpoints to block requests if the tournament is `COMPLETED`.
-  - [ ] Verify with unit tests.
+- [x] Task: Backend - Update Tournament Model (25b31d0)
+  - [x] Add `status` field to `Tournament` model (Enum: `ACTIVE`, `COMPLETED`).
+  - [x] Create and run Alembic migration.
+- [x] Task: Backend - Implementation of Completion Logic (25b31d0)
+  - [x] Update match reporting service to check if the last match of the final round is being submitted.
+  - [x] Automatically set tournament status to `COMPLETED` when criteria are met.
+- [x] Task: Backend - Data Freeze Enforcement (25b31d0)
+  - [x] Update "Join", "Report Match", and "Generate Pairings" endpoints to block requests if the tournament is `COMPLETED`.
+  - [x] Verify with unit tests.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Backend Lifecycle' (Protocol in workflow.md)
 
 ## Phase 2: Activity Feed & Standings Access
