@@ -13,13 +13,13 @@
 
 ## Phase 2: Navigation Component
 
-- [ ] Task: Create `NavigationBar` component with role selection dropdown
-  - [ ] Use TailwindCSS for a modern look.
-  - [ ] Add a dropdown to select between 'Administrator' and 'Player'.
-  - [ ] Connect the dropdown to the `useRole` hook.
-- [ ] Task: Write tests for `NavigationBar`
-  - [ ] Test that the dropdown correctly displays the current role.
-  - [ ] Test that selecting a new role calls the update function from the context.
+- [x] Task: Create `NavigationBar` component with role selection dropdown 6d4f618
+  - [x] Use TailwindCSS for a modern look.
+  - [x] Add a dropdown to select between 'Administrator' and 'Player'.
+  - [x] Connect the dropdown to the `useRole` hook.
+- [x] Task: Write tests for `NavigationBar` 6d4f618
+  - [x] Test that the dropdown correctly displays the current role.
+  - [x] Test that selecting a new role calls the update function from the context.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Navigation Component' (Protocol in workflow.md)
 
 ## Phase 3: Route Protection and Integration
