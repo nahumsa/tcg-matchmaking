@@ -79,6 +79,20 @@ async def remove_participant(db: Session, tournament_id: int, code: str, partici
         code, {"event": "participant_removed", "data": {"id": participant_id}}
     )
 
+def get_participants(db: Session, tournament_id: int) -> List[models.Participant]:
+    """Returns all participants in a tournament.
+    
+    Args:
+        db: Database session.
+        tournament_id: ID of the tournament.
+        
+    Returns:
+        List of participant models.
+    """
+    return db.query(models.Participant).filter(
+        models.Participant.tournament_id == tournament_id
+    ).all()
+
 def get_potential_pairings(db: Session, tournament_id: int, participant_id: int) -> List[models.Participant]:
     """Finds unplayed opponents with similar scores for a player.
     
