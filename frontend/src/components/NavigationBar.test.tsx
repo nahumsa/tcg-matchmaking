@@ -8,14 +8,14 @@ describe('NavigationBar', () => {
     localStorage.clear();
   });
 
-  it('renders correctly with default role', () => {
+  it('renders correctly with default (null) role', () => {
     render(
       <RoleProvider>
         <NavigationBar />
       </RoleProvider>
     );
     expect(screen.getByText(/TCG Matchmaking/i)).toBeInTheDocument();
-    expect(screen.getByText(/Role: PLAYER/i)).toBeInTheDocument();
+    expect(screen.getByText(/Role: NOT SET/i)).toBeInTheDocument();
   });
 
   it('allows switching role to ADMIN', () => {

@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 export type UserRole = 'ADMIN' | 'PLAYER';
 
 interface RoleContextType {
-  role: UserRole;
+  role: UserRole | null;
   setRole: (role: UserRole) => void;
 }
 
@@ -12,9 +12,9 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 const ROLE_STORAGE_KEY = 'tcg_user_role';
 
 export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [role, setRoleState] = useState<UserRole>(() => {
+  const [role, setRoleState] = useState<UserRole | null>(() => {
     const savedRole = localStorage.getItem(ROLE_STORAGE_KEY);
-    return (savedRole as UserRole) || 'PLAYER';
+    return (savedRole as UserRole) || null;
   });
 
   const setRole = (newRole: UserRole) => {

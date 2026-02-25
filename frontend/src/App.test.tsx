@@ -7,19 +7,19 @@ describe('App Integration', () => {
     localStorage.clear();
   });
 
-  it('renders NavigationBar and the current role', () => {
+  it('renders NavigationBar and the LandingPage if no role is set', () => {
     render(<App />);
-    expect(screen.getByText(/TCG Matchmaking/i)).toBeInTheDocument();
-    expect(screen.getByText(/Role: PLAYER/i)).toBeInTheDocument();
+    expect(screen.getByText(/Welcome to TCG Matchmaking/i)).toBeInTheDocument();
+    expect(screen.getByText(/Role: NOT SET/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Administrator/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Player/i })).toBeInTheDocument();
   });
 
-  it('redirects from /admin to /join if role is PLAYER', () => {
-    // Initial role is PLAYER by default
+  it('redirects from /admin to / if role is null', () => {
     window.history.pushState({}, 'Test page', '/admin');
     render(<App />);
     
-    // Should be redirected to /join (ParticipantJoin component)
-    expect(screen.getByRole('heading', { name: /Join Tournament/i })).toBeInTheDocument();
+    expect(screen.getByText(/Welcome to TCG Matchmaking/i)).toBeInTheDocument();
     expect(screen.queryByText(/Admin Dashboard/i)).not.toBeInTheDocument();
   });
 

@@ -11,6 +11,10 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRole, redirectTo }) => {
   const { role } = useRole();
 
+  if (role === null) {
+    return <Navigate to="/" replace />;
+  }
+
   if (role !== allowedRole) {
     return <Navigate to={redirectTo} replace />;
   }

@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import AdminDashboard from './components/AdminDashboard';
 import ParticipantJoin from './components/ParticipantJoin';
 import TournamentView from './components/TournamentView';
+import LandingPage from './components/LandingPage';
 import { RoleProvider } from './context/RoleContext';
 import NavigationBar from './components/NavigationBar';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -13,6 +14,7 @@ function App() {
         <div className="min-h-screen bg-gray-50">
           <NavigationBar />
           <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route 
               path="/admin" 
               element={
@@ -37,12 +39,10 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            <Route path="/" element={<Navigate to="/join" replace />} />
           </Routes>
         </div>
       </Router>
     </RoleProvider>
   );
 }
-
 export default App;

@@ -8,14 +8,14 @@ describe('RoleContext', () => {
     vi.clearAllMocks();
   });
 
-  it('provides the default role as PLAYER', () => {
+  it('provides the default role as null if nothing is in localStorage', () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <RoleProvider>{children}</RoleProvider>
     );
 
     const { result } = renderHook(() => useRole(), { wrapper });
 
-    expect(result.current.role).toBe('PLAYER');
+    expect(result.current.role).toBe(null);
   });
 
   it('loads initial role from localStorage if present', () => {
