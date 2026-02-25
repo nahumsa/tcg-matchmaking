@@ -46,12 +46,12 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Frontend Integration (Admin Dashboard)' (Protocol in workflow.md) (844ec34)
 
 
-## Phase 4: Frontend Integration (Player Standings)
+## Phase 4: Frontend Integration (Player Standings) [checkpoint: c4da866]
 - [x] Task: Frontend - Player Standings & Pairings View (64fb9d3)
     - [x] Create failing test: Display standings and potential pairings.
     - [x] Implement `PlayerDashboard` or update `TournamentView` to show standings.
     - [x] Connect to Backend API for standings and potential pairings.
     - [x] Verify tests pass.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Integration (Player Standings)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Frontend Integration (Player Standings)' (Protocol in workflow.md) (c4da866)
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Integration (Player Standings)' (Protocol in workflow.md)
