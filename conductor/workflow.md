@@ -70,6 +70,7 @@ All tasks follow a strict lifecycle:
 1. **Commit Plan Update:**
     - **Action:** Stage the modified `plan.md` file.
     - **Action:** Commit this change with a descriptive message (e.g., `conductor(plan): Mark task 'Create user model' as complete`).
+    - **Action:** Create github pull request using the github cli (gh) with all changes and a description of what was implemented
 
 ### Phase Completion Verification and Checkpointing Protocol
 

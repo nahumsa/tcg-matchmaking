@@ -66,7 +66,7 @@ export default function TournamentView() {
         const data = await matchesRes.json();
         setMatches(data);
       }
-      
+
       if (standingsRes.ok) {
         const data = await standingsRes.json();
         setStandings(data);
@@ -97,7 +97,7 @@ export default function TournamentView() {
         <h1 className="text-3xl font-black text-gray-800 uppercase tracking-tighter">
           Tournament <span className="text-blue-600">#{code}</span>
         </h1>
-        
+
         <div className="flex bg-gray-100 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab('pairings')}
@@ -126,7 +126,7 @@ export default function TournamentView() {
               <div className="text-3xl font-black">#{myStanding.rank}</div>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-blue-500">
             <div>
               <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">Points</div>

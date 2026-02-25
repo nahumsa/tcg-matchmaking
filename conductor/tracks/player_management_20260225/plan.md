@@ -56,4 +56,5 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Frontend Integration (Player Standings)' (Protocol in workflow.md) (c4da866)
 
 ## Phase: Review Fixes
+
 - [x] Task: Apply review suggestions (d2ed961)

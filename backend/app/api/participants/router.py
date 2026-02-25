@@ -16,6 +16,9 @@ async def join_tournament(
     if not db_tournament:
         raise HTTPException(status_code=404, detail="Tournament not found")
 
+    if db_tournament.status == "COMPLETED":
+        raise HTTPException(status_code=400, detail="Tournament is already completed")
+
     return await services.join_tournament(db, db_tournament.id, code, participant)
 
 @router.post("/{code}/participants", response_model=schemas.ParticipantResponse, status_code=201)
@@ -26,6 +29,9 @@ async def admin_add_participant(
     if not db_tournament:
         raise HTTPException(status_code=404, detail="Tournament not found")
     
+    if db_tournament.status == "COMPLETED":
+        raise HTTPException(status_code=400, detail="Tournament is already completed")
+
     return await services.join_tournament(db, db_tournament.id, code, participant)
 
 @router.delete("/{code}/participants/{participant_id}", status_code=204)

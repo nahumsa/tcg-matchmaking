@@ -13,3 +13,4 @@ class TournamentResponse(TournamentBase):
     
     id: int
     code: str
+    status: str

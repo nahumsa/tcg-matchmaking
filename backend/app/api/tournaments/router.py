@@ -17,6 +17,14 @@ def create_tournament(
     return services.create_tournament(db, tournament)
 
 
+@router.get("/{code}", response_model=schemas.TournamentResponse)
+def get_tournament(code: str, db: Session = Depends(get_db)):
+    db_tournament = services.get_tournament_by_code(db, code)
+    if not db_tournament:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    return db_tournament
+
+
 # The join endpoint will go to participants router,
 # but for now, I'll keep the ones that are explicitly under /tournaments in main.py
 # or move them here if they are mostly tournament-focused.

@@ -5,15 +5,14 @@ from backend.app.core.manager import manager
 from backend.app.api.tournaments.models import Tournament
 from backend.app.api.participants.models import Participant
 
+
 async def generate_pairings(db: Session, tournament: Tournament) -> List[models.Match]:
     # Get all participants
     participants = tournament.participants
-    
+
     # Get past matches
     past_matches = (
-        db.query(models.Match)
-        .filter(models.Match.tournament_id == tournament.id)
-        .all()
+        db.query(models.Match).filter(models.Match.tournament_id == tournament.id).all()
     )
 
     # Determine next round number
@@ -45,13 +44,18 @@ async def generate_pairings(db: Session, tournament: Tournament) -> List[models.
     db.commit()
 
     # Broadcast update
-    await manager.broadcast(tournament.code, {"event": "pairings_generated", "round": round_number})
+    await manager.broadcast(
+        tournament.code, {"event": "pairings_generated", "round": round_number}
+    )
 
     for m in db_matches:
         db.refresh(m)
     return db_matches
 
-async def report_match(db: Session, match_id: int, update: schemas.MatchUpdate) -> models.Match:
+
+async def report_match(
+    db: Session, match_id: int, update: schemas.MatchUpdate
+) -> models.Match:
     db_match = db.query(models.Match).filter(models.Match.id == match_id).first()
     if not db_match:
         return None
@@ -76,11 +80,32 @@ async def report_match(db: Session, match_id: int, update: schemas.MatchUpdate) 
     db.commit()
 
     # Find tournament code for broadcasting
-    tournament = db.query(Tournament).filter(Tournament.id == db_match.tournament_id).first()
-    await manager.broadcast(tournament.code, {"event": "match_reported", "match_id": match_id})
+    tournament = (
+        db.query(Tournament).filter(Tournament.id == db_match.tournament_id).first()
+    )
+
+    # Check if tournament should be completed
+    if db_match.round_number == tournament.rounds:
+        # Check if all matches in this round are completed
+        all_round_matches = (
+            db.query(models.Match)
+            .filter(
+                models.Match.tournament_id == tournament.id,
+                models.Match.round_number == db_match.round_number,
+            )
+            .all()
+        )
+        if all(m.is_completed for m in all_round_matches):
+            tournament.status = "COMPLETED"
+            db.commit()
+
+    await manager.broadcast(
+        tournament.code, {"event": "match_reported", "match_id": match_id}
+    )
 
     db.refresh(db_match)
     return db_match
 
+
 def get_tournament_matches(db: Session, tournament_id: int) -> List[models.Match]:
-    return db.query(models.Match).filter(models.Match.tournament_id == tournament_id).all()
+    return db.query(models.Match).filter(models.Match.tournament_id == tournament_id)
