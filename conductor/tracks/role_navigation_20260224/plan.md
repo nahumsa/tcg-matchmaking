@@ -6,9 +6,9 @@
   - [x] Define `UserRole` type ('ADMIN', 'PLAYER').
   - [x] Implement `RoleProvider` with state management and persistence (localStorage).
   - [x] Create `useRole` hook for accessing role and update function.
-- [ ] Task: Write tests for `RoleProvider`
-  - [ ] Test that initial role is loaded from `localStorage` (if present) or defaults correctly.
-  - [ ] Test that updating the role persists it to `localStorage`.
+- [x] Task: Write tests for `RoleProvider` be5bddd
+  - [x] Test that initial role is loaded from `localStorage` (if present) or defaults correctly.
+  - [x] Test that updating the role persists it to `localStorage`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Global Role Management' (Protocol in workflow.md)
 
 ## Phase 2: Navigation Component
