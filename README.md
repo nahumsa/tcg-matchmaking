@@ -2,6 +2,8 @@
 
 A robust and accessible Swiss-system matchmaking platform for tournament organizers and participants.
 
+**This project is an attempt to use AI Coding and learn from it.**
+
 ## Tech Stack
 
 - **Backend:** Python (FastAPI), PostgreSQL, SQLAlchemy, Alembic, WebSockets.
