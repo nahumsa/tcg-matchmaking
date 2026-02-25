@@ -16,3 +16,24 @@ async def join_tournament(
         raise HTTPException(status_code=404, detail="Tournament not found")
 
     return await services.join_tournament(db, db_tournament.id, code, participant)
+
+@router.post("/{code}/participants", response_model=schemas.ParticipantResponse, status_code=201)
+async def admin_add_participant(
+    code: str, participant: schemas.ParticipantJoin, db: Session = Depends(get_db)
+):
+    db_tournament = get_tournament_by_code(db, code)
+    if not db_tournament:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    return await services.join_tournament(db, db_tournament.id, code, participant)
+
+@router.delete("/{code}/participants/{participant_id}", status_code=204)
+async def admin_remove_participant(
+    code: str, participant_id: int, db: Session = Depends(get_db)
+):
+    db_tournament = get_tournament_by_code(db, code)
+    if not db_tournament:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    await services.remove_participant(db, db_tournament.id, code, participant_id)
+    return None
