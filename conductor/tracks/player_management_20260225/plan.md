@@ -32,15 +32,15 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Standings & Pairing Logic' (Protocol in workflow.md) (d08ac3b)
 
 ## Phase 3: Frontend Integration (Admin Dashboard)
-- [ ] Task: Frontend - Admin Participant List Component
-    - [ ] Create failing test: Component renders list of participants.
-    - [ ] Implement `ParticipantList` component for the Admin Dashboard.
-    - [ ] Connect component to Backend API (fetch, manual add, remove).
-    - [ ] Verify tests pass.
-- [ ] Task: Frontend - Error Handling for Duplicate Names
-    - [ ] Create failing test: Show error message when join fails due to duplicate name.
-    - [ ] Update `ParticipantJoin` component to handle 400 errors.
-    - [ ] Verify tests pass.
+- [x] Task: Frontend - Admin Participant List Component (cfeb07d)
+    - [x] Create failing test: Component renders list of participants.
+    - [x] Implement `ParticipantList` component for the Admin Dashboard.
+    - [x] Connect component to Backend API (fetch, manual add, remove).
+    - [x] Verify tests pass.
+- [x] Task: Frontend - Error Handling for Duplicate Names (cfeb07d)
+    - [x] Create failing test: Show error message when join fails due to duplicate name.
+    - [x] Update `ParticipantJoin` component to handle 400 errors.
+    - [x] Verify tests pass.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Integration (Admin Dashboard)' (Protocol in workflow.md)
 
 ## Phase 4: Frontend Integration (Player Standings)
