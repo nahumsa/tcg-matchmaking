@@ -24,15 +24,14 @@
 
 ## Phase 3: Route Protection and Integration
 
-- [ ] Task: Update `App.tsx` to include `RoleProvider` and `NavigationBar`
-  - [ ] Wrap the application with `RoleProvider`.
-  - [ ] Place `NavigationBar` at the top of the main layout.
-- [ ] Task: Implement `ProtectedRoute` component for role-based access
-  - [ ] Component that redirects based on the active role and the target path.
-- [ ] Task: Secure existing routes in `App.tsx`
-  - [ ] Wrap `/admin` with a check for 'ADMIN' role.
-  - [ ] Wrap `/join` and `/:code` with a check for 'PLAYER' role.
-- [ ] Task: Write integration tests for route protection
-  - [ ] Test that navigating to `/admin` redirects if role is 'PLAYER'.
-  - [ ] Test that navigating to `/join` redirects if role is 'ADMIN'.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Route Protection and Integration' (Protocol in workflow.md)
+- [x] Task: Update `App.tsx` to include `RoleProvider` and `NavigationBar` a99bc4f
+    - [x] Wrap the application with `RoleProvider`.
+    - [x] Place `NavigationBar` at the top of the main layout.
+- [x] Task: Implement `ProtectedRoute` component for role-based access a99bc4f
+    - [x] Component that redirects based on the active role and the target path.
+- [x] Task: Secure existing routes in `App.tsx` a99bc4f
+    - [x] Wrap `/admin` with a check for 'ADMIN' role.
+    - [x] Wrap `/join` and `/:code` with a check for 'PLAYER' role.
+- [x] Task: Write integration tests for route protection a99bc4f
+    - [x] Test that navigating to `/admin` redirects if role is 'PLAYER'.
+    - [x] Test that navigating to `/join` redirects if role is 'ADMIN'.- [ ] Task: Conductor - User Manual Verification 'Phase 3: Route Protection and Integration' (Protocol in workflow.md)
