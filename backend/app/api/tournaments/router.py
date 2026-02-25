@@ -8,17 +8,22 @@ from backend.app.api.matches import models
 
 router = APIRouter(prefix="/tournaments", tags=["tournaments"])
 
+
 @router.post("", response_model=schemas.TournamentResponse)
-def create_tournament(tournament: schemas.TournamentCreate, db: Session = Depends(get_db)):
+def create_tournament(
+    tournament: schemas.TournamentCreate, db: Session = Depends(get_db)
+):
     return services.create_tournament(db, tournament)
 
-# The join endpoint will go to participants router, 
-# but for now, I'll keep the ones that are explicitly under /tournaments in main.py 
+
+# The join endpoint will go to participants router,
+# but for now, I'll keep the ones that are explicitly under /tournaments in main.py
 # or move them here if they are mostly tournament-focused.
 
 # The plan says "Move tournament endpoints to backend/app/api/tournaments/router.py".
-# I'll move everything that starts with /tournaments for now, 
+# I'll move everything that starts with /tournaments for now,
 # and then refactor them into sub-routers in Phase 2.
+
 
 @router.get("/{code}/matches", response_model=List[MatchResponse])
 def get_matches(code: str, db: Session = Depends(get_db)):

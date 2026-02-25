@@ -8,8 +8,11 @@ from backend.app.core.config import settings
 from backend.app.api.participants import models
 
 # Test database setup
-engine = create_engine(settings.TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(
+    settings.TEST_DATABASE_URL, connect_args={"check_same_thread": False}
+)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def override_get_db():
     db = TestingSessionLocal()
@@ -18,14 +21,17 @@ def override_get_db():
     finally:
         db.close()
 
+
 app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
+
 
 @pytest.fixture(scope="module")
 def setup_db():
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
+
 
 def test_full_tournament_flow(setup_db):
     # 1. Create tournament
@@ -41,11 +47,11 @@ def test_full_tournament_flow(setup_db):
     resp = client.post(f"/tournaments/{code}/pairings")
     assert resp.status_code == 200
     matches = resp.json()
-    assert len(matches) == 2 # One match, one bye
-    
+    assert len(matches) == 2  # One match, one bye
+
     bye_match = next(m for m in matches if m["is_bye"] == 1)
     regular_match = next(m for m in matches if m["is_bye"] == 0)
-    
+
     assert bye_match["is_completed"] == 1
     assert regular_match["is_completed"] == 0
 
@@ -56,16 +62,30 @@ def test_full_tournament_flow(setup_db):
 
     # 5. Report Round 1 match
     match_id = regular_match["id"]
-    resp = client.post(f"/matches/{match_id}/report", json={"player1_score": 2, "player2_score": 1})
+    resp = client.post(
+        f"/matches/{match_id}/report", json={"player1_score": 2, "player2_score": 1}
+    )
     assert resp.status_code == 200
     assert resp.json()["is_completed"] == 1
-    
+
     # 6. Check points
     db = TestingSessionLocal()
-    p1 = db.query(models.Participant).filter(models.Participant.id == regular_match["player1_id"]).first()
-    p2 = db.query(models.Participant).filter(models.Participant.id == regular_match["player2_id"]).first()
-    pb = db.query(models.Participant).filter(models.Participant.id == bye_match["player1_id"]).first()
-    
+    p1 = (
+        db.query(models.Participant)
+        .filter(models.Participant.id == regular_match["player1_id"])
+        .first()
+    )
+    p2 = (
+        db.query(models.Participant)
+        .filter(models.Participant.id == regular_match["player2_id"])
+        .first()
+    )
+    pb = (
+        db.query(models.Participant)
+        .filter(models.Participant.id == bye_match["player1_id"])
+        .first()
+    )
+
     assert p1.points == 3
     assert p2.points == 0
     assert pb.points == 3
