@@ -34,24 +34,26 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Standings & Pairing Logic' (Protocol in workflow.md) (d08ac3b)
 
 ## Phase 3: Frontend Integration (Admin Dashboard) [checkpoint: 844ec34]
+
 - [x] Task: Frontend - Admin Participant List Component (cfeb07d)
-    - [x] Create failing test: Component renders list of participants.
-    - [x] Implement `ParticipantList` component for the Admin Dashboard.
-    - [x] Connect component to Backend API (fetch, manual add, remove).
-    - [x] Verify tests pass.
+  - [x] Create failing test: Component renders list of participants.
+  - [x] Implement `ParticipantList` component for the Admin Dashboard.
+  - [x] Connect component to Backend API (fetch, manual add, remove).
+  - [x] Verify tests pass.
 - [x] Task: Frontend - Error Handling for Duplicate Names (cfeb07d)
-    - [x] Create failing test: Show error message when join fails due to duplicate name.
-    - [x] Update `ParticipantJoin` component to handle 400 errors.
-    - [x] Verify tests pass.
+  - [x] Create failing test: Show error message when join fails due to duplicate name.
+  - [x] Update `ParticipantJoin` component to handle 400 errors.
+  - [x] Verify tests pass.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Frontend Integration (Admin Dashboard)' (Protocol in workflow.md) (844ec34)
 
-
 ## Phase 4: Frontend Integration (Player Standings) [checkpoint: c4da866]
+
 - [x] Task: Frontend - Player Standings & Pairings View (64fb9d3)
-    - [x] Create failing test: Display standings and potential pairings.
-    - [x] Implement `PlayerDashboard` or update `TournamentView` to show standings.
-    - [x] Connect to Backend API for standings and potential pairings.
-    - [x] Verify tests pass.
+  - [x] Create failing test: Display standings and potential pairings.
+  - [x] Implement `PlayerDashboard` or update `TournamentView` to show standings.
+  - [x] Connect to Backend API for standings and potential pairings.
+  - [x] Verify tests pass.
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Frontend Integration (Player Standings)' (Protocol in workflow.md) (c4da866)
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Integration (Player Standings)' (Protocol in workflow.md)
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions (d2ed961)
