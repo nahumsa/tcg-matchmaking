@@ -28,5 +28,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Admin player visibility/management and Player standings/potential pairings**
+- [x] **Track: Admin player visibility/management and Player standings/potential pairings**
 *Link: [./tracks/player_management_20260225/](./tracks/player_management_20260225/)*
