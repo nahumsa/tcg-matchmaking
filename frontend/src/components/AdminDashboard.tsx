@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ParticipantList from './ParticipantList';
-import ActivityLog, { ActivityEvent } from './ActivityLog';
+import ActivityLog, { type ActivityEvent } from './ActivityLog';
 
 interface Tournament {
   id: number;
@@ -22,25 +22,40 @@ interface Match {
   is_completed: number;
 }
 
+interface Participant {
+  id: number;
+  name: string;
+  points: number;
+}
+
 export default function AdminDashboard() {
   const [name, setName] = useState('');
   const [rounds, setRounds] = useState(3);
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!tournament) {
+      localStorage.removeItem('last_tournament_code');
+    }
+  }, [tournament]);
+
+  useEffect(() => {
     if (tournament) {
       fetchMatches();
+      fetchParticipants();
       const ws = new WebSocket(`ws://localhost:8000/ws/${tournament.code}`);
       ws.onmessage = (event) => {
         const message = JSON.parse(event.data);
         
-        // Update matches for UI state
-        if (message.event === 'participant_joined' || message.event === 'match_reported' || message.event === 'pairings_generated') {
+        // Update matches and participants for UI state
+        if (message.event === 'participant_joined' || message.event === 'participant_removed' || message.event === 'match_reported' || message.event === 'pairings_generated') {
           fetchMatches();
+          fetchParticipants();
           fetchTournament(); // Refresh tournament to get new status
         }
 
@@ -77,6 +92,19 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       console.error('Failed to fetch matches', err);
+    }
+  };
+
+  const fetchParticipants = async () => {
+    if (!tournament) return;
+    try {
+      const response = await fetch(`http://localhost:8000/tournaments/${tournament.code}/participants`);
+      if (response.ok) {
+        const data = await response.json();
+        setParticipants(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch participants', err);
     }
   };
 
@@ -160,6 +188,12 @@ export default function AdminDashboard() {
     const allCompleted = roundMatches.every(m => m.is_completed);
     const isTournamentFinished = tournament.status === 'COMPLETED';
 
+    const getPlayerName = (id: number | null) => {
+      if (id === null) return '-';
+      const player = participants.find(p => p.id === id);
+      return player ? player.name : `Player ${id}`;
+    };
+
     const handleExport = async () => {
       try {
         const response = await fetch(`http://localhost:8000/tournaments/${tournament.code}/standings`);
@@ -216,7 +250,7 @@ export default function AdminDashboard() {
                   >
                     Export Results
                   </button>
-                  <Link to={`/${tournament.code}`} className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-50 transition">
+                  <Link to={`/${tournament.code}`} target="_blank" className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-50 transition">
                     View Final Standings
                   </Link>
                 </div>
@@ -233,7 +267,7 @@ export default function AdminDashboard() {
                 ) : (
                   roundMatches.map(match => (
                     <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                      <div className="flex-1 font-bold text-lg">Player {match.player1_id}</div>
+                      <div className="flex-1 font-bold text-lg">{getPlayerName(match.player1_id)}</div>
 
                       {match.is_bye ? (
                         <div className="px-8 font-black text-blue-600 uppercase tracking-widest">BYE</div>
@@ -261,7 +295,7 @@ export default function AdminDashboard() {
                         </div>
                       )}
 
-                      <div className="flex-1 font-bold text-lg text-right">{match.is_bye ? '-' : `Player ${match.player2_id}`}</div>
+                      <div className="flex-1 font-bold text-lg text-right">{match.is_bye ? '-' : getPlayerName(match.player2_id)}</div>
                     </div>
                   ))
                 )}
@@ -270,7 +304,11 @@ export default function AdminDashboard() {
           </div>
           
           <div className="w-full md:w-80 lg:w-96 space-y-8">
-            <ParticipantList tournamentCode={tournament.code} />
+            <ParticipantList 
+              tournamentCode={tournament.code} 
+              participants={participants}
+              onUpdate={fetchParticipants}
+            />
             <ActivityLog events={events} />
           </div>
         </div>

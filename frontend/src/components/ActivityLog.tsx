@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface ActivityEvent {
   id: string;
   type: string;

@@ -15,14 +15,19 @@ describe('TournamentView', () => {
     }));
   });
 
-  it('renders loading state and then matches', async () => {
+  it('renders loading state and then matches with names', async () => {
     const mockMatches = [
       { id: 1, round_number: 1, player1_id: 1, player2_id: 2, player1_score: 0, player2_score: 0, is_bye: 0, is_completed: 0 }
     ];
+    const mockStandings = [
+      { id: 1, name: 'Alice', rank: 1, points: 0, wins: 0, losses: 0, draws: 0, omw_percentage: 0 },
+      { id: 2, name: 'Bob', rank: 2, points: 0, wins: 0, losses: 0, draws: 0, omw_percentage: 0 }
+    ];
 
-    (fetch as any).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockMatches)
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/matches')) return Promise.resolve({ ok: true, json: () => Promise.resolve(mockMatches) });
+      if (url.includes('/standings')) return Promise.resolve({ ok: true, json: () => Promise.resolve(mockStandings) });
+      return Promise.resolve({ ok: false });
     });
 
     render(
@@ -38,8 +43,8 @@ describe('TournamentView', () => {
     await waitFor(() => {
       expect(screen.getByText(/Tournament/i)).toBeInTheDocument();
       expect(screen.getByText(/Round 1/i)).toBeInTheDocument();
-      expect(screen.getByText(/Player 1/i)).toBeInTheDocument();
-      expect(screen.getByText(/Player 2/i)).toBeInTheDocument();
+      expect(screen.getByText('Alice')).toBeInTheDocument();
+      expect(screen.getByText('Bob')).toBeInTheDocument();
     });
   });
 

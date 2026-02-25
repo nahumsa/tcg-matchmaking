@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 interface Participant {
   id: number;
@@ -8,45 +8,19 @@ interface Participant {
 
 interface ParticipantListProps {
   tournamentCode: string;
+  participants: Participant[];
+  onUpdate: () => void;
 }
 
-export default function ParticipantList({ tournamentCode }: ParticipantListProps) {
-  const [participants, setParticipants] = useState<Participant[]>([]);
+export default function ParticipantList({ tournamentCode, participants, onUpdate }: ParticipantListProps) {
   const [newName, setNewName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchParticipants();
-    
-    // Setup WebSocket for real-time updates
-    const ws = new WebSocket(`ws://localhost:8000/ws/${tournamentCode}`);
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.event === 'participant_joined' || message.event === 'participant_removed') {
-        fetchParticipants();
-      }
-    };
-    
-    return () => ws.close();
-  }, [tournamentCode]);
-
-  const fetchParticipants = async () => {
-    try {
-      const response = await fetch(`http://localhost:8000/tournaments/${tournamentCode}/participants`);
-      if (response.ok) {
-        const data = await response.json();
-        setParticipants(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch participants', err);
-    }
-  };
-
   const handleAddParticipant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) return;
-    
+
     setLoading(true);
     setError(null);
     try {
@@ -55,14 +29,14 @@ export default function ParticipantList({ tournamentCode }: ParticipantListProps
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newName.trim() }),
       });
-      
+
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.detail || 'Failed to add participant');
       }
-      
+
       setNewName('');
-      fetchParticipants();
+      onUpdate();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -72,14 +46,14 @@ export default function ParticipantList({ tournamentCode }: ParticipantListProps
 
   const handleRemoveParticipant = async (id: number) => {
     if (!confirm('Are you sure you want to remove this participant?')) return;
-    
+
     try {
       const response = await fetch(`http://localhost:8000/tournaments/${tournamentCode}/participants/${id}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) throw new Error('Failed to remove participant');
-      fetchParticipants();
+      onUpdate();
     } catch (err: any) {
       setError(err.message);
     }
@@ -90,7 +64,7 @@ export default function ParticipantList({ tournamentCode }: ParticipantListProps
       <div className="p-6 border-b border-gray-50 bg-gray-50/50">
         <h2 className="text-xl font-bold text-gray-800 uppercase tracking-tight">Participants</h2>
       </div>
-      
+
       <div className="p-6 space-y-4">
         <form onSubmit={handleAddParticipant} className="flex space-x-2">
           <input
@@ -109,7 +83,7 @@ export default function ParticipantList({ tournamentCode }: ParticipantListProps
             Add
           </button>
         </form>
-        
+
         {error && <div className="text-xs text-red-500 font-medium">{error}</div>}
       </div>
 

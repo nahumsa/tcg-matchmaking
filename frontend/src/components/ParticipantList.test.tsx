@@ -8,44 +8,41 @@ describe('ParticipantList', () => {
     { id: 1, name: 'Alice', points: 3 },
     { id: 2, name: 'Bob', points: 0 }
   ];
+  const mockOnUpdate = vi.fn();
 
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
     vi.stubGlobal('confirm', vi.fn(() => true));
+    mockOnUpdate.mockClear();
   });
 
   it('renders participant list correctly', async () => {
-    (fetch as any).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockParticipants)
-    });
-
-    render(<ParticipantList tournamentCode={mockTournamentCode} />);
+    render(
+      <ParticipantList 
+        tournamentCode={mockTournamentCode} 
+        participants={mockParticipants} 
+        onUpdate={mockOnUpdate} 
+      />
+    );
 
     expect(screen.getAllByText(/Participants/i)[0]).toBeInTheDocument();
-    
-    await waitFor(() => {
-      expect(screen.getByText('Alice')).toBeInTheDocument();
-      expect(screen.getByText('Bob')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Alice')).toBeInTheDocument();
+    expect(screen.getByText('Bob')).toBeInTheDocument();
   });
 
   it('handles manual participant addition', async () => {
-    (fetch as any)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve([])
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ id: 3, name: 'Charlie', points: 0 })
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve([{ id: 3, name: 'Charlie', points: 0 }])
-      });
+    (fetch as any).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ id: 3, name: 'Charlie', points: 0 })
+    });
 
-    render(<ParticipantList tournamentCode={mockTournamentCode} />);
+    render(
+      <ParticipantList 
+        tournamentCode={mockTournamentCode} 
+        participants={[]} 
+        onUpdate={mockOnUpdate} 
+      />
+    );
 
     const input = screen.getByPlaceholderText(/Player Name/i);
     const addButton = screen.getByRole('button', { name: /Add/i });
@@ -61,28 +58,22 @@ describe('ParticipantList', () => {
           body: JSON.stringify({ name: 'Charlie' })
         })
       );
+      expect(mockOnUpdate).toHaveBeenCalled();
     });
   });
 
   it('handles participant removal', async () => {
-    (fetch as any)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockParticipants)
-      })
-      .mockResolvedValueOnce({
-        ok: true
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve([mockParticipants[1]])
-      });
-
-    render(<ParticipantList tournamentCode={mockTournamentCode} />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Alice')).toBeInTheDocument();
+    (fetch as any).mockResolvedValue({
+      ok: true
     });
+
+    render(
+      <ParticipantList 
+        tournamentCode={mockTournamentCode} 
+        participants={mockParticipants} 
+        onUpdate={mockOnUpdate} 
+      />
+    );
 
     const removeButtons = screen.getAllByRole('button', { name: /Remove/i });
     fireEvent.click(removeButtons[0]); // Remove Alice
@@ -94,6 +85,7 @@ describe('ParticipantList', () => {
           method: 'DELETE'
         })
       );
+      expect(mockOnUpdate).toHaveBeenCalled();
     });
   });
 });

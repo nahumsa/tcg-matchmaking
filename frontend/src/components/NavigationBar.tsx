@@ -20,7 +20,7 @@ const NavigationBar: React.FC = () => {
             <Link to="/admin" className="text-sm font-medium hover:text-indigo-100 transition">Dashboard</Link>
           )}
           {lastCode && (
-            <Link to={`/${lastCode}`} className="text-sm font-medium hover:text-indigo-100 transition">Standings</Link>
+            <Link to={`/${lastCode}`} target="_blank" className="text-sm font-medium hover:text-indigo-100 transition">Standings</Link>
           )}
         </div>
       </div>

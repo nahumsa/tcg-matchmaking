@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import ActivityLog, { ActivityEvent } from './ActivityLog';
+import ActivityLog, { type ActivityEvent } from './ActivityLog';
 
 describe('ActivityLog', () => {
   it('renders empty state correctly', () => {

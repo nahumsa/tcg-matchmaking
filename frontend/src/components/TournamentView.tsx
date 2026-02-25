@@ -91,6 +91,12 @@ export default function TournamentView() {
   const rounds = [...new Set(matches.map(m => m.round_number))].sort((a, b) => b - a);
   const myStanding = standings.find(s => s.id === participantId);
 
+  const getPlayerName = (id: number | null) => {
+    if (id === null) return '-';
+    const player = standings.find(s => s.id === id);
+    return player ? player.name : `Player ${id}`;
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -169,17 +175,17 @@ export default function TournamentView() {
                       {match.is_bye ? (
                         <div className="text-center">
                           <span className="text-[10px] font-bold text-blue-500 uppercase tracking-[0.2em] block mb-1">Bye Round</span>
-                          <span className="font-bold text-gray-800 text-lg">Player {match.player1_id}</span>
+                          <span className="font-bold text-gray-800 text-lg">{getPlayerName(match.player1_id)}</span>
                         </div>
                       ) : (
                         <div className="flex items-center justify-between">
-                          <div className="flex-1 text-right pr-4 truncate font-bold text-gray-800">Player {match.player1_id}</div>
+                          <div className="flex-1 text-right pr-4 truncate font-bold text-gray-800">{getPlayerName(match.player1_id)}</div>
                           <div className="flex items-center space-x-2 bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl font-mono font-black text-xl">
                             <span>{match.player1_score}</span>
                             <span className="text-gray-300">-</span>
                             <span>{match.player2_score}</span>
                           </div>
-                          <div className="flex-1 text-left pl-4 truncate font-bold text-gray-800">Player {match.player2_id}</div>
+                          <div className="flex-1 text-left pl-4 truncate font-bold text-gray-800">{getPlayerName(match.player2_id)}</div>
                         </div>
                       )}
                     </div>
