@@ -1,0 +1,8 @@
+{
+  "track_id": "player_management_20260225",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-02-25T14:00:00Z",
+  "updated_at": "2026-02-25T14:00:00Z",
+  "description": "As an admin I want to be able to see all players that join the tournament by name of the player. Each name on the player of the tournament should be unique. As a player, I want to see my standings and what could be my potential pairings"
+}

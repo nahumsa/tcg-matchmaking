@@ -25,3 +25,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Frontend Role-Based Navigation**
 *Link: [./tracks/role_navigation_20260224/](./tracks/role_navigation_20260224/)*
+
+---
+
+- [ ] **Track: Admin player visibility/management and Player standings/potential pairings**
+*Link: [./tracks/player_management_20260225/](./tracks/player_management_20260225/)*
