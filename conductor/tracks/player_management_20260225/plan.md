@@ -19,16 +19,16 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Backend Foundations' (Protocol in workflow.md) (048e7b7)
 
 ## Phase 2: Standings & Pairing Logic
-- [ ] Task: Backend - Standings Calculation Engine
-    - [ ] Create failing tests for Rank, Points, W/L/D, and OMW% calculations.
-    - [ ] Implement OMW% (Opponent Match Win percentage) logic.
-    - [ ] Create a service to aggregate standings for a tournament.
-    - [ ] Verify tests pass.
-- [ ] Task: Backend - Potential Pairings Logic
-    - [ ] Create failing test: Get potential opponents for a player.
-    - [ ] Implement logic to find unplayed opponents in similar score brackets.
-    - [ ] Add endpoint for a player to fetch their "potential pairings".
-    - [ ] Verify tests pass.
+- [x] Task: Backend - Standings Calculation Engine (2b64aa6)
+    - [x] Create failing tests for Rank, Points, W/L/D, and OMW% calculations.
+    - [x] Implement OMW% (Opponent Match Win percentage) logic.
+    - [x] Create a service to aggregate standings for a tournament.
+    - [x] Verify tests pass.
+- [x] Task: Backend - Potential Pairings Logic (2b64aa6)
+    - [x] Create failing test: Get potential opponents for a player.
+    - [x] Implement logic to find unplayed opponents in similar score brackets.
+    - [x] Add endpoint for a player to fetch their "potential pairings".
+    - [x] Verify tests pass.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Standings & Pairing Logic' (Protocol in workflow.md)
 
 ## Phase 3: Frontend Integration (Admin Dashboard)
