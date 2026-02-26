@@ -1,6 +1,11 @@
 # Build stage
 FROM node:22-slim AS build
 
+ARG VITE_API_URL
+ARG VITE_WS_URL
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_WS_URL=$VITE_WS_URL
+
 WORKDIR /app/frontend
 
 # Copy dependency files

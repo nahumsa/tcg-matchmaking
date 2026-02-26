@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { config } from '../config';
 
 interface Match {
   id: number;
@@ -43,7 +44,7 @@ export default function TournamentView() {
   useEffect(() => {
     fetchData();
 
-    const ws = new WebSocket(`ws://localhost:8000/ws/${code}`);
+    const ws = new WebSocket(`${config.wsUrl}/ws/${code}`);
 
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
@@ -58,8 +59,8 @@ export default function TournamentView() {
   const fetchData = async () => {
     try {
       const [matchesRes, standingsRes] = await Promise.all([
-        fetch(`http://localhost:8000/tournaments/${code}/matches`),
-        fetch(`http://localhost:8000/tournaments/${code}/standings`)
+        fetch(`${config.apiUrl}/tournaments/${code}/matches`),
+        fetch(`${config.apiUrl}/tournaments/${code}/standings`)
       ]);
 
       if (matchesRes.ok) {
@@ -73,7 +74,7 @@ export default function TournamentView() {
       }
 
       if (participantId) {
-        const potentialRes = await fetch(`http://localhost:8000/tournaments/${code}/participants/${participantId}/potential-pairings`);
+        const potentialRes = await fetch(`${config.apiUrl}/tournaments/${code}/participants/${participantId}/potential-pairings`);
         if (potentialRes.ok) {
           const data = await potentialRes.json();
           setPotentialPairings(data);

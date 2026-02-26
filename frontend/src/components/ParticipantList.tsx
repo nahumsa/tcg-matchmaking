@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { config } from '../config';
 
 interface Participant {
   id: number;
@@ -24,7 +25,7 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:8000/tournaments/${tournamentCode}/participants`, {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournamentCode}/participants`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newName.trim() }),
@@ -48,7 +49,7 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
     if (!confirm('Are you sure you want to remove this participant?')) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/tournaments/${tournamentCode}/participants/${id}`, {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournamentCode}/participants/${id}`, {
         method: 'DELETE',
       });
 

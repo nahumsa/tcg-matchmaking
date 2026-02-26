@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { config } from '../config';
 import ParticipantList from './ParticipantList';
 import ActivityLog, { type ActivityEvent } from './ActivityLog';
 
@@ -48,7 +49,7 @@ export default function AdminDashboard() {
     if (tournament) {
       fetchMatches();
       fetchParticipants();
-      const ws = new WebSocket(`ws://localhost:8000/ws/${tournament.code}`);
+      const ws = new WebSocket(`${config.wsUrl}/ws/${tournament.code}`);
       ws.onmessage = (event) => {
         const message = JSON.parse(event.data);
         
@@ -85,7 +86,7 @@ export default function AdminDashboard() {
   const fetchMatches = async () => {
     if (!tournament) return;
     try {
-      const response = await fetch(`http://localhost:8000/tournaments/${tournament.code}/matches`);
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/matches`);
       if (response.ok) {
         const data = await response.json();
         setMatches(data);
@@ -98,7 +99,7 @@ export default function AdminDashboard() {
   const fetchParticipants = async () => {
     if (!tournament) return;
     try {
-      const response = await fetch(`http://localhost:8000/tournaments/${tournament.code}/participants`);
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/participants`);
       if (response.ok) {
         const data = await response.json();
         setParticipants(data);
@@ -111,7 +112,7 @@ export default function AdminDashboard() {
   const fetchTournament = async () => {
     if (!tournament) return;
     try {
-      const response = await fetch(`http://localhost:8000/tournaments/${tournament.code}`);
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}`);
       if (response.ok) {
         const data = await response.json();
         setTournament(data);
@@ -127,7 +128,7 @@ export default function AdminDashboard() {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8000/tournaments', {
+      const response = await fetch(`${config.apiUrl}/tournaments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +154,7 @@ export default function AdminDashboard() {
     if (!tournament) return;
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:8000/tournaments/${tournament.code}/pairings`, {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/pairings`, {
         method: 'POST',
       });
       if (!response.ok) {
@@ -170,7 +171,7 @@ export default function AdminDashboard() {
 
   const reportResult = async (matchId: number, p1Score: number, p2Score: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/matches/${matchId}/report`, {
+      const response = await fetch(`${config.apiUrl}/matches/${matchId}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ player1_score: p1Score, player2_score: p2Score }),
@@ -196,7 +197,7 @@ export default function AdminDashboard() {
 
     const handleExport = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/tournaments/${tournament.code}/standings`);
+        const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/standings`);
         if (response.ok) {
           const standings = await response.json();
           const summary = standings.map((s: any) => 

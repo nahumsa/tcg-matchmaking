@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import ParticipantJoin from './ParticipantJoin';
+import { config } from '../config';
 
 describe('ParticipantJoin', () => {
   beforeEach(() => {
@@ -47,7 +48,7 @@ describe('ParticipantJoin', () => {
 
     await waitFor(() => {
       // Should have redirected, but we check if it called fetch correctly
-      expect(fetch).toHaveBeenCalledWith('http://localhost:8000/tournaments/ABCDEF/join', expect.objectContaining({
+      expect(fetch).toHaveBeenCalledWith(`${config.apiUrl}/tournaments/ABCDEF/join`, expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ name: 'Ash Ketchum' })
       }));

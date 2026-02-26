@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { config } from '../config';
 
 export default function ParticipantJoin() {
   const [name, setName] = useState('');
@@ -14,7 +15,7 @@ export default function ParticipantJoin() {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:8000/tournaments/${code.toUpperCase()}/join`, {
+      const response = await fetch(`${config.apiUrl}/tournaments/${code.toUpperCase()}/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
