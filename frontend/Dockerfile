@@ -1,16 +1,16 @@
 # Build stage
 FROM node:22-slim AS build
 
-WORKDIR /app
+WORKDIR /app/frontend
 
 # Copy dependency files
-COPY package.json package-lock.json ./
+COPY frontend/package.json frontend/package-lock.json ./
 
 # Install dependencies
 RUN npm ci
 
 # Copy application code
-COPY . .
+COPY frontend/ ./
 
 # Build the application
 RUN npm run build
@@ -22,10 +22,10 @@ FROM nginx:alpine
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d
+COPY frontend/nginx.conf /etc/nginx/conf.d
 
 # Copy build output to nginx
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/frontend/dist /usr/share/nginx/html
 
 EXPOSE 80
 
