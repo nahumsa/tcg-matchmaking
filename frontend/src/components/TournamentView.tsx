@@ -11,6 +11,7 @@ interface Match {
   player2_score: number;
   is_bye: number;
   is_completed: number;
+  table_number: number | null;
 }
 
 interface Standing {
@@ -173,9 +174,12 @@ export default function TournamentView() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   {matches.filter(m => m.round_number === round).map(match => (
                     <div key={match.id} className={`p-5 rounded-2xl border transition-all ${match.is_completed ? 'bg-white border-gray-100 opacity-60 grayscale' : 'bg-white border-blue-100 shadow-sm hover:shadow-md'}`}>
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Table {match.table_number || '?'}</span>
+                        {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-[0.2em]">Completed</span>}
+                      </div>
                       {match.is_bye ? (
-                        <div className="text-center">
-                          <span className="text-[10px] font-bold text-blue-500 uppercase tracking-[0.2em] block mb-1">Bye Round</span>
+                        <div className="text-center py-2">
                           <span className="font-bold text-gray-800 text-lg">{getPlayerName(match.player1_id)}</span>
                         </div>
                       ) : (

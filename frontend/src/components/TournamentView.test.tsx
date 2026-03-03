@@ -48,6 +48,34 @@ describe('TournamentView', () => {
     });
   });
 
+  it('renders table number for matches', async () => {
+    const mockMatches = [
+      { id: 1, round_number: 1, player1_id: 1, player2_id: 2, player1_score: 0, player2_score: 0, is_bye: 0, is_completed: 0, table_number: 1 }
+    ];
+    const mockStandings = [
+      { id: 1, name: 'Alice', rank: 1, points: 0, wins: 0, losses: 0, draws: 0, omw_percentage: 0 },
+      { id: 2, name: 'Bob', rank: 2, points: 0, wins: 0, losses: 0, draws: 0, omw_percentage: 0 }
+    ];
+
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/matches')) return Promise.resolve({ ok: true, json: () => Promise.resolve(mockMatches) });
+      if (url.includes('/standings')) return Promise.resolve({ ok: true, json: () => Promise.resolve(mockStandings) });
+      return Promise.resolve({ ok: false });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/ABCDEF']}>
+        <Routes>
+          <Route path="/:code" element={<TournamentView />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Table 1/i)).toBeInTheDocument();
+    });
+  });
+
   it('renders standings and player status', async () => {
     const mockCode = 'ABCDEF';
     const mockStandings = [

@@ -21,6 +21,7 @@ interface Match {
   player2_score: number;
   is_bye: number;
   is_completed: number;
+  table_number: number | null;
 }
 
 interface Participant {
@@ -267,19 +268,24 @@ export default function AdminDashboard() {
                   <p className="text-gray-400 italic">No matches generated yet. Start the round to begin.</p>
                 ) : (
                   roundMatches.map(match => (
-                    <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                      <div className="flex-1 font-bold text-lg">{getPlayerName(match.player1_id)}</div>
+                    <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col space-y-4">
+                      <div className="flex justify-between items-center border-b border-gray-50 pb-2">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Table {match.table_number || '?'}</span>
+                        {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Completed</span>}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 font-bold text-lg">{getPlayerName(match.player1_id)}</div>
 
-                      {match.is_bye ? (
-                        <div className="px-8 font-black text-blue-600 uppercase tracking-widest">BYE</div>
-                      ) : (match.is_completed || isTournamentFinished) ? (
-                        <div className="flex items-center space-x-4 px-8">
-                          <span className="text-2xl font-black">{match.player1_score}</span>
-                          <span className="text-gray-300">-</span>
-                          <span className="text-2xl font-black">{match.player2_score}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-2 px-4">
+                        {match.is_bye ? (
+                          <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">BYE</div>
+                        ) : (match.is_completed || isTournamentFinished) ? (
+                          <div className="flex-1 flex items-center justify-center space-x-4 px-8">
+                            <span className="text-2xl font-black">{match.player1_score}</span>
+                            <span className="text-gray-300">-</span>
+                            <span className="text-2xl font-black">{match.player2_score}</span>
+                          </div>
+                        ) : (
+                          <div className="flex-1 flex items-center justify-center space-x-2 px-4">
                           <input type="number" id={`p1-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
                           <span className="text-gray-300">-</span>
                           <input type="number" id={`p2-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
