@@ -25,7 +25,7 @@
 - [x] Task: Add frontend tests for table number visibility. [54ec0ea]
   - [x] Update `frontend/src/components/TournamentView.test.tsx`.
 
-## Phase 4: Final Integration and Verification
+## Phase 4: Final Integration and Verification [checkpoint: c2b2123]
 
 - [x] Task: End-to-End verification of table ordering in a live tournament flow. [a957ceb]
   - [x] Run a local tournament with mock players.
