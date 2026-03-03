@@ -1,6 +1,6 @@
 # Implementation Plan: Table Ordering by Points
 
-## Phase 1: Backend Infrastructure and Models
+## Phase 1: Backend Infrastructure and Models [checkpoint: f2f2ed0]
 
 - [x] Task: Update Match model to include `table_number` field. [31d1a6d]
   - [ ] Add `table_number` to `backend/app/api/matches/models.py`.
