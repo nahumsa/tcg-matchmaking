@@ -23,13 +23,13 @@ Focuses on ensuring the Nginx configuration correctly handles deep links in the 
 - [x] Task: Validate Dockerfile Build Process
     - [x] Verify that `frontend/Dockerfile` correctly copies the local `nginx.conf` to `/etc/nginx/conf.d/default.conf`.
     - [x] Build the image locally to ensure the configuration is applied.
-- [~] Task: Conductor - User Manual Verification 'Phase 2: Infrastructure & Docker Configuration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Infrastructure & Docker Configuration' (Protocol in workflow.md)
 
 ## Phase 3: End-to-End Validation
 Final check to ensure the 404 issue is resolved in a containerized environment.
 
-- [ ] Task: E2E Verification in Docker Compose
-    - [ ] Run the full stack using `docker compose up`.
-    - [ ] Verify that navigating directly to `http://localhost:8080/tournament/TEST` (manual refresh) works correctly.
-    - [ ] Verify that navigating to `http://localhost:8080/TEST` correctly redirects.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: End-to-End Validation' (Protocol in workflow.md)
+- [x] Task: E2E Verification in Docker Compose
+    - [x] Run the full stack using `docker compose up`.
+    - [x] Verify that navigating directly to `http://localhost:8080/tournament/TEST` (manual refresh) works correctly.
+    - [x] Verify that navigating to `http://localhost:8080/TEST` correctly redirects.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: End-to-End Validation' (Protocol in workflow.md)
