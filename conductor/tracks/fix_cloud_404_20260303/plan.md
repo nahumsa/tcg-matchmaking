@@ -14,7 +14,7 @@ Focuses on updating the application logic to use the new `/tournament/:code` str
     - [x] Update `ParticipantJoin.tsx` to use the new path format.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Frontend Routing & Internal Links' (Protocol in workflow.md)
 
-## Phase 2: Infrastructure & Docker Configuration
+## Phase 2: Infrastructure & Docker Configuration [checkpoint: 210ca8e]
 Focuses on ensuring the Nginx configuration correctly handles deep links in the containerized environment.
 
 - [x] Task: Verify Nginx SPA Routing Configuration
@@ -25,7 +25,7 @@ Focuses on ensuring the Nginx configuration correctly handles deep links in the 
     - [x] Build the image locally to ensure the configuration is applied.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Infrastructure & Docker Configuration' (Protocol in workflow.md)
 
-## Phase 3: End-to-End Validation
+## Phase 3: End-to-End Validation [checkpoint: 4202d98]
 Final check to ensure the 404 issue is resolved in a containerized environment.
 
 - [x] Task: E2E Verification in Docker Compose
@@ -33,3 +33,13 @@ Final check to ensure the 404 issue is resolved in a containerized environment.
     - [x] Verify that navigating directly to `http://localhost:8080/tournament/TEST` (manual refresh) works correctly.
     - [x] Verify that navigating to `http://localhost:8080/TEST` correctly redirects.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: End-to-End Validation' (Protocol in workflow.md)
+
+## Phase 4: Dynamic Environment Variables in Docker [checkpoint: ffefe00]
+Ensures the frontend can be deployed to any host without rebuilding.
+
+- [x] Task: Update Config to Support Dynamic Resolution
+    - [x] Modify `frontend/src/config.ts` to fallback to `window.location.origin` if environment variables are missing.
+- [x] Task: Update Dockerfile for Cloud Optimization
+    - [x] Ensure `VITE_API_URL` and `VITE_WS_URL` are correctly handled as ARGs during build.
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Dynamic Environment Variables in Docker' (Protocol in workflow.md)
+
