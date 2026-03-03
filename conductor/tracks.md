@@ -38,5 +38,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Add the ordering of tables, table 1 should be the match with the players with the most points.**
+- [x] **Track: Add the ordering of tables, table 1 should be the match with the players with the most points.**
 *Link: [./tracks/table_ordering_20260302/](./tracks/table_ordering_20260302/)*
