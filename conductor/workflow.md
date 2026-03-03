@@ -5,9 +5,8 @@
 1. **The Plan is the Source of Truth:** All work must be tracked in `plan.md`
 2. **The Tech Stack is Deliberate:** Changes to the tech stack must be documented in `tech-stack.md` *before* implementation
 3. **Test-Driven Development:** Write unit tests before implementing functionality
-4. **High Code Coverage:** Aim for >80% code coverage for all modules
-5. **User Experience First:** Every decision should prioritize user experience
-6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
+4. **User Experience First:** Every decision should prioritize user experience
+5. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
 
 ## Task Workflow
 
@@ -33,14 +32,6 @@ All tasks follow a strict lifecycle:
 1. **Refactor (Optional but Recommended):**
    - With the safety of passing tests, refactor the implementation code and the test code to improve clarity, remove duplication, and enhance performance without changing the external behavior.
    - Rerun tests to ensure they still pass after refactoring.
-
-1. **Verify Coverage:** Run coverage reports using the project's chosen tools. For example, in a Python project, this might look like:
-
-   ```bash
-   pytest --cov=app --cov-report=html
-   ```
-
-   Target: >80% coverage for new code. The specific tools and commands will vary by language and framework.
 
 1. **Document Deviations:** If implementation differs from tech stack:
    - **STOP** implementation
@@ -70,7 +61,7 @@ All tasks follow a strict lifecycle:
 1. **Commit Plan Update:**
     - **Action:** Stage the modified `plan.md` file.
     - **Action:** Commit this change with a descriptive message (e.g., `conductor(plan): Mark task 'Create user model' as complete`).
-    - **Action:** Create github pull request using the github cli (gh) with all changes and a description of what was implemented
+    - **Action:** **Automatically create a GitHub Pull Request** using the GitHub CLI (`gh pr create`). Use the task description as the title and the Git notes summary as the body.
 
 ### Phase Completion Verification and Checkpointing Protocol
 
@@ -137,20 +128,6 @@ All tasks follow a strict lifecycle:
     - **Action:** Commit this change with a descriptive message following the format `conductor(plan): Mark phase '<PHASE NAME>' as complete`.
 
 9. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
-
-### Quality Gates
-
-Before marking any task complete, verify:
-
-- [ ] All tests pass
-- [ ] Code coverage meets requirements (>80%)
-- [ ] Code follows project's code style guidelines (as defined in `code_styleguides/`)
-- [ ] All public functions/methods are documented (e.g., docstrings, JSDoc, GoDoc)
-- [ ] Type safety is enforced (e.g., type hints, TypeScript types, Go types)
-- [ ] No linting or static analysis errors (using the project's configured tools)
-- [ ] Works correctly on mobile (if applicable)
-- [ ] Documentation updated if needed
-- [ ] No security vulnerabilities introduced
 
 ## Development Commands
 
@@ -224,7 +201,6 @@ Before requesting review:
 3. **Testing**
    - Unit tests comprehensive
    - Integration tests pass
-   - Coverage adequate (>80%)
 
 4. **Security**
    - No hardcoded secrets
@@ -274,20 +250,6 @@ git commit -m "test(comments): Add tests for emoji reaction limits"
 git commit -m "style(mobile): Improve button touch targets"
 ```
 
-## Definition of Done
-
-A task is complete when:
-
-1. All code implemented to specification
-2. Unit tests written and passing
-3. Code coverage meets project requirements
-4. Documentation complete (if applicable)
-5. Code passes all configured linting and static analysis checks
-6. Works beautifully on mobile (if applicable)
-7. Implementation notes added to `plan.md`
-8. Changes committed with proper message
-9. Git note with task summary attached to the commit
-
 ## Emergency Procedures
 
 ### Critical Bug in Production
@@ -320,7 +282,6 @@ A task is complete when:
 ### Pre-Deployment Checklist
 
 - [ ] All tests passing
-- [ ] Coverage >80%
 - [ ] No linting errors
 - [ ] Mobile testing complete
 - [ ] Environment variables configured
