@@ -18,3 +18,4 @@ class MatchResponse(MatchBase):
     player2_id: Optional[int]
     is_bye: int
     is_completed: int
+    table_number: Optional[int] = None
