@@ -17,7 +17,7 @@
   - [x] Create `backend/tests/test_table_ordering.py`.
   - [x] Verify Table 1 contains top-ranked players with highest points.
 
-## Phase 3: Frontend Display
+## Phase 3: Frontend Display [checkpoint: 735e7db]
 
 - [x] Task: Update Match components to display table numbers. [54ec0ea]
   - [x] Update `frontend/src/components/TournamentView.tsx` to show `Table {match.table_number}`.
