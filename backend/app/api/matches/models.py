@@ -14,6 +14,7 @@ class Match(Base):
     player2_score = Column(Integer, default=0)
     is_bye = Column(Integer, default=0)
     is_completed = Column(Integer, default=0)
+    table_number = Column(Integer, nullable=True)
 
     tournament = relationship("Tournament", back_populates="matches")
     player1 = relationship("Participant", foreign_keys=[player1_id], back_populates="matches_as_p1")
