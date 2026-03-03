@@ -27,6 +27,6 @@
 
 ## Phase 4: Final Integration and Verification
 
-- [ ] Task: End-to-End verification of table ordering in a live tournament flow.
-  - [ ] Run a local tournament with mock players.
-  - [ ] Verify Table 1 correctly reflects top pairings after multiple rounds.
+- [x] Task: End-to-End verification of table ordering in a live tournament flow. [a957ceb]
+  - [x] Run a local tournament with mock players.
+  - [x] Verify Table 1 correctly reflects top pairings after multiple rounds.
