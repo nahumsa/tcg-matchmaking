@@ -8,7 +8,7 @@
 - [x] Task: Update Match schemas for API response. [9af13f2]
   - [x] Add `table_number` to `backend/app/api/matches/schemas.py`.
 
-## Phase 2: Pairing Logic and Table Assignment
+## Phase 2: Pairing Logic and Table Assignment [checkpoint: 4e899fc]
 
 - [x] Task: Implement table assignment in the pairing engine. [abbd1cc]
   - [x] Update `backend/app/api/matches/services.py` to sort matches by total points and tie-breakers.
