@@ -4,9 +4,19 @@ import { MemoryRouter } from 'react-router-dom';
 import ParticipantJoin from './ParticipantJoin';
 import { config } from '../config';
 
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
 describe('ParticipantJoin', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
+    mockNavigate.mockClear();
   });
 
   it('renders correctly', () => {
@@ -47,7 +57,8 @@ describe('ParticipantJoin', () => {
     expect(screen.getByText(/Joining.../i)).toBeInTheDocument();
 
     await waitFor(() => {
-      // Should have redirected, but we check if it called fetch correctly
+      // Should have redirected to the new tournament path
+      expect(mockNavigate).toHaveBeenCalledWith('/tournament/ABCDEF');
       expect(fetch).toHaveBeenCalledWith(`${config.apiUrl}/tournaments/ABCDEF/join`, expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ name: 'Ash Ketchum' })

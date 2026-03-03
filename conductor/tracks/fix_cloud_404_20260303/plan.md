@@ -3,16 +3,16 @@
 ## Phase 1: Frontend Routing & Internal Links
 Focuses on updating the application logic to use the new `/tournament/:code` structure.
 
-- [ ] Task: Update React Router Configuration
+- [x] Task: Update React Router Configuration
     - [ ] Write tests in `App.test.tsx` to verify that `/tournament/:code` renders `TournamentView` and `/:code` redirects to `/tournament/:code`.
     - [ ] Modify `App.tsx` to update the route path and implement the redirect.
-- [ ] Task: Update Admin Dashboard Links
+- [x] Task: Update Admin Dashboard Links
     - [ ] Write/update tests for `AdminDashboard.tsx` to verify the "Public View" link points to `/tournament/:code`.
     - [ ] Update `AdminDashboard.tsx` to use the new path format.
-- [ ] Task: Update Participant Join Redirection
+- [x] Task: Update Participant Join Redirection
     - [ ] Write/update tests for `ParticipantJoin.tsx` to verify redirection to `/tournament/:code` after successful join.
     - [ ] Update `ParticipantJoin.tsx` to use the new path format.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Frontend Routing & Internal Links' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 1: Frontend Routing & Internal Links' (Protocol in workflow.md)
 
 ## Phase 2: Infrastructure & Docker Configuration
 Focuses on ensuring the Nginx configuration correctly handles deep links in the containerized environment.

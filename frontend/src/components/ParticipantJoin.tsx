@@ -33,7 +33,7 @@ export default function ParticipantJoin() {
       localStorage.setItem('last_tournament_code', code.toUpperCase());
 
       // Redirect to the tournament view for the specific code
-      navigate(`/${code.toUpperCase()}`);
+      navigate(`/tournament/${code.toUpperCase()}`);
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
     } finally {

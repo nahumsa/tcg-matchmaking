@@ -227,7 +227,7 @@ export default function AdminDashboard() {
                 <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter mb-2">{tournament.name}</h1>
                 <div className="flex items-center space-x-4">
                   <span className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold tracking-widest uppercase">{tournament.code}</span>
-                  <Link to={`/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">Public View ↗</Link>
+                  <Link to={`/tournament/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">Public View ↗</Link>
                 </div>
               </div>
               <button
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
                   >
                     Export Results
                   </button>
-                  <Link to={`/${tournament.code}`} target="_blank" className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-50 transition">
+                  <Link to={`/tournament/${tournament.code}`} target="_blank" className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-50 transition">
                     View Final Standings
                   </Link>
                 </div>
@@ -286,23 +286,24 @@ export default function AdminDashboard() {
                           </div>
                         ) : (
                           <div className="flex-1 flex items-center justify-center space-x-2 px-4">
-                          <input type="number" id={`p1-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
-                          <span className="text-gray-300">-</span>
-                          <input type="number" id={`p2-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
-                          <button
-                            onClick={() => {
-                              const s1 = (document.getElementById(`p1-${match.id}`) as HTMLInputElement).value;
-                              const s2 = (document.getElementById(`p2-${match.id}`) as HTMLInputElement).value;
-                              reportResult(match.id, parseInt(s1), parseInt(s2));
-                            }}
-                            className="ml-4 px-4 py-2 bg-gray-800 text-white text-sm font-bold rounded-lg hover:bg-black transition"
-                          >
-                            Report
-                          </button>
-                        </div>
-                      )}
+                            <input type="number" id={`p1-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
+                            <span className="text-gray-300">-</span>
+                            <input type="number" id={`p2-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
+                            <button
+                              onClick={() => {
+                                const s1 = (document.getElementById(`p1-${match.id}`) as HTMLInputElement).value;
+                                const s2 = (document.getElementById(`p2-${match.id}`) as HTMLInputElement).value;
+                                reportResult(match.id, parseInt(s1), parseInt(s2));
+                              }}
+                              className="ml-4 px-4 py-2 bg-gray-800 text-white text-sm font-bold rounded-lg hover:bg-black transition"
+                            >
+                              Report
+                            </button>
+                          </div>
+                        )}
 
-                      <div className="flex-1 font-bold text-lg text-right">{match.is_bye ? '-' : getPlayerName(match.player2_id)}</div>
+                        <div className="flex-1 font-bold text-lg text-right">{match.is_bye ? '-' : getPlayerName(match.player2_id)}</div>
+                      </div>
                     </div>
                   ))
                 )}

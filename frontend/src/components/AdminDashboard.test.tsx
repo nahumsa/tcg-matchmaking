@@ -24,12 +24,21 @@ describe('AdminDashboard', () => {
       id: 1,
       name: 'Swiss Open #1',
       code: 'ABCDEF',
-      rounds: 5
+      rounds: 5,
+      status: 'ACTIVE'
     };
 
-    (fetch as any).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockTournament)
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/tournaments/ABCDEF/matches')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.includes('/tournaments/ABCDEF/participants')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockTournament)
+      });
     });
 
     render(
@@ -66,6 +75,46 @@ describe('AdminDashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Failed to create tournament/i)).toBeInTheDocument();
+    });
+  });
+
+  it('contains correctly formatted "Public View" links after creation', async () => {
+    const mockTournament = {
+      id: 1,
+      name: 'Swiss Open #1',
+      code: 'ABCDEF',
+      rounds: 3,
+      status: 'ACTIVE'
+    };
+
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/tournaments/ABCDEF/matches')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.includes('/tournaments/ABCDEF/participants')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockTournament)
+      });
+    });
+
+    render(
+      <MemoryRouter>
+        <AdminDashboard />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByPlaceholderText(/e.g. Swiss Open #1/i), { target: { value: 'Swiss Open #1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Create New Tournament/i }));
+
+    await waitFor(() => {
+      const publicLinks = screen.getAllByText(/Public View/i);
+      expect(publicLinks.length).toBeGreaterThan(0);
+      publicLinks.forEach(link => {
+        expect(link.closest('a')).toHaveAttribute('href', '/tournament/ABCDEF');
+      });
     });
   });
 });
