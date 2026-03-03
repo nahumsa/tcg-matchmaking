@@ -1,0 +1,8 @@
+{
+  "track_id": "table_ordering_20260302",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-02T10:00:00Z",
+  "updated_at": "2026-03-02T10:00:00Z",
+  "description": "Add the ordering of tables, table 1 should be the match with the players with the most points."
+}

@@ -36,7 +36,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Admin Activity Monitoring & Tournament Conclusion**
 *Link: [./tracks/admin_monitoring_20260225/](./tracks/admin_monitoring_20260225/)*
 
----
-
-- [x] **Track: Add the ordering of tables, table 1 should be the match with the players with the most points.**
-*Link: [./tracks/table_ordering_20260302/](./tracks/table_ordering_20260302/)*
