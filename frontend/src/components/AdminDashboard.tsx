@@ -52,7 +52,7 @@ export default function AdminDashboard() {
       const ws = new WebSocket(`${config.wsUrl}/ws/${tournament.code}`);
       ws.onmessage = (event) => {
         const message = JSON.parse(event.data);
-        
+
         // Update matches and participants for UI state
         if (message.event === 'participant_joined' || message.event === 'participant_removed' || message.event === 'match_reported' || message.event === 'pairings_generated') {
           fetchMatches();
@@ -200,10 +200,10 @@ export default function AdminDashboard() {
         const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/standings`);
         if (response.ok) {
           const standings = await response.json();
-          const summary = standings.map((s: any) => 
+          const summary = standings.map((s: any) =>
             `${s.rank}. ${s.name} (${s.points} pts, ${s.wins}-${s.losses}-${s.draws})`
           ).join('\n');
-          
+
           const blob = new Blob([summary], { type: 'text/plain' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -245,7 +245,7 @@ export default function AdminDashboard() {
                   <p className="text-green-100 font-medium">All rounds have been played and results are finalized.</p>
                 </div>
                 <div className="flex space-x-4">
-                  <button 
+                  <button
                     onClick={handleExport}
                     className="px-6 py-2 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 transition"
                   >
@@ -303,10 +303,10 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-          
+
           <div className="w-full md:w-80 lg:w-96 space-y-8">
-            <ParticipantList 
-              tournamentCode={tournament.code} 
+            <ParticipantList
+              tournamentCode={tournament.code}
               participants={participants}
               onUpdate={fetchParticipants}
             />

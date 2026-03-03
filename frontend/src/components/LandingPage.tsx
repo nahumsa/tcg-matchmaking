@@ -1,27 +1,8 @@
 import React from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
-import { useRole } from '../context/RoleContext';
+import { useNavigate } from 'react-router-dom';
 
 const LandingPage: React.FC = () => {
-  const { role, setRole } = useRole();
   const navigate = useNavigate();
-
-  // Smart Redirect: If a role is already set, don't show the landing page
-  if (role === 'ADMIN') {
-    return <Navigate to="/admin" replace />;
-  }
-  if (role === 'PLAYER') {
-    return <Navigate to="/join" replace />;
-  }
-
-  const handleChoice = (choice: 'ADMIN' | 'PLAYER') => {
-    setRole(choice);
-    if (choice === 'ADMIN') {
-      navigate('/admin');
-    } else {
-      navigate('/join');
-    }
-  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-4 bg-gray-50">
@@ -30,13 +11,13 @@ const LandingPage: React.FC = () => {
           Welcome to TCG Matchmaking
         </h1>
         <p className="text-lg text-gray-600 max-w-md mx-auto">
-          Please select your role to continue. You can always change this later in the navigation bar.
+          Please select your role to continue.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl">
         <button
-          onClick={() => handleChoice('ADMIN')}
+          onClick={() => navigate('/admin')}
           className="group flex flex-col items-center p-10 bg-white rounded-2xl shadow-lg border-2 border-transparent hover:border-indigo-500 transition-all hover:scale-105"
         >
           <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-indigo-600 transition-colors">
@@ -49,7 +30,7 @@ const LandingPage: React.FC = () => {
         </button>
 
         <button
-          onClick={() => handleChoice('PLAYER')}
+          onClick={() => navigate('/join')}
           className="group flex flex-col items-center p-10 bg-white rounded-2xl shadow-lg border-2 border-transparent hover:border-green-500 transition-all hover:scale-105"
         >
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-green-600 transition-colors">

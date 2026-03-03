@@ -1,7 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
-import { RoleProvider } from '../context/RoleContext';
 import NavigationBar from './NavigationBar';
 
 describe('NavigationBar', () => {
@@ -9,50 +8,26 @@ describe('NavigationBar', () => {
     localStorage.clear();
   });
 
-  it('renders correctly with default (null) role', () => {
+  it('renders correctly', () => {
     render(
       <MemoryRouter>
-        <RoleProvider>
-          <NavigationBar />
-        </RoleProvider>
+        <NavigationBar />
       </MemoryRouter>
     );
     expect(screen.getByText(/TCG Matchmaking/i)).toBeInTheDocument();
-    expect(screen.getByText(/Role: NOT SET/i)).toBeInTheDocument();
+    expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
   });
 
-  it('allows switching role to ADMIN', () => {
+  it('shows standings link if lastCode is in localStorage', () => {
+    localStorage.setItem('last_tournament_code', 'ABCDEF');
     render(
       <MemoryRouter>
-        <RoleProvider>
-          <NavigationBar />
-        </RoleProvider>
+        <NavigationBar />
       </MemoryRouter>
     );
 
-    const dropdown = screen.getByRole('combobox');
-    fireEvent.change(dropdown, { target: { value: 'ADMIN' } });
-
-    expect(screen.getByText(/Role: ADMIN/i)).toBeInTheDocument();
-    expect(localStorage.getItem('tcg_user_role')).toBe('ADMIN');
-  });
-
-  it('allows switching role back to PLAYER', () => {
-    localStorage.setItem('tcg_user_role', 'ADMIN');
-    render(
-      <MemoryRouter>
-        <RoleProvider>
-          <NavigationBar />
-        </RoleProvider>
-      </MemoryRouter>
-    );
-
-    expect(screen.getByText(/Role: ADMIN/i)).toBeInTheDocument();
-
-    const dropdown = screen.getByRole('combobox');
-    fireEvent.change(dropdown, { target: { value: 'PLAYER' } });
-
-    expect(screen.getByText(/Role: PLAYER/i)).toBeInTheDocument();
-    expect(localStorage.getItem('tcg_user_role')).toBe('PLAYER');
+    expect(screen.getByText(/Standings/i)).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: /Standings/i });
+    expect(link).toHaveAttribute('href', '/ABCDEF');
   });
 });
