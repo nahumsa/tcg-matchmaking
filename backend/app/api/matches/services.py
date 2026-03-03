@@ -25,9 +25,20 @@ async def generate_pairings(db: Session, tournament: Tournament) -> List[models.
     # Generate pairings
     new_pairings = pairing.get_pairings(participants, past_matches)
 
+    # Sort pairings by combined points descending
+    # (p1, p2) where p2 can be None for BYE
+    def get_combined_points(pair):
+        p1, p2 = pair
+        points = p1.points
+        if p2:
+            points += p2.points
+        return points
+
+    sorted_pairings = sorted(new_pairings, key=get_combined_points, reverse=True)
+
     # Save new matches
     db_matches = []
-    for p1, p2 in new_pairings:
+    for i, (p1, p2) in enumerate(sorted_pairings, 1):
         match = models.Match(
             tournament_id=tournament.id,
             round_number=round_number,
@@ -35,6 +46,7 @@ async def generate_pairings(db: Session, tournament: Tournament) -> List[models.
             player2_id=p2.id if p2 else None,
             is_bye=1 if p2 is None else 0,
             is_completed=1 if p2 is None else 0,
+            table_number=i
         )
         if p2 is None:
             p1.points += 3
