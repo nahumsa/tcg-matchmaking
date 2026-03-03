@@ -10,7 +10,7 @@
 
 ## Phase 2: Pairing Logic and Table Assignment
 
-- [ ] Task: Implement table assignment in the pairing engine.
+- [x] Task: Implement table assignment in the pairing engine. [abbd1cc]
   - [ ] Update `backend/app/api/matches/pairing.py` to sort matches by total points and tie-breakers.
   - [ ] Assign sequential `table_number` starting from 1 to sorted matches.
 - [ ] Task: Write tests for point-based table ordering.
