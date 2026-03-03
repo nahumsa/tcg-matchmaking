@@ -5,7 +5,7 @@
 - [x] Task: Update Match model to include `table_number` field. [31d1a6d]
   - [ ] Add `table_number` to `backend/app/api/matches/models.py`.
   - [ ] Create and run Alembic migration for the new field.
-- [ ] Task: Update Match schemas for API response.
+- [x] Task: Update Match schemas for API response. [9af13f2]
   - [ ] Add `table_number` to `backend/app/api/matches/schemas.py`.
 
 ## Phase 2: Pairing Logic and Table Assignment
