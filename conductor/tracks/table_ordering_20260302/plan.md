@@ -19,7 +19,7 @@
 
 ## Phase 3: Frontend Display
 
-- [ ] Task: Update Match components to display table numbers.
+- [x] Task: Update Match components to display table numbers. [54ec0ea]
   - [ ] Update `frontend/src/components/TournamentView.tsx` to show `Table {match.table_number}`.
   - [ ] Update `frontend/src/components/AdminDashboard.tsx` if needed.
 - [ ] Task: Add frontend tests for table number visibility.
