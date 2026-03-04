@@ -52,4 +52,3 @@ This plan outlines the steps for building the core Swiss tournament system, incl
     - [x] Update the React frontend to listen for WebSocket messages and update pairings and standings in real-time.
     - [x] Write tests for real-time data synchronization across clients.
 - [x] **Task: Conductor - User Manual Verification 'Swiss Pairing Engine & Results' (Protocol in workflow.md)**
-

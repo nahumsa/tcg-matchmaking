@@ -1,0 +1,51 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-added-large-files
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.9
+    hooks:
+    -   id: ruff
+        args: [ --fix, --exit-non-zero-on-fix ]
+        files: ^backend/
+    -   id: ruff-format
+        files: ^backend/
+
+-   repo: local
+    hooks:
+    -   id: frontend-lint
+        name: Frontend Lint
+        entry: bash -c "cd frontend && npm run lint"
+        language: system
+        files: ^frontend/
+        types: [file]
+        pass_filenames: false
+
+    -   id: frontend-type-check
+        name: Frontend Type Check
+        entry: bash -c "cd frontend && npx tsc -b"
+        language: system
+        files: ^frontend/
+        types: [file]
+        pass_filenames: false
+
+    -   id: backend-tests
+        name: Backend Tests
+        entry: bash -c "cd backend && PYTHONPATH=.. uv run pytest tests"
+        language: system
+        files: ^backend/
+        types: [file]
+        pass_filenames: false
+
+    -   id: frontend-tests
+        name: Frontend Tests
+        entry: bash -c "cd frontend && CI=true npm run test"
+        language: system
+        files: ^frontend/
+        types: [file]
+        pass_filenames: false

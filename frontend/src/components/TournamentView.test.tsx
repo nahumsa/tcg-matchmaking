@@ -114,7 +114,7 @@ describe('TournamentView', () => {
 
     // Switch to standings tab
     fireEvent.click(screen.getByRole('button', { name: /Standings/i }));
-    
+
     await waitFor(() => {
       expect(screen.getByRole('table')).toBeInTheDocument();
       expect(screen.getAllByText('Alice').length).toBeGreaterThan(0);

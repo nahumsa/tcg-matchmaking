@@ -41,4 +41,3 @@
 - [x] Task: Update `App.tsx` and integration tests for `LandingPage` ec2272c
     - [x] Replace `/` redirect with `LandingPage` component.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Route Protection and Integration' (Protocol in workflow.md) 1d2b0e4
-

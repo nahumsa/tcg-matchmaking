@@ -31,7 +31,7 @@ jobs:
     - name: Run Tests with Coverage
       run: |
         PYTHONPATH=. uv run --project ./backend pytest backend/tests --cov=backend/app --cov-report=term-missing --cov-report=json:coverage-backend.json
-    
+
     - name: Upload backend coverage
       uses: actions/upload-artifact@v4
       with:
@@ -67,7 +67,7 @@ jobs:
       working-directory: ./frontend
       run: |
         npm run test -- --coverage --reporter=json --outputFile=coverage-frontend.json
-    
+
     - name: Upload frontend coverage
       uses: actions/upload-artifact@v4
       with:
@@ -100,7 +100,7 @@ jobs:
       with:
         script: |
           const fs = require('fs');
-          
+
           let backendPct = 'N/A';
           try {
             const backendCov = JSON.parse(fs.readFileSync('coverage/backend/coverage-backend.json', 'utf8'));
@@ -110,7 +110,7 @@ jobs:
           } catch (e) {
             console.error('Error reading backend coverage', e);
           }
-          
+
           let frontendPct = 'N/A';
           try {
             const frontendCov = JSON.parse(fs.readFileSync('coverage/frontend/coverage-frontend.json', 'utf8'));
@@ -120,16 +120,16 @@ jobs:
           } catch (e) {
             console.error('Error reading frontend coverage', e);
           }
-          
+
           const body = `### CI Coverage Report
-          
+
           | Module | Coverage | Status |
           | --- | --- | --- |
           | **Backend** | ${backendPct}% | ${backendPct !== 'N/A' && parseFloat(backendPct) >= 80 ? '✅' : '⚠️'} |
           | **Frontend** | ${frontendPct}% | ${frontendPct !== 'N/A' && parseFloat(frontendPct) >= 80 ? '✅' : '⚠️'} |
-          
+
           *Threshold: 80%*`;
-          
+
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
