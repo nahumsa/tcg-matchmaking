@@ -6,7 +6,7 @@
   - [ ] Run `ruff check` and `ruff format --check` in the backend directory.
   - [ ] Run `pytest` with coverage in the backend directory.
   - [ ] Ensure all local tests pass and coverage is >80%.
-- [~] Task: Verify frontend environment consistency.
+- [x] Task: Verify frontend environment consistency. 6570972
   - [ ] Run `npm run lint` and `npm run test` in the frontend directory.
   - [ ] Run `tsc` to verify type safety.
   - [ ] Ensure all local tests pass and coverage is >80%.
