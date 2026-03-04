@@ -32,5 +32,5 @@
 
 - [x] Task: Perform syntax validation for GitHub Action files. 22cc86a
 - [x] Task: Update project documentation to reflect the new CI requirements. 0798b49
-- [ ] Task: Update the Conductor Tracks Registry.
-- [ ] Task: Conductor - Create github pull request using the github cli (gh) with all changes and a description of what was implemented and the plan.
+- [x] Task: Update the Conductor Tracks Registry. efb3a88
+- [x] Task: Conductor - Create github pull request using the github cli (gh) with all changes and a description of what was implemented and the plan. https://github.com/nahumsa/tcg-matchmaking/pull/3
