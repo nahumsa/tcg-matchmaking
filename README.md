@@ -39,6 +39,16 @@ backend/app/
 └── main.py             # FastAPI application entry point
 ```
 
+## Development Tools
+
+### CI/CD Pipeline
+The project uses GitHub Actions for continuous integration. Every Pull Request to `main` triggers:
+- **Backend:** Linting (Ruff), Testing (Pytest), Coverage Report, and Docker build check.
+- **Frontend:** Linting (ESLint), Type-checking (TSC), Testing (Vitest), Coverage Report, and Docker build check.
+- **Coverage Summary:** A combined report is posted as a comment on the PR.
+
+Threshold: **80% coverage** is the target for both modules.
+
 ## Getting Started
 
 ### Backend
