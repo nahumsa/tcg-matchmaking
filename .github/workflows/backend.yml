@@ -1,0 +1,49 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+      - 'alembic/**'
+      - 'alembic.ini'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        python-version: "3.12"
+        enable-cache: true
+
+    - name: Install dependencies
+      run: uv sync --project ./backend --dev
+
+    - name: Lint and Format Check
+      run: |
+        uv run --project ./backend ruff check .
+        uv run --project ./backend ruff format --check .
+
+    - name: Run Tests with Coverage
+      run: |
+        PYTHONPATH=. uv run --project ./backend pytest backend/tests --cov=backend/app --cov-report=term-missing --cov-report=json:coverage.json
+    
+    - name: Upload coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-coverage
+        path: coverage.json
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build Backend Docker Image
+      run: docker build -t tcg-backend -f backend/Dockerfile .
