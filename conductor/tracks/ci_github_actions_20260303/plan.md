@@ -24,7 +24,7 @@
   - [ ] Create `.github/workflows/frontend.yml`.
   - [ ] Add jobs for checkout, Node.js setup, dependency installation, linting, and testing.
   - [ ] Configure Docker build check for the frontend.
-- [ ] Task: Implement Integrated Coverage Reporting.
+- [x] Task: Implement Integrated Coverage Reporting. e113f7b
   - [ ] Add a step to aggregate backend and frontend coverage.
   - [ ] Use a GitHub Action (e.g., `py-cov-action` or custom script) to post PR comments.
 
