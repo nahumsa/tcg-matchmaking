@@ -71,6 +71,9 @@ All tasks follow a strict lifecycle:
     - **Action:** Stage the modified `plan.md` file.
     - **Action:** Commit this change with a descriptive message (e.g., `conductor(plan): Mark task 'Create user model' as complete`).
 
+1. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
+    - **Action:** Create github pull request using the github cli (gh) with all changes and a description of what was implemented and the plan.
+
 ### Phase Completion Verification and Checkpointing Protocol
 
 **Trigger:** This protocol is executed immediately after a task is completed that also concludes a phase in `plan.md`.
@@ -95,21 +98,14 @@ All tasks follow a strict lifecycle:
     - Stage all changes. If no changes occurred in this step, proceed with an empty commit.
     - Perform the commit with a clear and concise message (e.g., `conductor(checkpoint): Checkpoint end of Phase X`).
 
-5. **Attach Auditable Verification Report using Git Notes:**
-    - **Step 7.1: Draft Note Content:** Create a detailed verification report including the automated test command, the manual verification steps, and the user's confirmation.
-    - **Step 7.2: Attach Note:** Use the `git notes` command and the full commit hash from the previous step to attach the full report to the checkpoint commit.
-
-6. **Get and Record Phase Checkpoint SHA:**
+5. **Get and Record Phase Checkpoint SHA:**
     - **Step 8.1: Get Commit Hash:** Obtain the hash of the *just-created checkpoint commit* (`git log -1 --format="%H"`).
     - **Step 8.2: Update Plan:** Read `plan.md`, find the heading for the completed phase, and append the first 7 characters of the commit hash in the format `[checkpoint: <sha>]`.
     - **Step 8.3: Write Plan:** Write the updated content back to `plan.md`.
 
-7. **Commit Plan Update:**
+6. **Commit Plan Update:**
     - **Action:** Stage the modified `plan.md` file.
     - **Action:** Commit this change with a descriptive message following the format `conductor(plan): Mark phase '<PHASE NAME>' as complete`.
-
-8. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
-    - **Action:** Create github pull request using the github cli (gh) with all changes and a description of what was implemented and the plan.
 
 ### Quality Gates
 
