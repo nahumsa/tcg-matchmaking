@@ -38,8 +38,8 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
 
       setNewName('');
       onUpdate();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -55,8 +55,8 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
 
       if (!response.ok) throw new Error('Failed to remove participant');
       onUpdate();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     }
   };
 

@@ -82,7 +82,7 @@ export default function AdminDashboard() {
       };
       return () => ws.close();
     }
-  }, [tournament]);
+  }, [tournament]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchMatches = async () => {
     if (!tournament) return;
@@ -144,8 +144,8 @@ export default function AdminDashboard() {
       const data = await response.json();
       setTournament(data);
       localStorage.setItem('last_tournament_code', data.code);
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -163,8 +163,8 @@ export default function AdminDashboard() {
         throw new Error(data.detail || 'Failed to generate pairings');
       }
       await fetchMatches();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -179,8 +179,8 @@ export default function AdminDashboard() {
       });
       if (!response.ok) throw new Error('Failed to report result');
       await fetchMatches();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     }
   };
 
@@ -201,7 +201,7 @@ export default function AdminDashboard() {
         const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/standings`);
         if (response.ok) {
           const standings = await response.json();
-          const summary = standings.map((s: any) =>
+          const summary = standings.map((s: { rank: number; name: string; points: number; wins: number; losses: number; draws: number }) =>
             `${s.rank}. ${s.name} (${s.points} pts, ${s.wins}-${s.losses}-${s.draws})`
           ).join('\n');
 
