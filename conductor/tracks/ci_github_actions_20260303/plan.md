@@ -16,7 +16,7 @@
 
 ## Phase 2: GitHub Actions Workflow Creation
 
-- [ ] Task: Implement Backend CI Workflow.
+- [x] Task: Implement Backend CI Workflow. 4dd490b
   - [ ] Create `.github/workflows/backend.yml`.
   - [ ] Add jobs for checkout, uv setup, linting, and testing.
   - [ ] Configure Docker build check for the backend.
