@@ -43,5 +43,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Create CI/CD using github actions to test both the front end and the backend**
+- [x] **Track: Create CI/CD using github actions to test both the front end and the backend**
 *Link: [./tracks/ci_github_actions_20260303/](./tracks/ci_github_actions_20260303/)*
