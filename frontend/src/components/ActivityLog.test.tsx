@@ -25,7 +25,7 @@ describe('ActivityLog', () => {
     ];
 
     render(<ActivityLog events={mockEvents} />);
-    
+
     expect(screen.getByText(/PARTICIPANT JOINED/i)).toBeInTheDocument();
     expect(screen.getByText(/Alice joined the tournament./i)).toBeInTheDocument();
     expect(screen.getByText(/MATCH REPORTED/i)).toBeInTheDocument();

@@ -49,6 +49,18 @@ The project uses GitHub Actions for continuous integration. Every Pull Request t
 
 Threshold: **80% coverage** is the target for both modules.
 
+### Pre-commit Hooks
+To ensure code quality locally, the project includes `pre-commit` hooks.
+1. Install pre-commit:
+   ```bash
+   cd backend && uv run pre-commit install
+   ```
+2. (Optional) Run against all files:
+   ```bash
+   cd backend && uv run pre-commit run --all-files
+   ```
+These hooks will automatically run backend/frontend linting, type-checking, and tests on every commit.
+
 ## Getting Started
 
 ### Backend

@@ -1,3 +1,31 @@
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.pytest_cache/
+.ruff_cache/
 .coverage
+coverage.xml
+coverage.json
+coverage-backend.json
+htmlcov/
 test.db
+
+# Node.js
+node_modules/
+dist/
+.eslintcache
+frontend/coverage/
+frontend/coverage-frontend.json
+
+# Docker
+.dockerignore
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

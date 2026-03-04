@@ -19,10 +19,10 @@ describe('ParticipantList', () => {
 
   it('renders participant list correctly', async () => {
     render(
-      <ParticipantList 
-        tournamentCode={mockTournamentCode} 
-        participants={mockParticipants} 
-        onUpdate={mockOnUpdate} 
+      <ParticipantList
+        tournamentCode={mockTournamentCode}
+        participants={mockParticipants}
+        onUpdate={mockOnUpdate}
       />
     );
 
@@ -38,10 +38,10 @@ describe('ParticipantList', () => {
     });
 
     render(
-      <ParticipantList 
-        tournamentCode={mockTournamentCode} 
-        participants={[]} 
-        onUpdate={mockOnUpdate} 
+      <ParticipantList
+        tournamentCode={mockTournamentCode}
+        participants={[]}
+        onUpdate={mockOnUpdate}
       />
     );
 
@@ -69,10 +69,10 @@ describe('ParticipantList', () => {
     });
 
     render(
-      <ParticipantList 
-        tournamentCode={mockTournamentCode} 
-        participants={mockParticipants} 
-        onUpdate={mockOnUpdate} 
+      <ParticipantList
+        tournamentCode={mockTournamentCode}
+        participants={mockParticipants}
+        onUpdate={mockOnUpdate}
       />
     );
 
