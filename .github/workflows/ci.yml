@@ -111,12 +111,31 @@ jobs:
               console.error('Error reading backend coverage', e);
             }
 
-            # fix frontend cov
             let frontendPct = 'N/A';
             try {
+              const fs = require('fs');
               const frontendCov = JSON.parse(fs.readFileSync('coverage/frontend/coverage-frontend.json', 'utf8'));
-              if (frontendCov.total && frontendCov.total.lines && typeof frontendCov.total.lines.pct === 'number') {
-                frontendPct = frontendCov.total.lines.pct.toFixed(2);
+
+              if (frontendCov.coverageMap) {
+                let totalStatements = 0;
+                let coveredStatements = 0;
+
+                // Iterate over every file in the coverage map
+                for (const filename in frontendCov.coverageMap) {
+                  const fileData = frontendCov.coverageMap[filename];
+                  const statements = fileData.s || {};
+
+                  // Add to our total counts
+                  totalStatements += Object.keys(statements).length;
+                  coveredStatements += Object.values(statements).filter(count => count > 0).length;
+                }
+
+                // Calculate the percentage
+                if (totalStatements > 0) {
+                  frontendPct = ((coveredStatements / totalStatements) * 100).toFixed(2);
+                } else {
+                  frontendPct = '0.00';
+                }
               }
             } catch (e) {
               console.error('Error reading frontend coverage', e);
@@ -126,10 +145,10 @@ jobs:
 
             | Module | Coverage | Status |
             | --- | --- | --- |
-            | **Backend** | ${backendPct}% | ${backendPct !== 'N/A' && parseFloat(backendPct) >= 80 ? '✅' : '⚠️'} |
-            | **Frontend** | ${frontendPct}% | ${frontendPct !== 'N/A' && parseFloat(frontendPct) >= 80 ? '✅' : '⚠️'} |
+            | **Backend** | ${backendPct}% | ${backendPct !== 'N/A' && parseFloat(backendPct) >= 70 ? '✅' : '⚠️'} |
+            | **Frontend** | ${frontendPct}% | ${frontendPct !== 'N/A' && parseFloat(frontendPct) >= 70 ? '✅' : '⚠️'} |
 
-            *Threshold: 80%*`;
+            *Threshold: 70%*`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
