@@ -70,7 +70,6 @@ All tasks follow a strict lifecycle:
 1. **Commit Plan Update:**
     - **Action:** Stage the modified `plan.md` file.
     - **Action:** Commit this change with a descriptive message (e.g., `conductor(plan): Mark task 'Create user model' as complete`).
-    - **Action:** Create github pull request using the github cli (gh) with all changes and a description of what was implemented
 
 ### Phase Completion Verification and Checkpointing Protocol
 
@@ -92,51 +91,25 @@ All tasks follow a strict lifecycle:
     - Execute the announced command.
     - If tests fail, you **must** inform the user and begin debugging. You may attempt to propose a fix a **maximum of two times**. If the tests still fail after your second proposed fix, you **must stop**, report the persistent failure, and ask the user for guidance.
 
-4. **Propose a Detailed, Actionable Manual Verification Plan:**
-    - **CRITICAL:** To generate the plan, first analyze `product.md`, `product-guidelines.md`, and `plan.md` to determine the user-facing goals of the completed phase.
-    - You **must** generate a step-by-step plan that walks the user through the verification process, including any necessary commands and specific, expected outcomes.
-    - The plan you present to the user **must** follow this format:
-
-        **For a Frontend Change:**
-
-        ```
-        The automated tests have passed. For manual verification, please follow these steps:
-
-        **Manual Verification Steps:**
-        1.  **Start the development server with the command:** `npm run dev`
-        2.  **Open your browser to:** `http://localhost:3000`
-        3.  **Confirm that you see:** The new user profile page, with the user's name and email displayed correctly.
-        ```
-
-        **For a Backend Change:**
-
-        ```
-        The automated tests have passed. For manual verification, please follow these steps:
-
-        **Manual Verification Steps:**
-        1.  **Ensure the server is running.**
-        2.  **Execute the following command in your terminal:** `curl -X POST http://localhost:8080/api/v1/users -d '{"name": "test"}'`
-        3.  **Confirm that you receive:** A JSON response with a status of `201 Created`.
-        ```
-
-5. **Create Checkpoint Commit:**
+4. **Create Checkpoint Commit:**
     - Stage all changes. If no changes occurred in this step, proceed with an empty commit.
     - Perform the commit with a clear and concise message (e.g., `conductor(checkpoint): Checkpoint end of Phase X`).
 
-6. **Attach Auditable Verification Report using Git Notes:**
+5. **Attach Auditable Verification Report using Git Notes:**
     - **Step 7.1: Draft Note Content:** Create a detailed verification report including the automated test command, the manual verification steps, and the user's confirmation.
     - **Step 7.2: Attach Note:** Use the `git notes` command and the full commit hash from the previous step to attach the full report to the checkpoint commit.
 
-7. **Get and Record Phase Checkpoint SHA:**
+6. **Get and Record Phase Checkpoint SHA:**
     - **Step 8.1: Get Commit Hash:** Obtain the hash of the *just-created checkpoint commit* (`git log -1 --format="%H"`).
     - **Step 8.2: Update Plan:** Read `plan.md`, find the heading for the completed phase, and append the first 7 characters of the commit hash in the format `[checkpoint: <sha>]`.
     - **Step 8.3: Write Plan:** Write the updated content back to `plan.md`.
 
-8. **Commit Plan Update:**
+7. **Commit Plan Update:**
     - **Action:** Stage the modified `plan.md` file.
     - **Action:** Commit this change with a descriptive message following the format `conductor(plan): Mark phase '<PHASE NAME>' as complete`.
 
-9. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
+8. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
+    - **Action:** Create github pull request using the github cli (gh) with all changes and a description of what was implemented and the plan.
 
 ### Quality Gates
 
