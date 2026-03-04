@@ -1,0 +1,8 @@
+{
+  "track_id": "ci_github_actions_20260303",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-03-03T12:00:00Z",
+  "updated_at": "2026-03-03T12:00:00Z",
+  "description": "Create CI/CD using github actions to test both the front end and the backend"
+}
