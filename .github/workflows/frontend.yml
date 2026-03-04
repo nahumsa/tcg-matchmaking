@@ -1,0 +1,51 @@
+name: Frontend CI
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+        cache: 'npm'
+        cache-dependency-path: './frontend/package-lock.json'
+
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Lint and Type Check
+      working-directory: ./frontend
+      run: |
+        npm run lint
+        npx tsc -b
+
+    - name: Run Tests with Coverage
+      working-directory: ./frontend
+      run: |
+        npm run test -- --coverage --reporter=json --outputFile=coverage-frontend.json
+    
+    - name: Upload coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-coverage
+        path: frontend/coverage-frontend.json
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build Frontend Docker Image
+      run: docker build -t tcg-frontend -f frontend/Dockerfile .
