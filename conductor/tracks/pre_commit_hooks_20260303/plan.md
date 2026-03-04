@@ -1,7 +1,7 @@
 # Implementation Plan: Pre-commit Hooks
 
 ## Phase 1: Environment Setup & Local Verification
-- [ ] Task: Install `pre-commit` in the backend (dev dependencies).
+- [x] Task: Install `pre-commit` in the backend (dev dependencies). 4fc56dd
 - [ ] Task: Create a base `.pre-commit-config.yaml` with standard hooks.
 - [ ] Task: Add backend hooks for `ruff`.
 - [ ] Task: Add frontend hooks for `eslint` and `tsc`.
