@@ -20,7 +20,7 @@
   - [ ] Create `.github/workflows/backend.yml`.
   - [ ] Add jobs for checkout, uv setup, linting, and testing.
   - [ ] Configure Docker build check for the backend.
-- [ ] Task: Implement Frontend CI Workflow.
+- [x] Task: Implement Frontend CI Workflow. a0da9ad
   - [ ] Create `.github/workflows/frontend.yml`.
   - [ ] Add jobs for checkout, Node.js setup, dependency installation, linting, and testing.
   - [ ] Configure Docker build check for the frontend.
