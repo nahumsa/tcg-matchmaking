@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   pull-requests: write
@@ -12,127 +12,128 @@ jobs:
   backend:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up uv
-      uses: astral-sh/setup-uv@v5
-      with:
-        python-version: "3.12"
-        enable-cache: true
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+          enable-cache: true
 
-    - name: Install dependencies
-      run: uv sync --project ./backend --dev
+      - name: Install dependencies
+        run: uv sync --project ./backend --dev
 
-    - name: Lint and Format Check
-      run: |
-        uv run --project ./backend ruff check .
-        uv run --project ./backend ruff format --check .
+      - name: Lint and Format Check
+        run: |
+          uv run --project ./backend ruff check .
+          uv run --project ./backend ruff format --check .
 
-    - name: Run Tests with Coverage
-      run: |
-        PYTHONPATH=. uv run --project ./backend pytest backend/tests --cov=backend/app --cov-report=term-missing --cov-report=json:coverage-backend.json
+      - name: Run Tests with Coverage
+        run: |
+          PYTHONPATH=. uv run --project ./backend pytest backend/tests --cov=backend/app --cov-report=term-missing --cov-report=json:coverage-backend.json
 
-    - name: Upload backend coverage
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-coverage
-        path: coverage-backend.json
+      - name: Upload backend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: coverage-backend.json
 
-    - name: Build Backend Docker Image
-      run: docker build -t tcg-backend -f backend/Dockerfile .
+      - name: Build Backend Docker Image
+        run: docker build -t tcg-backend -f backend/Dockerfile .
 
   frontend:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: "22"
-        cache: 'npm'
-        cache-dependency-path: './frontend/package-lock.json'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "./frontend/package-lock.json"
 
-    - name: Install dependencies
-      working-directory: ./frontend
-      run: npm ci
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
 
-    - name: Lint and Type Check
-      working-directory: ./frontend
-      run: |
-        npm run lint
-        npx tsc -b
+      - name: Lint and Type Check
+        working-directory: ./frontend
+        run: |
+          npm run lint
+          npx tsc -b
 
-    - name: Run Tests with Coverage
-      working-directory: ./frontend
-      run: |
-        npm run test -- --coverage --reporter=json --outputFile=coverage-frontend.json
+      - name: Run Tests with Coverage
+        working-directory: ./frontend
+        run: |
+          npm run test -- --coverage --reporter=json --outputFile=coverage-frontend.json
 
-    - name: Upload frontend coverage
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-coverage
-        path: frontend/coverage-frontend.json
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage-frontend.json
 
-    - name: Build Frontend Docker Image
-      run: docker build -t tcg-frontend -f frontend/Dockerfile .
+      - name: Build Frontend Docker Image
+        run: docker build -t tcg-frontend -f frontend/Dockerfile .
 
   coverage-report:
     runs-on: ubuntu-latest
     needs: [backend, frontend]
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Download backend coverage
-      uses: actions/download-artifact@v4
-      with:
-        name: backend-coverage
-        path: coverage/backend
+      - name: Download backend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage
+          path: coverage/backend
 
-    - name: Download frontend coverage
-      uses: actions/download-artifact@v4
-      with:
-        name: frontend-coverage
-        path: coverage/frontend
+      - name: Download frontend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage
+          path: coverage/frontend
 
-    - name: Post Coverage Comment
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
+      - name: Post Coverage Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
 
-          let backendPct = 'N/A';
-          try {
-            const backendCov = JSON.parse(fs.readFileSync('coverage/backend/coverage-backend.json', 'utf8'));
-            if (backendCov.totals && typeof backendCov.totals.percent_covered === 'number') {
-              backendPct = backendCov.totals.percent_covered.toFixed(2);
+            let backendPct = 'N/A';
+            try {
+              const backendCov = JSON.parse(fs.readFileSync('coverage/backend/coverage-backend.json', 'utf8'));
+              if (backendCov.totals && typeof backendCov.totals.percent_covered === 'number') {
+                backendPct = backendCov.totals.percent_covered.toFixed(2);
+              }
+            } catch (e) {
+              console.error('Error reading backend coverage', e);
             }
-          } catch (e) {
-            console.error('Error reading backend coverage', e);
-          }
 
-          let frontendPct = 'N/A';
-          try {
-            const frontendCov = JSON.parse(fs.readFileSync('coverage/frontend/coverage-frontend.json', 'utf8'));
-            if (frontendCov.total && frontendCov.total.lines && typeof frontendCov.total.lines.pct === 'number') {
-              frontendPct = frontendCov.total.lines.pct.toFixed(2);
+            # fix frontend cov
+            let frontendPct = 'N/A';
+            try {
+              const frontendCov = JSON.parse(fs.readFileSync('coverage/frontend/coverage-frontend.json', 'utf8'));
+              if (frontendCov.total && frontendCov.total.lines && typeof frontendCov.total.lines.pct === 'number') {
+                frontendPct = frontendCov.total.lines.pct.toFixed(2);
+              }
+            } catch (e) {
+              console.error('Error reading frontend coverage', e);
             }
-          } catch (e) {
-            console.error('Error reading frontend coverage', e);
-          }
 
-          const body = `### CI Coverage Report
+            const body = `### CI Coverage Report
 
-          | Module | Coverage | Status |
-          | --- | --- | --- |
-          | **Backend** | ${backendPct}% | ${backendPct !== 'N/A' && parseFloat(backendPct) >= 80 ? '✅' : '⚠️'} |
-          | **Frontend** | ${frontendPct}% | ${frontendPct !== 'N/A' && parseFloat(frontendPct) >= 80 ? '✅' : '⚠️'} |
+            | Module | Coverage | Status |
+            | --- | --- | --- |
+            | **Backend** | ${backendPct}% | ${backendPct !== 'N/A' && parseFloat(backendPct) >= 80 ? '✅' : '⚠️'} |
+            | **Frontend** | ${frontendPct}% | ${frontendPct !== 'N/A' && parseFloat(frontendPct) >= 80 ? '✅' : '⚠️'} |
 
-          *Threshold: 80%*`;
+            *Threshold: 80%*`;
 
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: body
-          });
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
