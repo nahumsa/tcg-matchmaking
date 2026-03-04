@@ -101,29 +101,32 @@ jobs:
         script: |
           const fs = require('fs');
           
-          let backendCov;
+          let backendPct = 'N/A';
           try {
-            backendCov = JSON.parse(fs.readFileSync('coverage/backend/coverage-backend.json', 'utf8'));
+            const backendCov = JSON.parse(fs.readFileSync('coverage/backend/coverage-backend.json', 'utf8'));
+            if (backendCov.totals && typeof backendCov.totals.percent_covered === 'number') {
+              backendPct = backendCov.totals.percent_covered.toFixed(2);
+            }
           } catch (e) {
-            backendCov = { totals: { percent_covered: 'Error' } };
+            console.error('Error reading backend coverage', e);
           }
           
-          let frontendCov;
+          let frontendPct = 'N/A';
           try {
-            frontendCov = JSON.parse(fs.readFileSync('coverage/frontend/coverage-frontend.json', 'utf8'));
+            const frontendCov = JSON.parse(fs.readFileSync('coverage/frontend/coverage-frontend.json', 'utf8'));
+            if (frontendCov.total && frontendCov.total.lines && typeof frontendCov.total.lines.pct === 'number') {
+              frontendPct = frontendCov.total.lines.pct.toFixed(2);
+            }
           } catch (e) {
-            frontendCov = { total: { lines: { pct: 'Error' } } };
+            console.error('Error reading frontend coverage', e);
           }
-          
-          const backendPct = backendCov.totals ? backendCov.totals.percent_covered.toFixed(2) : 'N/A';
-          const frontendPct = frontendCov.total ? frontendCov.total.lines.pct.toFixed(2) : 'N/A';
           
           const body = `### CI Coverage Report
           
           | Module | Coverage | Status |
           | --- | --- | --- |
-          | **Backend** | ${backendPct}% | ${backendPct >= 80 ? '✅' : '⚠️'} |
-          | **Frontend** | ${frontendPct}% | ${frontendPct >= 80 ? '✅' : '⚠️'} |
+          | **Backend** | ${backendPct}% | ${backendPct !== 'N/A' && parseFloat(backendPct) >= 80 ? '✅' : '⚠️'} |
+          | **Frontend** | ${frontendPct}% | ${frontendPct !== 'N/A' && parseFloat(frontendPct) >= 80 ? '✅' : '⚠️'} |
           
           *Threshold: 80%*`;
           
