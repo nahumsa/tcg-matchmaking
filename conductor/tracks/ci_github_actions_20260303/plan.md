@@ -2,11 +2,11 @@
 
 ## Phase 1: Local Verification & Environment Setup
 
-- [ ] Task: Verify backend environment consistency.
+- [x] Task: Verify backend environment consistency. a9dd47a
   - [ ] Run `ruff check` and `ruff format --check` in the backend directory.
   - [ ] Run `pytest` with coverage in the backend directory.
   - [ ] Ensure all local tests pass and coverage is >80%.
-- [ ] Task: Verify frontend environment consistency.
+- [~] Task: Verify frontend environment consistency.
   - [ ] Run `npm run lint` and `npm run test` in the frontend directory.
   - [ ] Run `tsc` to verify type safety.
   - [ ] Ensure all local tests pass and coverage is >80%.
