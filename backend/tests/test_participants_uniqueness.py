@@ -12,6 +12,7 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 # Dependency override
 def override_get_db():
     db = TestingSessionLocal()
@@ -20,8 +21,10 @@ def override_get_db():
     finally:
         db.close()
 
+
 app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
+
 
 @pytest.fixture(scope="module")
 def setup_db():
@@ -29,9 +32,12 @@ def setup_db():
     yield
     Base.metadata.drop_all(bind=engine)
 
+
 def test_join_tournament_duplicate_name(setup_db):
     # First create a tournament
-    create_resp = client.post("/tournaments", json={"name": "Duplicate Name Tournament"})
+    create_resp = client.post(
+        "/tournaments", json={"name": "Duplicate Name Tournament"}
+    )
     code = create_resp.json()["code"]
 
     # First player joins
@@ -40,7 +46,10 @@ def test_join_tournament_duplicate_name(setup_db):
 
     # Second player joins with same name
     join2_resp = client.post(f"/tournaments/{code}/join", json={"name": "SameName"})
-    
+
     # This should fail with 400 Bad Request
     assert join2_resp.status_code == 400
-    assert join2_resp.json()["detail"] == "Participant with this name already exists in this tournament"
+    assert (
+        join2_resp.json()["detail"]
+        == "Participant with this name already exists in this tournament"
+    )

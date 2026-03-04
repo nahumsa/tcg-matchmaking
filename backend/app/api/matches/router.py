@@ -55,11 +55,14 @@ async def report_match(
     # Check if match exists and tournament status
     from .models import Match
     from backend.app.api.tournaments.models import Tournament
+
     db_match = db.query(Match).filter(Match.id == match_id).first()
     if not db_match:
         raise HTTPException(status_code=404, detail="Match not found")
-    
-    db_tournament = db.query(Tournament).filter(Tournament.id == db_match.tournament_id).first()
+
+    db_tournament = (
+        db.query(Tournament).filter(Tournament.id == db_match.tournament_id).first()
+    )
     if db_tournament.status == "COMPLETED":
         raise HTTPException(status_code=400, detail="Tournament is already completed")
 
