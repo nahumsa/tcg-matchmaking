@@ -10,7 +10,7 @@
   - [ ] Run `npm run lint` and `npm run test` in the frontend directory.
   - [ ] Run `tsc` to verify type safety.
   - [ ] Ensure all local tests pass and coverage is >80%.
-- [x] Task: Verify Dockerfile integrity. 6570972
+- [x] Task: Verify Dockerfile integrity. 50038af
   - [ ] Build the backend Docker image locally.
   - [ ] Build the frontend Docker image locally.
 
