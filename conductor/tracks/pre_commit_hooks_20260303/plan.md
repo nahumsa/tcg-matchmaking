@@ -8,6 +8,6 @@
 - [x] Task: Add test execution hooks (either via `pre-commit` or a separate script). 17c6f9c
 
 ## Phase 2: Refinement & Validation
-- [ ] Task: Verify that all hooks pass on the current codebase.
-- [ ] Task: Update documentation (README.md) with instructions on how to install and use pre-commit.
+- [x] Task: Verify that all hooks pass on the current codebase. 17c6f9c
+- [x] Task: Update documentation (README.md) with instructions on how to install and use pre-commit. 4794ea4
 - [ ] Task: Update the Conductor Tracks Registry and synchronize project documentation.
