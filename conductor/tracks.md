@@ -50,5 +50,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: I want a player to be able to report their own match**
+- [x] **Track: I want a player to be able to report their own match**
 *Link: [./tracks/player_match_reporting_20260304/](./tracks/player_match_reporting_20260304/)*
