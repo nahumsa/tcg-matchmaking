@@ -38,10 +38,10 @@ def test_full_player_reporting_flow(setup_db):
     code = resp.json()["code"]
 
     # 2. Join 4 players
-    alice = client.post(f"/tournaments/{code}/join", json={"name": "Alice"}).json()
-    bob = client.post(f"/tournaments/{code}/join", json={"name": "Bob"}).json()
-    charlie = client.post(f"/tournaments/{code}/join", json={"name": "Charlie"}).json()
-    david = client.post(f"/tournaments/{code}/join", json={"name": "David"}).json()
+    client.post(f"/tournaments/{code}/join", json={"name": "Alice"})
+    client.post(f"/tournaments/{code}/join", json={"name": "Bob"})
+    client.post(f"/tournaments/{code}/join", json={"name": "Charlie"})
+    client.post(f"/tournaments/{code}/join", json={"name": "David"})
 
     # 3. Start Round 1 (Admin pairings)
     client.post(f"/tournaments/{code}/pairings")

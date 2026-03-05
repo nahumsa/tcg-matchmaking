@@ -85,3 +85,30 @@ async def report_match_v2(
 
     db_match = await services.report_match(db, match_id, update)
     return db_match
+
+
+@router.post("/matches/{match_id}/report", response_model=schemas.MatchResponse)
+async def report_match(
+    match_id: int, update: schemas.MatchUpdate, db: Session = Depends(get_db)
+):
+    # Check if match exists
+    from .models import Match
+    from backend.app.api.tournaments.models import Tournament
+
+    db_match = db.query(Match).filter(Match.id == match_id).first()
+    if not db_match:
+        raise HTTPException(status_code=404, detail="Match not found")
+
+    db_tournament = (
+        db.query(Tournament).filter(Tournament.id == db_match.tournament_id).first()
+    )
+    if db_tournament.status == "COMPLETED":
+        raise HTTPException(status_code=400, detail="Tournament is already completed")
+
+    # This old endpoint assumes admin privileges or bypasses participant checks
+    # For compatibility, we'll set is_admin=True in the service call if not specified
+    if not update.is_admin and update.reported_by_id is None:
+        update.is_admin = True
+
+    db_match = await services.report_match(db, match_id, update)
+    return db_match
