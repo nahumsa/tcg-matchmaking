@@ -1,7 +1,6 @@
 import pytest
 from backend.app.api.matches.models import Match
-from backend.app.api.tournaments.models import Tournament
-from backend.app.api.participants.models import Participant
+
 
 def test_match_has_table_number():
     # This might still fail if table_number is not in __init__ if it's not a Column
@@ -10,6 +9,6 @@ def test_match_has_table_number():
         match = Match(tournament_id=1, round_number=1, table_number=1)
     except TypeError:
         pytest.fail("Match model does not accept table_number as a keyword argument")
-    
+
     assert hasattr(match, "table_number")
     assert match.table_number == 1

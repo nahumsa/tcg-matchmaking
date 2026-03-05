@@ -46,7 +46,7 @@ async def generate_pairings(db: Session, tournament: Tournament) -> List[models.
             player2_id=p2.id if p2 else None,
             is_bye=1 if p2 is None else 0,
             is_completed=1 if p2 is None else 0,
-            table_number=i
+            table_number=i,
         )
         if p2 is None:
             p1.points += 3

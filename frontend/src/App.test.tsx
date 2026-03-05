@@ -6,7 +6,7 @@ describe('App Integration', () => {
   beforeEach(() => {
     localStorage.clear();
     // Mock fetch for TournamentView component
-    global.fetch = vi.fn().mockImplementation(() => 
+    global.fetch = vi.fn().mockImplementation(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve([]),
@@ -25,21 +25,21 @@ describe('App Integration', () => {
   it('allows access to /admin directly', () => {
     window.history.pushState({}, 'Test page', '/admin');
     render(<App />);
-    
+
     expect(screen.getByRole('heading', { name: /Admin Dashboard/i })).toBeInTheDocument();
   });
 
   it('allows access to /join directly', () => {
     window.history.pushState({}, 'Test page', '/join');
     render(<App />);
-    
+
     expect(screen.getByRole('heading', { name: /Join Tournament/i })).toBeInTheDocument();
   });
 
   it('allows access to /tournament/:code directly', async () => {
     window.history.pushState({}, 'Tournament Page', '/tournament/ABCD');
     render(<App />);
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Tournament/i)).toBeInTheDocument();
       expect(screen.getByText(/ABCD/i)).toBeInTheDocument();
@@ -49,7 +49,7 @@ describe('App Integration', () => {
   it('redirects from /:code to /tournament/:code', async () => {
     window.history.pushState({}, 'Legacy Tournament Link', '/ABCD');
     render(<App />);
-    
+
     await waitFor(() => {
       expect(window.location.pathname).toBe('/tournament/ABCD');
       expect(screen.getByText(/Tournament/i)).toBeInTheDocument();

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -113,7 +114,7 @@ describe('TournamentView', () => {
 
     // Switch to standings tab
     fireEvent.click(screen.getByRole('button', { name: /Standings/i }));
-    
+
     await waitFor(() => {
       expect(screen.getByRole('table')).toBeInTheDocument();
       expect(screen.getAllByText('Alice').length).toBeGreaterThan(0);

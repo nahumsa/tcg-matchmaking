@@ -12,6 +12,7 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 # Dependency override
 def override_get_db():
     db = TestingSessionLocal()
@@ -20,8 +21,10 @@ def override_get_db():
     finally:
         db.close()
 
+
 app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
+
 
 @pytest.fixture(scope="module")
 def setup_db():
@@ -29,16 +32,19 @@ def setup_db():
     yield
     Base.metadata.drop_all(bind=engine)
 
+
 def test_e2e_table_ordering(setup_db):
     # 1. Create tournament
-    create_resp = client.post("/tournaments", json={"name": "E2E Table Test", "rounds": 2})
+    create_resp = client.post(
+        "/tournaments", json={"name": "E2E Table Test", "rounds": 2}
+    )
     code = create_resp.json()["code"]
 
     # 2. Join 4 players
-    p1 = client.post(f"/tournaments/{code}/join", json={"name": "P1"}).json()
-    p2 = client.post(f"/tournaments/{code}/join", json={"name": "P2"}).json()
-    p3 = client.post(f"/tournaments/{code}/join", json={"name": "P3"}).json()
-    p4 = client.post(f"/tournaments/{code}/join", json={"name": "P4"}).json()
+    client.post(f"/tournaments/{code}/join", json={"name": "P1"}).json()
+    client.post(f"/tournaments/{code}/join", json={"name": "P2"}).json()
+    client.post(f"/tournaments/{code}/join", json={"name": "P3"}).json()
+    client.post(f"/tournaments/{code}/join", json={"name": "P4"}).json()
 
     # 3. Generate Round 1 pairings
     client.post(f"/tournaments/{code}/pairings")
@@ -53,14 +59,22 @@ def test_e2e_table_ordering(setup_db):
     # Let's say P1 wins (3pts), P2 loses (0pts), P3 wins (3pts), P4 loses (0pts)
     m1 = r1_matches[0]
     m2 = r1_matches[1]
-    
+
     # We need to know who is who in matches
-    client.post(f"/matches/{m1['id']}/report", json={"player1_score": 2, "player2_score": 0})
-    client.post(f"/matches/{m2['id']}/report", json={"player1_score": 2, "player2_score": 0})
+    client.post(
+        f"/matches/{m1['id']}/report", json={"player1_score": 2, "player2_score": 0}
+    )
+    client.post(
+        f"/matches/{m2['id']}/report", json={"player1_score": 2, "player2_score": 0}
+    )
 
     # 5. Generate Round 2 pairings
     client.post(f"/tournaments/{code}/pairings")
-    r2_matches = [m for m in client.get(f"/tournaments/{code}/matches").json() if m["round_number"] == 2]
+    r2_matches = [
+        m
+        for m in client.get(f"/tournaments/{code}/matches").json()
+        if m["round_number"] == 2
+    ]
     assert len(r2_matches) == 2
 
     # Standings check
@@ -72,8 +86,16 @@ def test_e2e_table_ordering(setup_db):
     assert len(bot_players) == 2
 
     # Match with top players should be Table 1
-    m_top = next(m for m in r2_matches if m["player1_id"] in top_players and m["player2_id"] in top_players)
-    m_bot = next(m for m in r2_matches if m["player1_id"] in bot_players and m["player2_id"] in bot_players)
+    m_top = next(
+        m
+        for m in r2_matches
+        if m["player1_id"] in top_players and m["player2_id"] in top_players
+    )
+    m_bot = next(
+        m
+        for m in r2_matches
+        if m["player1_id"] in bot_players and m["player2_id"] in bot_players
+    )
 
     assert m_top["table_number"] == 1
     assert m_bot["table_number"] == 2

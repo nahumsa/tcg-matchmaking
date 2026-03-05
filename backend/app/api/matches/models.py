@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from backend.app.core.database import Base
 
+
 class Match(Base):
     __tablename__ = "matches"
 
@@ -17,5 +18,9 @@ class Match(Base):
     table_number = Column(Integer, nullable=True)
 
     tournament = relationship("Tournament", back_populates="matches")
-    player1 = relationship("Participant", foreign_keys=[player1_id], back_populates="matches_as_p1")
-    player2 = relationship("Participant", foreign_keys=[player2_id], back_populates="matches_as_p2")
+    player1 = relationship(
+        "Participant", foreign_keys=[player1_id], back_populates="matches_as_p1"
+    )
+    player2 = relationship(
+        "Participant", foreign_keys=[player2_id], back_populates="matches_as_p2"
+    )

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ParticipantList from './ParticipantList';
@@ -18,10 +19,10 @@ describe('ParticipantList', () => {
 
   it('renders participant list correctly', async () => {
     render(
-      <ParticipantList 
-        tournamentCode={mockTournamentCode} 
-        participants={mockParticipants} 
-        onUpdate={mockOnUpdate} 
+      <ParticipantList
+        tournamentCode={mockTournamentCode}
+        participants={mockParticipants}
+        onUpdate={mockOnUpdate}
       />
     );
 
@@ -37,10 +38,10 @@ describe('ParticipantList', () => {
     });
 
     render(
-      <ParticipantList 
-        tournamentCode={mockTournamentCode} 
-        participants={[]} 
-        onUpdate={mockOnUpdate} 
+      <ParticipantList
+        tournamentCode={mockTournamentCode}
+        participants={[]}
+        onUpdate={mockOnUpdate}
       />
     );
 
@@ -68,10 +69,10 @@ describe('ParticipantList', () => {
     });
 
     render(
-      <ParticipantList 
-        tournamentCode={mockTournamentCode} 
-        participants={mockParticipants} 
-        onUpdate={mockOnUpdate} 
+      <ParticipantList
+        tournamentCode={mockTournamentCode}
+        participants={mockParticipants}
+        onUpdate={mockOnUpdate}
       />
     );
 

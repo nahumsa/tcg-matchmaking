@@ -17,3 +17,5 @@
 - **Dependency Management (Backend):** uv (Fast, reliable Python package installer and resolver)
 - **Containerization:** Docker (Consistent environments across development and production)
 - **Orchestration:** Docker Compose (Managing multi-container applications)
+- **CI/CD:** GitHub Actions (Automated linting, testing, and Docker build checks)
+- **Pre-commit Hooks:** pre-commit (Automated local quality checks before commit)

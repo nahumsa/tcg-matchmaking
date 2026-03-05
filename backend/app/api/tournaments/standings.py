@@ -1,34 +1,44 @@
 from sqlalchemy.orm import Session
-from typing import List, Dict
+from typing import List
 from backend.app.api.participants.models import Participant
 from backend.app.api.matches.models import Match
 from backend.app.api.participants.schemas import ParticipantResponse
 
+
 def calculate_standings(db: Session, tournament_id: int) -> List[ParticipantResponse]:
     """Calculates tournament standings including points and OMW%.
-    
+
     Args:
         db: Database session.
         tournament_id: ID of the tournament.
-        
+
     Returns:
         List of participants with their current rank and stats.
     """
-    participants = db.query(Participant).filter(Participant.tournament_id == tournament_id).all()
-    matches = db.query(Match).filter(Match.tournament_id == tournament_id, Match.is_completed == 1).all()
-    
+    participants = (
+        db.query(Participant).filter(Participant.tournament_id == tournament_id).all()
+    )
+    matches = (
+        db.query(Match)
+        .filter(Match.tournament_id == tournament_id, Match.is_completed == 1)
+        .all()
+    )
+
     # Initialize stats for each participant
-    stats = {p.id: {
-        "id": p.id,
-        "name": p.name,
-        "tournament_id": p.tournament_id,
-        "points": 0,
-        "wins": 0,
-        "losses": 0,
-        "draws": 0,
-        "opponents": [],
-        "match_win_percentage": 0.0
-    } for p in participants}
+    stats = {
+        p.id: {
+            "id": p.id,
+            "name": p.name,
+            "tournament_id": p.tournament_id,
+            "points": 0,
+            "wins": 0,
+            "losses": 0,
+            "draws": 0,
+            "opponents": [],
+            "match_win_percentage": 0.0,
+        }
+        for p in participants
+    }
 
     # Process matches
     for m in matches:
@@ -41,10 +51,10 @@ def calculate_standings(db: Session, tournament_id: int) -> List[ParticipantResp
         p1_id, p2_id = m.player1_id, m.player2_id
         if p1_id not in stats or p2_id not in stats:
             continue
-            
+
         stats[p1_id]["opponents"].append(p2_id)
         stats[p2_id]["opponents"].append(p1_id)
-        
+
         if m.player1_score > m.player2_score:
             stats[p1_id]["points"] += 3
             stats[p1_id]["wins"] += 1
@@ -74,7 +84,9 @@ def calculate_standings(db: Session, tournament_id: int) -> List[ParticipantResp
         if not s["opponents"]:
             s["omw_percentage"] = 0.33
         else:
-            opp_mwp_sum = sum(stats[opp_id]["match_win_percentage"] for opp_id in s["opponents"])
+            opp_mwp_sum = sum(
+                stats[opp_id]["match_win_percentage"] for opp_id in s["opponents"]
+            )
             s["omw_percentage"] = opp_mwp_sum / len(s["opponents"])
 
     # Sort participants
@@ -82,7 +94,7 @@ def calculate_standings(db: Session, tournament_id: int) -> List[ParticipantResp
     sorted_stats = sorted(
         stats.values(),
         key=lambda x: (x["points"], x["omw_percentage"], x["name"]),
-        reverse=True
+        reverse=True,
     )
 
     # Assign ranks
@@ -90,5 +102,5 @@ def calculate_standings(db: Session, tournament_id: int) -> List[ParticipantResp
     for i, s in enumerate(sorted_stats):
         s["rank"] = i + 1
         result.append(ParticipantResponse(**s))
-        
+
     return result

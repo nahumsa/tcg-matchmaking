@@ -42,4 +42,3 @@ Ensures the frontend can be deployed to any host without rebuilding.
 - [x] Task: Update Dockerfile for Cloud Optimization
     - [x] Ensure `VITE_API_URL` and `VITE_WS_URL` are correctly handled as ARGs during build.
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Dynamic Environment Variables in Docker' (Protocol in workflow.md)
-

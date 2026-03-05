@@ -8,7 +8,7 @@ const NavigationBar: React.FC = () => {
     <nav className="bg-indigo-600 text-white shadow-md p-4 flex justify-between items-center">
       <div className="flex items-center space-x-6">
         <Link to="/" className="text-xl font-bold hover:text-indigo-100 transition">TCG Matchmaking</Link>
-        
+
         <div className="hidden sm:flex items-center space-x-4 border-l border-indigo-500 pl-6">
           <Link to="/admin" className="text-sm font-medium hover:text-indigo-100 transition">Dashboard</Link>
           {lastCode && (

@@ -12,6 +12,7 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 # Dependency override
 def override_get_db():
     db = TestingSessionLocal()
@@ -20,14 +21,17 @@ def override_get_db():
     finally:
         db.close()
 
+
 app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
+
 
 @pytest.fixture(scope="module")
 def setup_db():
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
+
 
 def test_admin_manual_add_participant(setup_db):
     # First create a tournament
@@ -36,13 +40,16 @@ def test_admin_manual_add_participant(setup_db):
 
     # Admin manually adds a participant
     # We'll use a new endpoint: POST /tournaments/{code}/participants
-    add_resp = client.post(f"/tournaments/{code}/participants", json={"name": "Manual Player"})
-    
+    add_resp = client.post(
+        f"/tournaments/{code}/participants", json={"name": "Manual Player"}
+    )
+
     assert add_resp.status_code == 201
     data = add_resp.json()
     assert data["name"] == "Manual Player"
     assert data["points"] == 0
     assert "id" in data
+
 
 def test_admin_remove_participant(setup_db):
     # First create a tournament
@@ -56,10 +63,12 @@ def test_admin_remove_participant(setup_db):
     # Admin removes the participant
     # We'll use a new endpoint: DELETE /tournaments/{code}/participants/{id}
     del_resp = client.delete(f"/tournaments/{code}/participants/{participant_id}")
-    
+
     assert del_resp.status_code == 204
-    
+
     # Verify player is gone
     # We can check by trying to join with same name (it should succeed if previous was deleted)
-    join_again_resp = client.post(f"/tournaments/{code}/join", json={"name": "RemoveMe"})
+    join_again_resp = client.post(
+        f"/tournaments/{code}/join", json={"name": "RemoveMe"}
+    )
     assert join_again_resp.status_code == 200

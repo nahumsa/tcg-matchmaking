@@ -34,8 +34,8 @@ export default function ParticipantJoin() {
 
       // Redirect to the tournament view for the specific code
       navigate(`/tournament/${code.toUpperCase()}`);
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }

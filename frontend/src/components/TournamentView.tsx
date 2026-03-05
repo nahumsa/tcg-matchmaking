@@ -55,7 +55,7 @@ export default function TournamentView() {
     };
 
     return () => ws.close();
-  }, [code]);
+  }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchData = async () => {
     try {
