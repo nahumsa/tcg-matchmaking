@@ -184,12 +184,21 @@ export default function AdminDashboard() {
   };
 
   const reportResult = async (matchId: number) => {
-    const selectedScore = scoreInputs[matchId] ?? { p1: 0, p2: 0 };
+    if (!tournament) return;
+    const existingMatch = matches.find((m) => m.id === matchId);
+    const selectedScore = scoreInputs[matchId] ?? {
+      p1: existingMatch?.player1_score ?? 0,
+      p2: existingMatch?.player2_score ?? 0,
+    };
     try {
-      const response = await fetch(`${config.apiUrl}/matches/${matchId}/report`, {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/matches/${matchId}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ player1_score: selectedScore.p1, player2_score: selectedScore.p2 }),
+        body: JSON.stringify({
+          player1_score: selectedScore.p1,
+          player2_score: selectedScore.p2,
+          is_admin: true
+        }),
       });
       if (!response.ok) throw new Error('Failed to report result');
       await fetchMatches();
@@ -302,12 +311,6 @@ export default function AdminDashboard() {
 
                         {match.is_bye ? (
                           <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">BYE</div>
-                        ) : (match.is_completed || isTournamentFinished) ? (
-                          <div className="flex-1 flex items-center justify-center space-x-4 px-8">
-                            <span className="text-2xl font-black">{match.player1_score}</span>
-                            <span className="text-gray-300">-</span>
-                            <span className="text-2xl font-black">{match.player2_score}</span>
-                          </div>
                         ) : (
                           <div className="flex-1 flex items-center justify-center space-x-2 px-4">
                             <input
@@ -329,9 +332,12 @@ export default function AdminDashboard() {
                             />
                             <button
                               onClick={() => reportResult(match.id)}
-                              className="ml-4 px-4 py-2 bg-gray-800 text-white text-sm font-bold rounded-lg hover:bg-black transition"
+                              className={`ml-4 px-4 py-2 text-white text-sm font-bold rounded-lg transition ${
+                                match.is_completed ? 'bg-gray-400 hover:bg-gray-500' : 'bg-gray-800 hover:bg-black'
+                              }`}
+                              disabled={isTournamentFinished}
                             >
-                              Report
+                              {match.is_completed ? 'Override' : 'Report'}
                             </button>
                           </div>
                         )}
