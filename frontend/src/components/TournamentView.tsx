@@ -41,9 +41,27 @@ export default function TournamentView() {
   const [activeTab, setActiveTab] = useState<'pairings' | 'standings'>('pairings');
   const [loading, setLoading] = useState(true);
   const [socketStatus, setSocketStatus] = useState<SocketStatus>('connecting');
+  const [reportingMatch, setReportingMatch] = useState<Match | null>(null);
+  const [selectedPreset, setSelectedPreset] = useState<[number, number] | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const participantIdStr = localStorage.getItem(`participant_id_${code}`);
   const participantId = participantIdStr ? Number.parseInt(participantIdStr, 10) : null;
+
+  const presets: [number, number][] = [
+    [2, 0],
+    [2, 1],
+    [1, 2],
+    [0, 2],
+    [1, 1]
+  ];
+
+  const tournamentCompleted = standings.length > 0 && matches.length > 0 && matches.every(m => m.is_completed);
+  // Actually, we should check the tournament status if available.
+  // But based on current matches, we can infer.
+  // Let's check the tournament status from the first match's tournament_id if we have it? 
+  // No, we should probably fetch tournament status too.
+  // For now I'll use a simpler check or just trust the backend to 400 if it's completed.
 
   useEffect(() => {
     if (!code) return;
@@ -117,6 +135,36 @@ export default function TournamentView() {
     }
   };
 
+  const handleReportSubmit = async () => {
+    if (!reportingMatch || !selectedPreset) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${config.apiUrl}/tournaments/${code}/matches/${reportingMatch.id}/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          player1_score: selectedPreset[0],
+          player2_score: selectedPreset[1],
+          reported_by_id: participantId
+        })
+      });
+
+      if (res.ok) {
+        setReportingMatch(null);
+        setSelectedPreset(null);
+        fetchData();
+      } else {
+        const errData = await res.json();
+        alert(errData.detail || 'Failed to report score');
+      }
+    } catch (err) {
+      console.error('Failed to report score', err);
+      alert('Network error while reporting score');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (loading) return <div className="p-8 text-center font-bold text-gray-500 uppercase tracking-widest animate-pulse">Loading tournament...</div>;
 
   const rounds = [...new Set(matches.map((m) => m.round_number))].sort((a, b) => b - a);
@@ -136,6 +184,49 @@ export default function TournamentView() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-8">
+      {/* Reporting Modal */}
+      {reportingMatch && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in duration-300">
+            <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight mb-2">Report Score</h3>
+            <p className="text-gray-500 text-sm mb-6 font-medium">
+              Select the final score for your match against <span className="text-blue-600 font-bold">{getPlayerName(reportingMatch.player1_id === participantId ? reportingMatch.player2_id : reportingMatch.player1_id)}</span>.
+            </p>
+            
+            <div className="grid gap-3 mb-8">
+              {presets.map(([s1, s2]) => (
+                <button
+                  key={`${s1}-${s2}`}
+                  onClick={() => setSelectedPreset([s1, s2])}
+                  className={`py-4 rounded-2xl border-2 font-black text-xl transition-all ${
+                    selectedPreset?.[0] === s1 && selectedPreset?.[1] === s2
+                      ? 'bg-blue-600 border-blue-600 text-white scale-105 shadow-lg shadow-blue-200'
+                      : 'bg-white border-gray-100 text-gray-800 hover:border-blue-200'
+                  }`}
+                >
+                  {s1} - {s2}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setReportingMatch(null); setSelectedPreset(null); }}
+                className="flex-1 py-4 rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={!selectedPreset || isSubmitting}
+                onClick={handleReportSubmit}
+                className="flex-1 py-4 rounded-2xl font-black text-white bg-blue-600 shadow-lg shadow-blue-200 disabled:opacity-50 disabled:shadow-none transition-all active:scale-95"
+              >
+                {isSubmitting ? '...' : 'Submit Result'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-black text-gray-800 uppercase tracking-tighter">
           Tournament <span className="text-blue-600">#{code}</span>
@@ -213,29 +304,48 @@ export default function TournamentView() {
                   <div className="flex-1 h-px bg-gray-200" />
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {matches.filter((m) => m.round_number === round).map((match) => (
-                    <div key={match.id} className={`p-5 rounded-2xl border transition-all ${match.is_completed ? 'bg-white border-gray-100 opacity-60 grayscale' : 'bg-white border-blue-100 shadow-sm hover:shadow-md'}`}>
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Table {match.table_number || '?'}</span>
-                        {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-[0.2em]">Completed</span>}
-                      </div>
-                      {match.is_bye ? (
-                        <div className="text-center py-2">
-                          <span className="font-bold text-gray-800 text-lg">{getPlayerName(match.player1_id)}</span>
+                  {matches.filter((m) => m.round_number === round).map((match) => {
+                    const isMyMatch = match.player1_id === participantId || match.player2_id === participantId;
+                    const canReport = isMyMatch && !tournamentCompleted;
+
+                    return (
+                      <div key={match.id} className={`p-5 rounded-2xl border transition-all ${match.is_completed ? 'bg-white border-gray-100 opacity-60 grayscale' : 'bg-white border-blue-100 shadow-sm hover:shadow-md'}`}>
+                        <div className="flex justify-between items-center mb-4">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Table {match.table_number || '?'}</span>
+                          {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-[0.2em]">Completed</span>}
                         </div>
-                      ) : (
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 text-right pr-4 truncate font-bold text-gray-800">{getPlayerName(match.player1_id)}</div>
-                          <div className="flex items-center space-x-2 bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl font-mono font-black text-xl">
-                            <span>{match.player1_score}</span>
-                            <span className="text-gray-300">-</span>
-                            <span>{match.player2_score}</span>
+                        {match.is_bye ? (
+                          <div className="text-center py-2">
+                            <span className="font-bold text-gray-800 text-lg">{getPlayerName(match.player1_id)}</span>
                           </div>
-                          <div className="flex-1 text-left pl-4 truncate font-bold text-gray-800">{getPlayerName(match.player2_id)}</div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 text-right pr-4 truncate font-bold text-gray-800">{getPlayerName(match.player1_id)}</div>
+                              <div className="flex items-center space-x-2 bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl font-mono font-black text-xl">
+                                <span>{match.player1_score}</span>
+                                <span className="text-gray-300">-</span>
+                                <span>{match.player2_score}</span>
+                              </div>
+                              <div className="flex-1 text-left pl-4 truncate font-bold text-gray-800">{getPlayerName(match.player2_id)}</div>
+                            </div>
+                            
+                            {canReport && (
+                              <button
+                                onClick={() => {
+                                  setReportingMatch(match);
+                                  setSelectedPreset([match.player1_score, match.player2_score]);
+                                }}
+                                className="w-full py-2 rounded-xl bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all active:scale-95"
+                              >
+                                {match.is_completed ? 'Edit Score' : 'Report Score'}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
