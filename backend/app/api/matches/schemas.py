@@ -8,7 +8,8 @@ class MatchBase(BaseModel):
 
 
 class MatchUpdate(MatchBase):
-    pass
+    reported_by_id: Optional[int] = None
+    is_admin: bool = False
 
 
 class MatchResponse(MatchBase):
