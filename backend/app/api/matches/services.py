@@ -84,6 +84,11 @@ async def report_match(
         db.query(Tournament).filter(Tournament.id == db_match.tournament_id).first()
     )
     
+    # Reset all points
+    db.query(Participant).filter(Participant.tournament_id == tournament.id).update({Participant.points: 0})
+    db.commit()
+    
+    # Re-fetch participants and matches
     participants = (
         db.query(Participant).filter(Participant.tournament_id == tournament.id).all()
     )
@@ -92,10 +97,6 @@ async def report_match(
         .filter(models.Match.tournament_id == tournament.id, models.Match.is_completed == 1)
         .all()
     )
-    
-    # Reset all points
-    for p in participants:
-        p.points = 0
         
     # Recalculate from all matches
     for m in matches:

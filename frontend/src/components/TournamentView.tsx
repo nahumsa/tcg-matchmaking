@@ -147,11 +147,6 @@ export default function TournamentView() {
     return player ? player.name : `Player ${id}`;
   };
 
-  // Check if a round is active (has incomplete matches)
-  const isRoundActive = (round: number) => {
-    return matches.some(m => m.round_number === round && !m.is_completed && !m.is_bye);
-  };
-
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-8">
       {/* Reporting Modal */}
