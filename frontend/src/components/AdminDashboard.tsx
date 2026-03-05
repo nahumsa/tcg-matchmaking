@@ -171,11 +171,16 @@ export default function AdminDashboard() {
   };
 
   const reportResult = async (matchId: number, p1Score: number, p2Score: number) => {
+    if (!tournament) return;
     try {
-      const response = await fetch(`${config.apiUrl}/matches/${matchId}/report`, {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/matches/${matchId}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ player1_score: p1Score, player2_score: p2Score }),
+        body: JSON.stringify({
+          player1_score: p1Score,
+          player2_score: p2Score,
+          is_admin: true
+        }),
       });
       if (!response.ok) throw new Error('Failed to report result');
       await fetchMatches();
@@ -278,27 +283,38 @@ export default function AdminDashboard() {
 
                         {match.is_bye ? (
                           <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">BYE</div>
-                        ) : (match.is_completed || isTournamentFinished) ? (
-                          <div className="flex-1 flex items-center justify-center space-x-4 px-8">
-                            <span className="text-2xl font-black">{match.player1_score}</span>
-                            <span className="text-gray-300">-</span>
-                            <span className="text-2xl font-black">{match.player2_score}</span>
-                          </div>
                         ) : (
-                          <div className="flex-1 flex items-center justify-center space-x-2 px-4">
-                            <input type="number" id={`p1-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
-                            <span className="text-gray-300">-</span>
-                            <input type="number" id={`p2-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
-                            <button
-                              onClick={() => {
-                                const s1 = (document.getElementById(`p1-${match.id}`) as HTMLInputElement).value;
-                                const s2 = (document.getElementById(`p2-${match.id}`) as HTMLInputElement).value;
-                                reportResult(match.id, parseInt(s1), parseInt(s2));
-                              }}
-                              className="ml-4 px-4 py-2 bg-gray-800 text-white text-sm font-bold rounded-lg hover:bg-black transition"
-                            >
-                              Report
-                            </button>
+                          <div className="flex-1 flex flex-col items-center justify-center space-y-3 px-4">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="number"
+                                id={`p1-${match.id}`}
+                                className="w-16 p-2 border rounded text-center font-bold"
+                                defaultValue={match.player1_score}
+                              />
+                              <span className="text-gray-300">-</span>
+                              <input
+                                type="number"
+                                id={`p2-${match.id}`}
+                                className="w-16 p-2 border rounded text-center font-bold"
+                                defaultValue={match.player2_score}
+                              />
+                            </div>
+                            
+                            {!isTournamentFinished && (
+                              <button
+                                onClick={() => {
+                                  const s1 = (document.getElementById(`p1-${match.id}`) as HTMLInputElement).value;
+                                  const s2 = (document.getElementById(`p2-${match.id}`) as HTMLInputElement).value;
+                                  reportResult(match.id, parseInt(s1), parseInt(s2));
+                                }}
+                                className={`px-4 py-2 text-white text-sm font-bold rounded-lg transition ${
+                                  match.is_completed ? 'bg-gray-400 hover:bg-gray-500' : 'bg-gray-800 hover:bg-black'
+                                }`}
+                              >
+                                {match.is_completed ? 'Override' : 'Report'}
+                              </button>
+                            )}
                           </div>
                         )}
 
