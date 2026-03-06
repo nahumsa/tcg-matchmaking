@@ -54,7 +54,7 @@ def test_potential_pairings(setup_db):
     for m in matches:
         # Just report some results to update points
         client.post(
-            f"/matches/{m['id']}/report", json={"player1_score": 2, "player2_score": 0}
+            f"/matches/{m['id']}/report", json={"player1_score": 2, "player2_score": 0, "is_admin": True}
         )
 
     # Get points for P1

@@ -63,7 +63,7 @@ def test_full_tournament_flow(setup_db):
     # 5. Report Round 1 match
     match_id = regular_match["id"]
     resp = client.post(
-        f"/matches/{match_id}/report", json={"player1_score": 2, "player2_score": 1}
+        f"/matches/{match_id}/report", json={"player1_score": 2, "player2_score": 1, "is_admin": True}
     )
     assert resp.status_code == 200
     assert resp.json()["is_completed"] == 1
