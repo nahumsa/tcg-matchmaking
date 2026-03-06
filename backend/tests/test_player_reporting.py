@@ -196,3 +196,21 @@ def test_report_completed_tournament(setup_db):
     )
     assert resp.status_code == 400
     assert "completed" in resp.json()["detail"].lower()
+
+
+def test_legacy_report_requires_admin_or_match_participant(setup_db):
+    resp = client.post(
+        "/tournaments", json={"name": "Legacy Security Test", "rounds": 1}
+    )
+    code = resp.json()["code"]
+    client.post(f"/tournaments/{code}/join", json={"name": "Alice"})
+    client.post(f"/tournaments/{code}/join", json={"name": "Bob"})
+    client.post(f"/tournaments/{code}/pairings")
+    match = client.get(f"/tournaments/{code}/matches").json()[0]
+
+    unauth_resp = client.post(
+        f"/matches/{match['id']}/report",
+        json={"player1_score": 2, "player2_score": 0},
+    )
+    assert unauth_resp.status_code == 403
+    assert "Not authorized" in unauth_resp.json()["detail"]

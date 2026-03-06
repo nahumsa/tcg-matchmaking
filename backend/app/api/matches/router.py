@@ -108,10 +108,15 @@ async def report_match(
     if db_tournament.status == "COMPLETED":
         raise HTTPException(status_code=400, detail="Tournament is already completed")
 
-    # This old endpoint assumes admin privileges or bypasses participant checks
-    # For compatibility, we'll set is_admin=True in the service call if not specified
-    if not update.is_admin and update.reported_by_id is None:
-        update.is_admin = True
+    # Legacy endpoint permission check
+    if not update.is_admin:
+        if update.reported_by_id is None or update.reported_by_id not in [
+            db_match.player1_id,
+            db_match.player2_id,
+        ]:
+            raise HTTPException(
+                status_code=403, detail="Not authorized to report this match"
+            )
 
     db_match = await services.report_match(db, match_id, update)
     return db_match
