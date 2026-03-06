@@ -49,7 +49,8 @@ def get_matches(code: str, db: Session = Depends(get_db)):
 
 
 @router.post(
-    "/tournaments/{code}/matches/{match_id}/report", response_model=schemas.MatchResponse
+    "/tournaments/{code}/matches/{match_id}/report",
+    response_model=schemas.MatchResponse,
 )
 async def report_match_v2(
     code: str, match_id: int, update: schemas.MatchUpdate, db: Session = Depends(get_db)
@@ -71,14 +72,16 @@ async def report_match_v2(
         .first()
     )
     if not db_match:
-        raise HTTPException(status_code=404, detail="Match not found in this tournament")
+        raise HTTPException(
+            status_code=404, detail="Match not found in this tournament"
+        )
 
     # Permission check
     if not update.is_admin:
-        if (
-            update.reported_by_id is None
-            or update.reported_by_id not in [db_match.player1_id, db_match.player2_id]
-        ):
+        if update.reported_by_id is None or update.reported_by_id not in [
+            db_match.player1_id,
+            db_match.player2_id,
+        ]:
             raise HTTPException(
                 status_code=403, detail="Not authorized to report this match"
             )

@@ -47,7 +47,7 @@ def test_full_player_reporting_flow(setup_db):
     client.post(f"/tournaments/{code}/pairings")
     matches = client.get(f"/tournaments/{code}/matches").json()
     assert len(matches) == 2
-    
+
     m1 = matches[0]
     m2 = matches[1]
 
@@ -60,14 +60,14 @@ def test_full_player_reporting_flow(setup_db):
     # 4. Reporter 1 reports match 1 (Reporter 1 wins 2-0)
     resp = client.post(
         f"/tournaments/{code}/matches/{m1['id']}/report",
-        json={"player1_score": 2, "player2_score": 0, "reported_by_id": reporter1_id}
+        json={"player1_score": 2, "player2_score": 0, "reported_by_id": reporter1_id},
     )
     assert resp.status_code == 200
 
     # 5. Reporter 2 reports match 2 (Reporter 2 wins 2-1)
     client.post(
         f"/tournaments/{code}/matches/{m2['id']}/report",
-        json={"player1_score": 2, "player2_score": 1, "reported_by_id": reporter2_id}
+        json={"player1_score": 2, "player2_score": 1, "reported_by_id": reporter2_id},
     )
 
     # 6. Verify Standings
@@ -80,7 +80,7 @@ def test_full_player_reporting_flow(setup_db):
     # 7. Opponent 2 corrects the score to them winning 2-0
     resp = client.post(
         f"/tournaments/{code}/matches/{m2['id']}/report",
-        json={"player1_score": 0, "player2_score": 2, "reported_by_id": opponent2_id}
+        json={"player1_score": 0, "player2_score": 2, "reported_by_id": opponent2_id},
     )
     assert resp.status_code == 200
 
@@ -92,7 +92,7 @@ def test_full_player_reporting_flow(setup_db):
     # 9. Admin overrides Match 1 to a Draw 1-1
     client.post(
         f"/tournaments/{code}/matches/{m1['id']}/report",
-        json={"player1_score": 1, "player2_score": 1, "is_admin": True}
+        json={"player1_score": 1, "player2_score": 1, "is_admin": True},
     )
 
     # 10. Verify Standings

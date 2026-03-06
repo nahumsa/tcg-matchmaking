@@ -83,21 +83,25 @@ async def report_match(
     tournament = (
         db.query(Tournament).filter(Tournament.id == db_match.tournament_id).first()
     )
-    
+
     # Reset all points
-    db.query(Participant).filter(Participant.tournament_id == tournament.id).update({Participant.points: 0})
+    db.query(Participant).filter(Participant.tournament_id == tournament.id).update(
+        {Participant.points: 0}
+    )
     db.commit()
-    
+
     # Re-fetch participants and matches
     participants = (
         db.query(Participant).filter(Participant.tournament_id == tournament.id).all()
     )
     matches = (
         db.query(models.Match)
-        .filter(models.Match.tournament_id == tournament.id, models.Match.is_completed == 1)
+        .filter(
+            models.Match.tournament_id == tournament.id, models.Match.is_completed == 1
+        )
         .all()
     )
-        
+
     # Recalculate from all matches
     for m in matches:
         if m.is_bye:
@@ -105,13 +109,13 @@ async def report_match(
             if p1:
                 p1.points += 3
             continue
-            
+
         p1 = next((p for p in participants if p.id == m.player1_id), None)
         p2 = next((p for p in participants if p.id == m.player2_id), None)
-        
+
         if not p1 or not p2:
             continue
-            
+
         if m.player1_score > m.player2_score:
             p1.points += 3
         elif m.player2_score > m.player1_score:
@@ -119,7 +123,7 @@ async def report_match(
         else:
             p1.points += 1
             p2.points += 1
-            
+
     db.commit()
 
     # Check if tournament should be completed
@@ -146,8 +150,8 @@ async def report_match(
             "player1_score": db_match.player1_score,
             "player2_score": db_match.player2_score,
             "is_completed": db_match.is_completed,
-            "tournament_status": tournament.status
-        }
+            "tournament_status": tournament.status,
+        },
     )
 
     db.refresh(db_match)
