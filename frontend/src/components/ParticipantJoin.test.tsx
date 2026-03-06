@@ -80,7 +80,7 @@ describe('ParticipantJoin', () => {
     );
 
     fireEvent.change(screen.getByPlaceholderText(/e.g. Ash Ketchum/i), { target: { value: 'Ash' } });
-    fireEvent.change(screen.getByPlaceholderText(/e.g. ABCDEF/i), { target: { value: 'WRONG' } });
+    fireEvent.change(screen.getByPlaceholderText(/e.g. ABCDEF/i), { target: { value: 'WRONG1' } });
     fireEvent.click(screen.getByRole('button', { name: /Join Tournament/i }));
 
     await waitFor(() => {
