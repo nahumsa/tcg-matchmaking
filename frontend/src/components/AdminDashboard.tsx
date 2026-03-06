@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { config } from '../config';
 import ParticipantList from './ParticipantList';
@@ -39,6 +39,7 @@ export default function AdminDashboard() {
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [scoreInputs, setScoreInputs] = useState<Record<number, { p1: number; p2: number }>>({});
 
   useEffect(() => {
     if (!tournament) {
@@ -47,41 +48,46 @@ export default function AdminDashboard() {
   }, [tournament]);
 
   useEffect(() => {
-    if (tournament) {
-      fetchMatches();
-      fetchParticipants();
-      const ws = new WebSocket(`${config.wsUrl}/ws/${tournament.code}`);
-      ws.onmessage = (event) => {
-        const message = JSON.parse(event.data);
+    if (!tournament) return;
 
-        // Update matches and participants for UI state
-        if (message.event === 'participant_joined' || message.event === 'participant_removed' || message.event === 'match_reported' || message.event === 'pairings_generated') {
-          fetchMatches();
-          fetchParticipants();
-          fetchTournament(); // Refresh tournament to get new status
-        }
+    fetchMatches();
+    fetchParticipants();
 
-        // Add to activity log
-        if (message.event === 'participant_joined') {
-          const newEvent: ActivityEvent = {
-            id: Math.random().toString(36).substr(2, 9),
-            type: message.event,
-            message: `${message.data.name} joined the tournament.`,
-            timestamp: message.data.timestamp || new Date().toISOString()
-          };
-          setEvents(prev => [...prev, newEvent]);
-        } else if (message.event === 'match_reported') {
-          const newEvent: ActivityEvent = {
-            id: Math.random().toString(36).substr(2, 9),
-            type: message.event,
-            message: `Match results reported.`,
-            timestamp: new Date().toISOString()
-          };
-          setEvents(prev => [...prev, newEvent]);
-        }
-      };
-      return () => ws.close();
-    }
+    const ws = new WebSocket(`${config.wsUrl}/ws/${tournament.code}`);
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+
+      if (
+        message.event === 'participant_joined'
+        || message.event === 'participant_removed'
+        || message.event === 'match_reported'
+        || message.event === 'pairings_generated'
+      ) {
+        fetchMatches();
+        fetchParticipants();
+        fetchTournament();
+      }
+
+      if (message.event === 'participant_joined') {
+        const newEvent: ActivityEvent = {
+          id: Math.random().toString(36).substr(2, 9),
+          type: message.event,
+          message: `${message.data.name} joined the tournament.`,
+          timestamp: message.data.timestamp || new Date().toISOString(),
+        };
+        setEvents((prev) => [...prev, newEvent]);
+      } else if (message.event === 'match_reported') {
+        const newEvent: ActivityEvent = {
+          id: Math.random().toString(36).substr(2, 9),
+          type: message.event,
+          message: 'Match results reported.',
+          timestamp: new Date().toISOString(),
+        };
+        setEvents((prev) => [...prev, newEvent]);
+      }
+    };
+
+    return () => ws.close();
   }, [tournament]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchMatches = async () => {
@@ -125,6 +131,13 @@ export default function AdminDashboard() {
 
   const handleCreateTournament = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const safeRounds = Number.isFinite(rounds) ? Math.min(10, Math.max(1, rounds)) : 3;
+    if (!name.trim()) {
+      setError('Please provide a tournament name.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -134,7 +147,7 @@ export default function AdminDashboard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, rounds }),
+        body: JSON.stringify({ name: name.trim(), rounds: safeRounds }),
       });
 
       if (!response.ok) {
@@ -170,12 +183,13 @@ export default function AdminDashboard() {
     }
   };
 
-  const reportResult = async (matchId: number, p1Score: number, p2Score: number) => {
+  const reportResult = async (matchId: number) => {
+    const selectedScore = scoreInputs[matchId] ?? { p1: 0, p2: 0 };
     try {
       const response = await fetch(`${config.apiUrl}/matches/${matchId}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ player1_score: p1Score, player2_score: p2Score }),
+        body: JSON.stringify({ player1_score: selectedScore.p1, player2_score: selectedScore.p2 }),
       });
       if (!response.ok) throw new Error('Failed to report result');
       await fetchMatches();
@@ -184,15 +198,26 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleScoreChange = (matchId: number, player: 'p1' | 'p2', value: string) => {
+    const parsedValue = Math.max(0, Number.parseInt(value, 10) || 0);
+    setScoreInputs((prev) => ({
+      ...prev,
+      [matchId]: {
+        p1: player === 'p1' ? parsedValue : (prev[matchId]?.p1 ?? 0),
+        p2: player === 'p2' ? parsedValue : (prev[matchId]?.p2 ?? 0),
+      },
+    }));
+  };
+
   if (tournament) {
-    const currentRound = matches.length > 0 ? Math.max(...matches.map(m => m.round_number)) : 0;
-    const roundMatches = matches.filter(m => m.round_number === currentRound);
-    const allCompleted = roundMatches.every(m => m.is_completed);
+    const currentRound = matches.length > 0 ? Math.max(...matches.map((m) => m.round_number)) : 0;
+    const roundMatches = matches.filter((m) => m.round_number === currentRound);
+    const allCompleted = roundMatches.every((m) => m.is_completed);
     const isTournamentFinished = tournament.status === 'COMPLETED';
 
     const getPlayerName = (id: number | null) => {
       if (id === null) return '-';
-      const player = participants.find(p => p.id === id);
+      const player = participants.find((p) => p.id === id);
       return player ? player.name : `Player ${id}`;
     };
 
@@ -202,8 +227,7 @@ export default function AdminDashboard() {
         if (response.ok) {
           const standings = await response.json();
           const summary = standings.map((s: { rank: number; name: string; points: number; wins: number; losses: number; draws: number }) =>
-            `${s.rank}. ${s.name} (${s.points} pts, ${s.wins}-${s.losses}-${s.draws})`
-          ).join('\n');
+            `${s.rank}. ${s.name} (${s.points} pts, ${s.wins}-${s.losses}-${s.draws})`).join('\n');
 
           const blob = new Blob([summary], { type: 'text/plain' });
           const url = URL.createObjectURL(blob);
@@ -267,7 +291,7 @@ export default function AdminDashboard() {
                 {roundMatches.length === 0 ? (
                   <p className="text-gray-400 italic">No matches generated yet. Start the round to begin.</p>
                 ) : (
-                  roundMatches.map(match => (
+                  roundMatches.map((match) => (
                     <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col space-y-4">
                       <div className="flex justify-between items-center border-b border-gray-50 pb-2">
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Table {match.table_number || '?'}</span>
@@ -286,15 +310,25 @@ export default function AdminDashboard() {
                           </div>
                         ) : (
                           <div className="flex-1 flex items-center justify-center space-x-2 px-4">
-                            <input type="number" id={`p1-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
+                            <input
+                              type="number"
+                              min={0}
+                              className="w-16 p-2 border rounded text-center font-bold"
+                              value={scoreInputs[match.id]?.p1 ?? 0}
+                              onChange={(e) => handleScoreChange(match.id, 'p1', e.target.value)}
+                              aria-label={`Score for ${getPlayerName(match.player1_id)}`}
+                            />
                             <span className="text-gray-300">-</span>
-                            <input type="number" id={`p2-${match.id}`} className="w-16 p-2 border rounded text-center font-bold" defaultValue={0} />
+                            <input
+                              type="number"
+                              min={0}
+                              className="w-16 p-2 border rounded text-center font-bold"
+                              value={scoreInputs[match.id]?.p2 ?? 0}
+                              onChange={(e) => handleScoreChange(match.id, 'p2', e.target.value)}
+                              aria-label={`Score for ${getPlayerName(match.player2_id)}`}
+                            />
                             <button
-                              onClick={() => {
-                                const s1 = (document.getElementById(`p1-${match.id}`) as HTMLInputElement).value;
-                                const s2 = (document.getElementById(`p2-${match.id}`) as HTMLInputElement).value;
-                                reportResult(match.id, parseInt(s1), parseInt(s2));
-                              }}
+                              onClick={() => reportResult(match.id)}
                               className="ml-4 px-4 py-2 bg-gray-800 text-white text-sm font-bold rounded-lg hover:bg-black transition"
                             >
                               Report
@@ -324,21 +358,25 @@ export default function AdminDashboard() {
     );
   }
 
+  const isRoundsValid = Number.isFinite(rounds) && rounds >= 1 && rounds <= 10;
+  const isFormValid = name.trim().length > 0 && isRoundsValid;
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
       <h1 className="text-3xl font-bold text-blue-600 mb-6 uppercase tracking-wider">Admin Dashboard</h1>
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-100">
         <h2 className="text-xl font-semibold mb-6 text-gray-800">Create Tournament</h2>
-        <form onSubmit={handleCreateTournament} className="space-y-5">
+        <form onSubmit={handleCreateTournament} className="space-y-5" noValidate>
           <div>
             <label htmlFor="tournament-name" className="block text-sm font-medium text-gray-700 mb-1">Tournament Name</label>
             <input id="tournament-name" type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Swiss Open #1" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition outline-none" />
           </div>
           <div>
             <label htmlFor="rounds-count" className="block text-sm font-medium text-gray-700 mb-1">Number of Rounds</label>
-            <input id="rounds-count" type="number" min="1" max="10" value={rounds} onChange={(e) => setRounds(parseInt(e.target.value))} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition outline-none" />
+            <input id="rounds-count" type="number" min="1" max="10" value={rounds} onChange={(e) => setRounds(Number.parseInt(e.target.value, 10))} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition outline-none" />
+            {!isRoundsValid && <p className="text-xs text-red-600 mt-1">Rounds must be between 1 and 10.</p>}
           </div>
-          <button type="submit" disabled={loading} className={`w-full py-3 px-4 bg-blue-600 text-white font-bold rounded-lg transition ${loading ? 'opacity-50' : 'hover:bg-blue-700 shadow-md'}`}>
+          <button type="submit" disabled={loading || !isFormValid} className={`w-full py-3 px-4 bg-blue-600 text-white font-bold rounded-lg transition ${(loading || !isFormValid) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 shadow-md'}`}>
             {loading ? 'Creating...' : 'Create New Tournament'}
           </button>
         </form>

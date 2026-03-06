@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { config } from '../config';
 
@@ -31,6 +31,8 @@ interface PotentialPairing {
   points: number;
 }
 
+type SocketStatus = 'connecting' | 'connected' | 'reconnecting' | 'offline';
+
 export default function TournamentView() {
   const { code } = useParams<{ code: string }>();
   const [matches, setMatches] = useState<Match[]>([]);
@@ -38,30 +40,57 @@ export default function TournamentView() {
   const [potentialPairings, setPotentialPairings] = useState<PotentialPairing[]>([]);
   const [activeTab, setActiveTab] = useState<'pairings' | 'standings'>('pairings');
   const [loading, setLoading] = useState(true);
+  const [socketStatus, setSocketStatus] = useState<SocketStatus>('connecting');
 
   const participantIdStr = localStorage.getItem(`participant_id_${code}`);
-  const participantId = participantIdStr ? parseInt(participantIdStr) : null;
+  const participantId = participantIdStr ? Number.parseInt(participantIdStr, 10) : null;
 
   useEffect(() => {
+    if (!code) return;
+
     fetchData();
 
-    const ws = new WebSocket(`${config.wsUrl}/ws/${code}`);
+    let ws: WebSocket | null = null;
+    let reconnectTimer: number | null = null;
 
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.event === 'pairings_generated' || message.event === 'match_reported' || message.event === 'participant_joined') {
-        fetchData();
-      }
+    const connect = () => {
+      setSocketStatus((prev) => (prev === 'connected' ? prev : 'connecting'));
+      ws = new WebSocket(`${config.wsUrl}/ws/${code}`);
+
+      ws.onopen = () => {
+        setSocketStatus('connected');
+      };
+
+      ws.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.event === 'pairings_generated' || message.event === 'match_reported' || message.event === 'participant_joined') {
+          fetchData();
+        }
+      };
+
+      ws.onclose = () => {
+        setSocketStatus('reconnecting');
+        reconnectTimer = window.setTimeout(() => connect(), 1500);
+      };
+
+      ws.onerror = () => {
+        setSocketStatus('offline');
+      };
     };
 
-    return () => ws.close();
+    connect();
+
+    return () => {
+      if (reconnectTimer) window.clearTimeout(reconnectTimer);
+      ws?.close();
+    };
   }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchData = async () => {
     try {
       const [matchesRes, standingsRes] = await Promise.all([
         fetch(`${config.apiUrl}/tournaments/${code}/matches`),
-        fetch(`${config.apiUrl}/tournaments/${code}/standings`)
+        fetch(`${config.apiUrl}/tournaments/${code}/standings`),
       ]);
 
       if (matchesRes.ok) {
@@ -90,14 +119,20 @@ export default function TournamentView() {
 
   if (loading) return <div className="p-8 text-center font-bold text-gray-500 uppercase tracking-widest animate-pulse">Loading tournament...</div>;
 
-  const rounds = [...new Set(matches.map(m => m.round_number))].sort((a, b) => b - a);
-  const myStanding = standings.find(s => s.id === participantId);
+  const rounds = [...new Set(matches.map((m) => m.round_number))].sort((a, b) => b - a);
+  const myStanding = standings.find((s) => s.id === participantId);
 
   const getPlayerName = (id: number | null) => {
     if (id === null) return '-';
-    const player = standings.find(s => s.id === id);
+    const player = standings.find((s) => s.id === id);
     return player ? player.name : `Player ${id}`;
   };
+
+  const socketStatusClass = socketStatus === 'connected'
+    ? 'bg-green-100 text-green-700'
+    : socketStatus === 'reconnecting'
+      ? 'bg-yellow-100 text-yellow-700'
+      : 'bg-gray-100 text-gray-700';
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-8">
@@ -106,19 +141,25 @@ export default function TournamentView() {
           Tournament <span className="text-blue-600">#{code}</span>
         </h1>
 
-        <div className="flex bg-gray-100 p-1 rounded-xl">
-          <button
-            onClick={() => setActiveTab('pairings')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'pairings' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            Pairings
-          </button>
-          <button
-            onClick={() => setActiveTab('standings')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'standings' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            Standings
-          </button>
+        <div className="flex items-center gap-3">
+          <span className={`text-xs font-bold px-3 py-1 rounded-full ${socketStatusClass}`}>
+            {socketStatus === 'connected' ? 'Connected' : socketStatus === 'reconnecting' ? 'Reconnecting...' : 'Connecting...'}
+          </span>
+
+          <div className="flex bg-gray-100 p-1 rounded-xl">
+            <button
+              onClick={() => setActiveTab('pairings')}
+              className={`px-6 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'pairings' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Pairings
+            </button>
+            <button
+              onClick={() => setActiveTab('standings')}
+              className={`px-6 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'standings' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Standings
+            </button>
+          </div>
         </div>
       </div>
 
@@ -151,7 +192,7 @@ export default function TournamentView() {
             <div>
               <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">Possible Opponents</div>
               <div className="text-xs font-medium mt-1 truncate">
-                {potentialPairings.length > 0 ? potentialPairings.map(p => p.name).join(', ') : 'None'}
+                {potentialPairings.length > 0 ? potentialPairings.map((p) => p.name).join(', ') : 'None'}
               </div>
             </div>
           </div>
@@ -165,14 +206,14 @@ export default function TournamentView() {
           </div>
         ) : (
           <div className="space-y-10">
-            {rounds.map(round => (
+            {rounds.map((round) => (
               <div key={round} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center">
                   <span className="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm mr-3">Round {round}</span>
-                  <div className="flex-1 h-px bg-gray-200"></div>
+                  <div className="flex-1 h-px bg-gray-200" />
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {matches.filter(m => m.round_number === round).map(match => (
+                  {matches.filter((m) => m.round_number === round).map((match) => (
                     <div key={match.id} className={`p-5 rounded-2xl border transition-all ${match.is_completed ? 'bg-white border-gray-100 opacity-60 grayscale' : 'bg-white border-blue-100 shadow-sm hover:shadow-md'}`}>
                       <div className="flex justify-between items-center mb-4">
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Table {match.table_number || '?'}</span>

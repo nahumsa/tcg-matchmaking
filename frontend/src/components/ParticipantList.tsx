@@ -85,7 +85,7 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
           </button>
         </form>
 
-        {error && <div className="text-xs text-red-500 font-medium">{error}</div>}
+        {error && <div className="text-xs text-red-500 font-medium" role="alert">{error}</div>}
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 pb-6">
@@ -101,8 +101,8 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
                 </div>
                 <button
                   onClick={() => handleRemoveParticipant(p.id)}
-                  className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition opacity-0 group-hover:opacity-100"
-                  aria-label="Remove"
+                  className="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition opacity-100 md:opacity-80 md:group-hover:opacity-100"
+                  aria-label={`Remove ${p.name}`}
                 >
                   &times;
                 </button>
