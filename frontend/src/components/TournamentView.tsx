@@ -59,7 +59,7 @@ export default function TournamentView() {
   const tournamentCompleted = standings.length > 0 && matches.length > 0 && matches.every(m => m.is_completed);
   // Actually, we should check the tournament status if available.
   // But based on current matches, we can infer.
-  // Let's check the tournament status from the first match's tournament_id if we have it? 
+  // Let's check the tournament status from the first match's tournament_id if we have it?
   // No, we should probably fetch tournament status too.
   // For now I'll use a simpler check or just trust the backend to 400 if it's completed.
 
@@ -191,7 +191,7 @@ export default function TournamentView() {
             <p className="text-gray-500 text-sm mb-6 font-medium">
               Select the final score for your match against <span className="text-blue-600 font-bold">{getPlayerName(reportingMatch.player1_id === participantId ? reportingMatch.player2_id : reportingMatch.player1_id)}</span>.
             </p>
-            
+
             <div className="grid gap-3 mb-8">
               {presets.map(([s1, s2]) => (
                 <button
@@ -328,7 +328,7 @@ export default function TournamentView() {
                               </div>
                               <div className="flex-1 text-left pl-4 truncate font-bold text-gray-800">{getPlayerName(match.player2_id)}</div>
                             </div>
-                            
+
                             {canReport && (
                               <button
                                 onClick={() => {

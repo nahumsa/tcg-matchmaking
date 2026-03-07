@@ -88,7 +88,7 @@ describe('ReportScore', () => {
   it('opens report modal and submits score', async () => {
     const mockCode = 'ABCDEF';
     const mockMatch = { id: 101, round_number: 1, player1_id: 1, player2_id: 2, player1_score: 0, player2_score: 0, is_bye: 0, is_completed: 0, table_number: 1 };
-    
+
     localStorage.setItem(`participant_id_${mockCode}`, '1');
 
     (fetch as any).mockImplementation((url: string) => {

@@ -12,7 +12,11 @@ from backend.app.api.matches.schemas import MatchUpdate
 from backend.app.api.participants.models import Participant
 from backend.app.api.tournaments.models import Tournament
 
-from .ports import MatchRepositoryPort, ParticipantRepositoryPort, TournamentRepositoryPort
+from .ports import (
+    MatchRepositoryPort,
+    ParticipantRepositoryPort,
+    TournamentRepositoryPort,
+)
 
 
 def create_tournament(
@@ -74,7 +78,8 @@ def get_potential_pairings(
     past_matches = [
         m
         for m in matches.get_by_tournament(tournament_id)
-        if m.is_completed and (m.player1_id == participant_id or m.player2_id == participant_id)
+        if m.is_completed
+        and (m.player1_id == participant_id or m.player2_id == participant_id)
     ]
 
     played_opponent_ids = set()
@@ -93,7 +98,9 @@ def get_potential_pairings(
     ]
 
 
-def assert_can_generate_pairings(tournament: Tournament, tournament_matches: List[Match]) -> int:
+def assert_can_generate_pairings(
+    tournament: Tournament, tournament_matches: List[Match]
+) -> int:
     assert_tournament_can_accept_changes(tournament)
     if not tournament.participants:
         raise HTTPException(status_code=400, detail="No participants in tournament")
@@ -103,10 +110,14 @@ def assert_can_generate_pairings(tournament: Tournament, tournament_matches: Lis
 
     max_round = max(m.round_number for m in tournament_matches)
     incomplete = [
-        m for m in tournament_matches if m.round_number == max_round and not m.is_completed and not m.is_bye
+        m
+        for m in tournament_matches
+        if m.round_number == max_round and not m.is_completed and not m.is_bye
     ]
     if incomplete:
-        raise HTTPException(status_code=400, detail="Complete all current round matches first")
+        raise HTTPException(
+            status_code=400, detail="Complete all current round matches first"
+        )
 
     if max_round >= tournament.rounds:
         raise HTTPException(status_code=400, detail="Tournament already completed")
@@ -194,7 +205,9 @@ def report_match(
         for m in matches.get_by_tournament(tournament.id)
         if m.round_number == match.round_number
     ]
-    if match.round_number == tournament.rounds and all(m.is_completed for m in round_matches):
+    if match.round_number == tournament.rounds and all(
+        m.is_completed for m in round_matches
+    ):
         tournament.status = "COMPLETED"
         tournaments.save(tournament)
 

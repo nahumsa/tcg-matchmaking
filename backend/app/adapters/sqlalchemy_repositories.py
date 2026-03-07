@@ -14,9 +14,7 @@ class SqlAlchemyTournamentRepository:
         self.db = db
 
     def is_code_available(self, code: str) -> bool:
-        return (
-            self.db.query(Tournament).filter(Tournament.code == code).first() is None
-        )
+        return self.db.query(Tournament).filter(Tournament.code == code).first() is None
 
     def add_tournament(self, name: str, code: str, rounds: int) -> Tournament:
         tournament = Tournament(name=name, code=code, rounds=rounds)
@@ -49,12 +47,16 @@ class SqlAlchemyParticipantRepository:
         )
 
     def get_by_id(self, participant_id: int) -> Optional[Participant]:
-        return self.db.query(Participant).filter(Participant.id == participant_id).first()
+        return (
+            self.db.query(Participant).filter(Participant.id == participant_id).first()
+        )
 
     def exists_with_name(self, tournament_id: int, name: str) -> bool:
         return (
             self.db.query(Participant)
-            .filter(Participant.tournament_id == tournament_id, Participant.name == name)
+            .filter(
+                Participant.tournament_id == tournament_id, Participant.name == name
+            )
             .first()
             is not None
         )

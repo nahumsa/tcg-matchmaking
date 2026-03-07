@@ -12,9 +12,7 @@ def generate_room_code(db: Session, length: int = 6) -> str:
     return use_cases._generate_room_code(tournaments=tournaments, length=length)
 
 
-def create_tournament(
-    db: Session, tournament: schemas.TournamentCreate
-):
+def create_tournament(db: Session, tournament: schemas.TournamentCreate):
     tournaments = SqlAlchemyTournamentRepository(db)
     return use_cases.create_tournament(
         tournaments=tournaments,
