@@ -1,20 +1,4 @@
-from typing import Literal
-
 from pydantic import BaseModel, ConfigDict, model_validator
-
-
-PokemonName = Literal[
-    "Bulbasaur",
-    "Charmander",
-    "Squirtle",
-    "Pikachu",
-    "Eevee",
-    "Snorlax",
-    "Mewtwo",
-    "Gengar",
-    "Dragonite",
-    "Lucario",
-]
 
 
 class ParticipantBase(BaseModel):
@@ -22,8 +6,8 @@ class ParticipantBase(BaseModel):
 
 
 class ParticipantJoin(ParticipantBase):
-    pokemon_1: PokemonName | None = None
-    pokemon_2: PokemonName | None = None
+    pokemon_1: str | None = None
+    pokemon_2: str | None = None
 
     @model_validator(mode="after")
     def validate_unique_pokemon(self):
@@ -38,10 +22,10 @@ class ParticipantResponse(ParticipantBase):
     id: int
     tournament_id: int
     points: int
-    pokemon_1: PokemonName | None = None
-    pokemon_2: PokemonName | None = None
+    pokemon_1: str | None = None
+    pokemon_2: str | None = None
     rank: int = 0
     wins: int = 0
     losses: int = 0
     draws: int = 0
-    omw_percentage: float = 0.0
+    omw_percentage: float = 0.00

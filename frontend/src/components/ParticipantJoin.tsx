@@ -1,84 +1,115 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
 
 const TOURNAMENT_CODE_LENGTH = 6;
 
-const POKEMON_OPTIONS = [
-  { name: 'Bulbasaur', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png' },
-  { name: 'Charmander', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png' },
-  { name: 'Squirtle', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png' },
-  { name: 'Pikachu', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png' },
-  { name: 'Eevee', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png' },
-  { name: 'Snorlax', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png' },
-  { name: 'Mewtwo', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png' },
-  { name: 'Gengar', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png' },
-  { name: 'Dragonite', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/149.png' },
-  { name: 'Lucario', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/448.png' },
-] as const;
-
-type PokemonName = (typeof POKEMON_OPTIONS)[number]['name'];
-
-interface PokemonDropdownProps {
-  label: string;
-  selected: PokemonName | null;
-  excluded?: PokemonName | null;
-  onSelect: (pokemon: PokemonName | null) => void;
+interface Pokemon {
+  name: string;
+  url: string;
+  id: number;
+  sprite: string;
 }
 
-function PokemonDropdown({ label, selected, excluded = null, onSelect }: PokemonDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
+interface PokemonSelectorProps {
+  label: string;
+  selected: string | null; // This will be the ID as string
+  excluded?: string | null;
+  onSelect: (pokemonId: string | null) => void;
+  pokemonList: Pokemon[];
+}
 
-  const availableOptions = POKEMON_OPTIONS.filter((option) => option.name !== excluded || option.name === selected);
-  const selectedOption = POKEMON_OPTIONS.find((option) => option.name === selected) ?? null;
+function PokemonSelector({ label, selected, excluded = null, onSelect, pokemonList }: PokemonSelectorProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const selectedPokemon = useMemo(() =>
+    pokemonList.find(p => p.id.toString() === selected)
+  , [selected, pokemonList]);
+
+  const filteredOptions = useMemo(() => {
+    const term = search.toLowerCase();
+    return pokemonList
+      .filter(p =>
+        (p.id.toString() !== excluded || p.id.toString() === selected) &&
+        p.name.toLowerCase().includes(term)
+      )
+      .slice(0, 50);
+  }, [pokemonList, search, excluded, selected]);
 
   return (
     <div className="relative">
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <button
-        type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="w-full p-2.5 border border-gray-300 rounded-lg bg-white text-left focus:ring-2 focus:ring-green-500 transition outline-none flex items-center justify-between"
-      >
-        {selectedOption ? (
-          <span className="flex items-center gap-2">
-            <img src={selectedOption.sprite} alt={selectedOption.name} className="w-8 h-8" />
-            <span className="font-medium">{selectedOption.name}</span>
-          </span>
-        ) : (
-          <span className="text-gray-400">Choose a Pokémon</span>
-        )}
-        <span className="text-gray-400">▾</span>
-      </button>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          className="w-full p-2.5 border border-gray-300 rounded-lg bg-white text-left focus:ring-2 focus:ring-green-500 transition outline-none flex items-center justify-between"
+        >
+          {selectedPokemon ? (
+            <span className="flex items-center gap-2">
+              <img src={selectedPokemon.sprite} alt={selectedPokemon.name} className="w-8 h-8" />
+              <span className="font-medium capitalize">{selectedPokemon.name}</span>
+            </span>
+          ) : (
+            <span className="text-gray-400">Choose a Pokémon</span>
+          )}
+          <span className="text-gray-400">▾</span>
+        </button>
 
-      {isOpen && (
-        <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-auto">
-          <button
-            type="button"
-            className="w-full px-3 py-2 text-left text-sm text-gray-500 hover:bg-gray-50"
-            onClick={() => {
-              onSelect(null);
-              setIsOpen(false);
-            }}
-          >
-            None
-          </button>
-          {availableOptions.map((option) => (
-            <button
-              key={option.name}
-              type="button"
-              className="w-full px-3 py-2 text-left hover:bg-green-50 flex items-center gap-2"
-              onClick={() => {
-                onSelect(option.name);
-                setIsOpen(false);
-              }}
-            >
-              <img src={option.sprite} alt={option.name} className="w-8 h-8" />
-              <span>{option.name}</span>
-            </button>
-          ))}
-        </div>
-      )}
+        {isOpen && (
+          <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-72 flex flex-col overflow-hidden">
+            <div className="p-2 border-b">
+              <input
+                type="text"
+                autoFocus
+                placeholder="Search Pokémon..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full p-2 text-sm border border-gray-200 rounded focus:ring-1 focus:ring-green-500 outline-none"
+              />
+            </div>
+            <div className="overflow-y-auto">
+              <button
+                type="button"
+                className="w-full px-3 py-2 text-left text-sm text-gray-500 hover:bg-gray-50"
+                onClick={() => {
+                  onSelect(null);
+                  setSearch('');
+                  setIsOpen(false);
+                }}
+              >
+                None
+              </button>
+              {filteredOptions.map((option) => (
+                <button
+                  key={option.name}
+                  type="button"
+                  className="w-full px-3 py-2 text-left hover:bg-green-50 flex items-center gap-2"
+                  onClick={() => {
+                    onSelect(option.id.toString());
+                    setSearch('');
+                    setIsOpen(false);
+                  }}
+                >
+                  <img
+                    src={option.sprite}
+                    alt={option.name}
+                    className="w-8 h-8"
+                    loading="lazy"
+                  />
+                  <span className="capitalize">{option.name}</span>
+                </button>
+              ))}
+              {filteredOptions.length === 0 && (
+                <div className="px-3 py-4 text-center text-sm text-gray-400">
+                  No Pokémon found
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -86,16 +117,42 @@ function PokemonDropdown({ label, selected, excluded = null, onSelect }: Pokemon
 export default function ParticipantJoin() {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
-  const [pokemon1, setPokemon1] = useState<PokemonName | null>(null);
-  const [pokemon2, setPokemon2] = useState<PokemonName | null>(null);
+  const [pokemon1, setPokemon1] = useState<string | null>(null);
+  const [pokemon2, setPokemon2] = useState<string | null>(null);
+  const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetchingPokemon, setFetchingPokemon] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchPokemon = async () => {
+      try {
+        // Fetch a large enough list of pokemon (Gen 1-9 is ~1025)
+        const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025');
+        const data = await response.json();
+        const formatted = data.results.map((p: { name: string; url: string }) => {
+          const id = parseInt(p.url.split('/').filter(Boolean).pop() || '0');
+          return {
+            ...p,
+            id,
+            sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`
+          };
+        });
+        setPokemonList(formatted);
+      } catch (err) {
+        console.error('Failed to fetch pokemon list', err);
+      } finally {
+        setFetchingPokemon(false);
+      }
+    };
+    fetchPokemon();
+  }, []);
 
   const trimmedName = name.trim();
   const normalizedCode = code.trim().toUpperCase();
   const codeIsValid = /^[A-Z0-9]{6}$/.test(normalizedCode);
-  const isFormValid = trimmedName.length > 1 && codeIsValid;
+  const isFormValid = trimmedName.length > 1 && codeIsValid && !fetchingPokemon;
 
   const helperText = useMemo(() => {
     if (!code) return `Tournament code must be ${TOURNAMENT_CODE_LENGTH} letters or numbers.`;
@@ -181,17 +238,19 @@ export default function ParticipantJoin() {
 
           <div className="space-y-3">
             <p className="text-sm font-medium text-gray-700">Deck Pokémon (up to 2)</p>
-            <PokemonDropdown
+            <PokemonSelector
               label="Pokémon 1"
               selected={pokemon1}
               excluded={pokemon2}
               onSelect={setPokemon1}
+              pokemonList={pokemonList}
             />
-            <PokemonDropdown
+            <PokemonSelector
               label="Pokémon 2 (optional)"
               selected={pokemon2}
               excluded={pokemon1}
               onSelect={setPokemon2}
+              pokemonList={pokemonList}
             />
           </div>
 

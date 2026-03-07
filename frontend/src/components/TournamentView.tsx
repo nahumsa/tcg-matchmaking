@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { config } from '../config';
+import PokemonSprite from './PokemonSprite';
 
 interface Match {
   id: number;
@@ -23,6 +24,8 @@ interface Standing {
   losses: number;
   draws: number;
   omw_percentage: number;
+  pokemon_1?: string | null;
+  pokemon_2?: string | null;
 }
 
 interface PotentialPairing {
@@ -170,6 +173,22 @@ export default function TournamentView() {
   const rounds = [...new Set(matches.map((m) => m.round_number))].sort((a, b) => b - a);
   const myStanding = standings.find((s) => s.id === participantId);
 
+  const renderPlayer = (id: number | null) => {
+    if (id === null) return <span className="text-gray-400">-</span>;
+    const player = standings.find((s) => s.id === id);
+    if (!player) return <span>Player {id}</span>;
+
+    return (
+      <div className="flex items-center space-x-2">
+        <div className="flex -space-x-2 opacity-80">
+          <PokemonSprite pokemonId={player.pokemon_1} size="sm" />
+          <PokemonSprite pokemonId={player.pokemon_2} size="sm" />
+        </div>
+        <span className="font-bold">{player.name}</span>
+      </div>
+    );
+  };
+
   const getPlayerName = (id: number | null) => {
     if (id === null) return '-';
     const player = standings.find((s) => s.id === id);
@@ -314,19 +333,19 @@ export default function TournamentView() {
                           {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-[0.2em]">Completed</span>}
                         </div>
                         {match.is_bye ? (
-                          <div className="text-center py-2">
-                            <span className="font-bold text-gray-800 text-lg">{getPlayerName(match.player1_id)}</span>
+                          <div className="text-center py-2 flex justify-center">
+                            <span className="font-bold text-gray-800 text-lg">{renderPlayer(match.player1_id)}</span>
                           </div>
                         ) : (
                           <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                              <div className="flex-1 text-right pr-4 truncate font-bold text-gray-800">{getPlayerName(match.player1_id)}</div>
+                              <div className="flex-1 flex justify-end pr-4 truncate font-bold text-gray-800 text-right">{renderPlayer(match.player1_id)}</div>
                               <div className="flex items-center space-x-2 bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl font-mono font-black text-xl">
                                 <span>{match.player1_score}</span>
                                 <span className="text-gray-300">-</span>
                                 <span>{match.player2_score}</span>
                               </div>
-                              <div className="flex-1 text-left pl-4 truncate font-bold text-gray-800">{getPlayerName(match.player2_id)}</div>
+                              <div className="flex-1 flex justify-start pl-4 truncate font-bold text-gray-800 text-left">{renderPlayer(match.player2_id)}</div>
                             </div>
 
                             {canReport && (
@@ -366,7 +385,15 @@ export default function TournamentView() {
               {standings.map((s) => (
                 <tr key={s.id} className={`hover:bg-blue-50/30 transition-colors ${s.id === participantId ? 'bg-blue-50/50' : ''}`}>
                   <td className="px-6 py-4 font-black text-gray-400">#{s.rank}</td>
-                  <td className="px-6 py-4 font-bold text-gray-800">{s.name}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex -space-x-3">
+                        <PokemonSprite pokemonId={s.pokemon_1} size="md" />
+                        <PokemonSprite pokemonId={s.pokemon_2} size="md" />
+                      </div>
+                      <span className="font-bold text-gray-800">{s.name}</span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 font-black text-blue-600">{s.points}</td>
                   <td className="px-6 py-4 text-sm text-gray-500 font-medium">{s.wins}-{s.losses}-{s.draws}</td>
                   <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">{(s.omw_percentage * 100).toFixed(1)}%</td>

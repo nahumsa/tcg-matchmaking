@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { config } from '../config';
 import ParticipantList from './ParticipantList';
 import ActivityLog, { type ActivityEvent } from './ActivityLog';
+import PokemonSprite from './PokemonSprite';
 
 interface Tournament {
   id: number;
@@ -28,6 +29,8 @@ interface Participant {
   id: number;
   name: string;
   points: number;
+  pokemon_1?: string | null;
+  pokemon_2?: string | null;
 }
 
 export default function AdminDashboard() {
@@ -222,10 +225,20 @@ export default function AdminDashboard() {
     const allCompleted = roundMatches.every((m) => m.is_completed);
     const isTournamentFinished = tournament.status === 'COMPLETED';
 
-    const getPlayerName = (id: number | null) => {
-      if (id === null) return '-';
+    const renderPlayer = (id: number | null) => {
+      if (id === null) return <span className="text-gray-400">-</span>;
       const player = participants.find((p) => p.id === id);
-      return player ? player.name : `Player ${id}`;
+      if (!player) return <span>Player {id}</span>;
+
+      return (
+        <div className="flex items-center space-x-2">
+          <div className="flex -space-x-2 opacity-80">
+            <PokemonSprite pokemonId={player.pokemon_1} size="sm" />
+            <PokemonSprite pokemonId={player.pokemon_2} size="sm" />
+          </div>
+          <span className="font-bold">{player.name}</span>
+        </div>
+      );
     };
 
     const handleExport = async () => {
@@ -305,7 +318,7 @@ export default function AdminDashboard() {
                         {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Completed</span>}
                       </div>
                       <div className="flex items-center justify-between">
-                        <div className="flex-1 font-bold text-lg">{getPlayerName(match.player1_id)}</div>
+                        <div className="flex-1 font-bold text-lg">{renderPlayer(match.player1_id)}</div>
 
                         {match.is_bye ? (
                           <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">BYE</div>
@@ -317,7 +330,7 @@ export default function AdminDashboard() {
                               className="w-16 p-2 border rounded text-center font-bold"
                               value={scoreInputs[match.id]?.p1 ?? 0}
                               onChange={(e) => handleScoreChange(match.id, 'p1', e.target.value)}
-                              aria-label={`Score for ${getPlayerName(match.player1_id)}`}
+                              aria-label={`Score for player 1`}
                             />
                             <span className="text-gray-300">-</span>
                             <input
@@ -326,7 +339,7 @@ export default function AdminDashboard() {
                               className="w-16 p-2 border rounded text-center font-bold"
                               value={scoreInputs[match.id]?.p2 ?? 0}
                               onChange={(e) => handleScoreChange(match.id, 'p2', e.target.value)}
-                              aria-label={`Score for ${getPlayerName(match.player2_id)}`}
+                              aria-label={`Score for player 2`}
                             />
                             <button
                               onClick={() => reportResult(match.id)}
@@ -340,7 +353,7 @@ export default function AdminDashboard() {
                           </div>
                         )}
 
-                        <div className="flex-1 font-bold text-lg text-right">{match.is_bye ? '-' : getPlayerName(match.player2_id)}</div>
+                        <div className="flex-1 font-bold text-lg text-right flex justify-end">{match.is_bye ? '-' : renderPlayer(match.player2_id)}</div>
                       </div>
                     </div>
                   ))
