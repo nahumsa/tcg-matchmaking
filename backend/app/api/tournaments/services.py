@@ -16,7 +16,6 @@ def create_tournament(db: Session, tournament: schemas.TournamentCreate):
     return use_cases.create_tournament(
         tournaments=tournaments,
         name=tournament.name,
-        rounds=tournament.rounds,
     )
 
 

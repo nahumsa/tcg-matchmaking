@@ -9,13 +9,36 @@ from backend.app.adapters.sqlalchemy_repositories import (
 )
 from backend.app.core.manager import manager
 from backend.app.api.tournaments.models import Tournament
+from backend.app.api.tournaments.use_cases import calculate_swiss_rounds
 
 from . import models, schemas, use_cases
+
+
+def _set_rounds_on_first_pairing(
+    tournament: Tournament,
+    match_repo: SqlAlchemyMatchRepository,
+    participant_repo: SqlAlchemyParticipantRepository,
+    tournament_repo: SqlAlchemyTournamentRepository,
+) -> None:
+    if match_repo.get_by_tournament(tournament.id):
+        return
+
+    participant_count = len(participant_repo.get_by_tournament(tournament.id))
+    tournament.rounds = calculate_swiss_rounds(participant_count)
+    tournament_repo.save(tournament)
 
 
 async def generate_pairings(db: Session, tournament: Tournament) -> List[models.Match]:
     match_repo = SqlAlchemyMatchRepository(db)
     participant_repo = SqlAlchemyParticipantRepository(db)
+    tournament_repo = SqlAlchemyTournamentRepository(db)
+
+    _set_rounds_on_first_pairing(
+        tournament=tournament,
+        match_repo=match_repo,
+        participant_repo=participant_repo,
+        tournament_repo=tournament_repo,
+    )
 
     db_matches = use_cases.generate_pairings(
         matches=match_repo,

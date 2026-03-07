@@ -41,17 +41,31 @@ def test_create_tournament(setup_db):
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == "Test Tournament"
-    assert data["rounds"] == 5
+    assert data["rounds"] == 1
     assert "code" in data
     assert len(data["code"]) == 6
     assert data["code"].isupper()
 
 
-def test_create_tournament_default_rounds(setup_db):
-    response = client.post("/tournaments", json={"name": "Default Rounds Tournament"})
+def test_rounds_set_on_first_pairing(setup_db):
+    response = client.post("/tournaments", json={"name": "Auto Rounds Tournament"})
     assert response.status_code == 200
-    data = response.json()
-    assert data["rounds"] == 3
+    code = response.json()["code"]
+
+    for idx in range(8):
+        join_resp = client.post(f"/tournaments/{code}/join", json={"name": f"P{idx}"})
+        assert join_resp.status_code == 200
+
+    tournament_resp = client.get(f"/tournaments/{code}")
+    assert tournament_resp.status_code == 200
+    assert tournament_resp.json()["rounds"] == 1
+
+    pairings_resp = client.post(f"/tournaments/{code}/pairings")
+    assert pairings_resp.status_code == 200
+
+    tournament_resp = client.get(f"/tournaments/{code}")
+    assert tournament_resp.status_code == 200
+    assert tournament_resp.json()["rounds"] == 3
 
 
 def test_join_tournament(setup_db):
