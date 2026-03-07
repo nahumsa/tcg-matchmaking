@@ -1,9 +1,8 @@
 from sqlalchemy.orm import Session
 
 from backend.app.adapters.sqlalchemy_repositories import SqlAlchemyTournamentRepository
-from backend.app.application import use_cases
 
-from . import schemas
+from . import schemas, use_cases
 
 
 def generate_room_code(db: Session, length: int = 6) -> str:

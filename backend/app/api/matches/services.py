@@ -7,11 +7,10 @@ from backend.app.adapters.sqlalchemy_repositories import (
     SqlAlchemyParticipantRepository,
     SqlAlchemyTournamentRepository,
 )
-from backend.app.application import use_cases
 from backend.app.core.manager import manager
 from backend.app.api.tournaments.models import Tournament
 
-from . import models, schemas
+from . import models, schemas, use_cases
 
 
 async def generate_pairings(db: Session, tournament: Tournament) -> List[models.Match]:
