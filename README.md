@@ -19,16 +19,19 @@ backend/app/
 │   ├── tournaments/    # Tournament management domain
 │   │   ├── models.py
 │   │   ├── schemas.py
+│   │   ├── use_cases.py
 │   │   ├── services.py
 │   │   └── router.py
 │   ├── participants/   # Participant management domain
 │   │   ├── models.py
 │   │   ├── schemas.py
+│   │   ├── use_cases.py
 │   │   ├── services.py
 │   │   └── router.py
 │   └── matches/        # Match and pairing domain
 │       ├── models.py
 │       ├── schemas.py
+│       ├── use_cases.py
 │       ├── services.py
 │       ├── pairing.py  # Swiss pairing logic
 │       └── router.py
@@ -38,6 +41,30 @@ backend/app/
 │   └── manager.py      # WebSocket connection manager
 └── main.py             # FastAPI application entry point
 ```
+
+## Domain Use Cases
+
+### Tournaments Domain (`api/tournaments`)
+
+- Organizer creates a tournament by providing a name and number of rounds. The tournament use case generates a unique uppercase room code and persists the initial tournament state as `PENDING`.
+- Organizer retrieves a tournament by room code to open the admin dashboard or validate that a player is joining the correct event.
+- Tournament mutation guard prevents changes after completion. Any flow that affects roster, rounds, or results must pass the domain rule that a `COMPLETED` tournament is immutable.
+- Room-code generation is centralized as a domain behavior, ensuring uniqueness checks always happen through the tournament repository instead of being duplicated in routers or service handlers.
+
+### Participants Domain (`api/participants`)
+
+- Player joins a tournament with a display name and room code. The participant join use case validates tournament mutability and rejects duplicate names within the same tournament.
+- Organizer removes a participant before or during active rounds when corrections are needed. The use case enforces ownership (participant must belong to the target tournament) and completion constraints.
+- Organizer and players list participants for lobby and round screens, relying on repository-backed reads scoped by tournament id.
+- Potential pairing suggestions are computed per participant by excluding already played opponents and filtering to nearby score bands, helping manual corrections without violating Swiss pairing intent.
+
+### Matches Domain (`api/matches`)
+
+- Organizer generates next-round Swiss pairings. The use case validates preconditions (tournament not completed, participants exist, previous round completed) and determines the next round number.
+- Pairings are sorted by combined points to improve table ordering quality, producing stable table assignments where higher-performing players are placed earlier.
+- Bye handling is part of match generation: when an odd number of players exists, a bye match is created, auto-completed, and points are granted through the same domain flow.
+- Score reporting updates match completion status and participant points (win/draw/loss logic), then checks final-round completion to automatically mark the tournament as `COMPLETED`.
+- Match reporting and pairing generation emit websocket events through services so UI clients receive live updates while domain rules remain concentrated in use cases.
 
 ## Development Tools
 
