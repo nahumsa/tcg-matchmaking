@@ -5,6 +5,7 @@ import App from './App';
 describe('App Integration', () => {
   beforeEach(() => {
     localStorage.clear();
+    localStorage.setItem('app_language', 'en');
     // Mock fetch for TournamentView component
     global.fetch = vi.fn().mockImplementation(() =>
       Promise.resolve({

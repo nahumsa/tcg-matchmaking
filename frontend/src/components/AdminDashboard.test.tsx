@@ -6,6 +6,8 @@ import AdminDashboard from './AdminDashboard';
 
 describe('AdminDashboard', () => {
   beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem('app_language', 'en');
     vi.stubGlobal('fetch', vi.fn());
   });
 

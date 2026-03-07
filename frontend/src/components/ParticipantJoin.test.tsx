@@ -16,6 +16,8 @@ vi.mock('react-router-dom', async () => {
 
 describe('ParticipantJoin', () => {
   beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem('app_language', 'en');
     vi.stubGlobal('fetch', vi.fn());
     mockNavigate.mockClear();
   });

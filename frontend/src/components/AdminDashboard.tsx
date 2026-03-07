@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { config } from '../config';
 import ParticipantList from './ParticipantList';
 import ActivityLog, { type ActivityEvent } from './ActivityLog';
+import { useLanguage } from '../i18n';
 
 interface Tournament {
   id: number;
@@ -40,6 +41,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scoreInputs, setScoreInputs] = useState<Record<number, { p1: number; p2: number }>>({});
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!tournament) {
@@ -72,7 +74,7 @@ export default function AdminDashboard() {
         const newEvent: ActivityEvent = {
           id: Math.random().toString(36).substr(2, 9),
           type: message.event,
-          message: `${message.data.name} joined the tournament.`,
+          message: t('adminJoinedTournament', { name: message.data.name }),
           timestamp: message.data.timestamp || new Date().toISOString(),
         };
         setEvents((prev) => [...prev, newEvent]);
@@ -80,7 +82,7 @@ export default function AdminDashboard() {
         const newEvent: ActivityEvent = {
           id: Math.random().toString(36).substr(2, 9),
           type: message.event,
-          message: 'Match results reported.',
+          message: t('adminMatchReported'),
           timestamp: new Date().toISOString(),
         };
         setEvents((prev) => [...prev, newEvent]);
@@ -134,7 +136,7 @@ export default function AdminDashboard() {
 
     const safeRounds = Number.isFinite(rounds) ? Math.min(10, Math.max(1, rounds)) : 3;
     if (!name.trim()) {
-      setError('Please provide a tournament name.');
+      setError(t('adminProvideTournamentName'));
       return;
     }
 
@@ -151,14 +153,14 @@ export default function AdminDashboard() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create tournament');
+        throw new Error(t('adminCreateFailed'));
       }
 
       const data = await response.json();
       setTournament(data);
       localStorage.setItem('last_tournament_code', data.code);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -173,11 +175,11 @@ export default function AdminDashboard() {
       });
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Failed to generate pairings');
+        throw new Error(data.detail || t('adminPairingsFailed'));
       }
       await fetchMatches();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -200,10 +202,10 @@ export default function AdminDashboard() {
           is_admin: true
         }),
       });
-      if (!response.ok) throw new Error('Failed to report result');
+      if (!response.ok) throw new Error(t('adminReportFailed'));
       await fetchMatches();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
     }
   };
 
@@ -247,7 +249,7 @@ export default function AdminDashboard() {
           URL.revokeObjectURL(url);
         }
       } catch (err) {
-        console.error('Failed to export standings', err);
+        console.error(t('adminExportFailed'), err);
       }
     };
 
@@ -260,7 +262,7 @@ export default function AdminDashboard() {
                 <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter mb-2">{tournament.name}</h1>
                 <div className="flex items-center space-x-4">
                   <span className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold tracking-widest uppercase">{tournament.code}</span>
-                  <Link to={`/tournament/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">Public View ↗</Link>
+                  <Link to={`/tournament/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">{t('adminPublicView')}</Link>
                 </div>
               </div>
               <button
@@ -268,25 +270,25 @@ export default function AdminDashboard() {
                 disabled={loading || (currentRound > 0 && !allCompleted) || isTournamentFinished}
                 className="py-3 px-6 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
-                {currentRound === 0 ? 'Start Round 1' : 'Next Round'}
+                {currentRound === 0 ? t('adminStartRound') : t('adminNextRound')}
               </button>
             </div>
 
             {isTournamentFinished && (
               <div className="mb-8 p-6 bg-green-600 rounded-2xl text-white shadow-xl shadow-green-100 flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-black uppercase tracking-tight">Tournament Completed</h2>
-                  <p className="text-green-100 font-medium">All rounds have been played and results are finalized.</p>
+                  <h2 className="text-2xl font-black uppercase tracking-tight">{t('adminCompleted')}</h2>
+                  <p className="text-green-100 font-medium">{t('adminCompletedDescription')}</p>
                 </div>
                 <div className="flex space-x-4">
                   <button
                     onClick={handleExport}
                     className="px-6 py-2 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 transition"
                   >
-                    Export Results
+                    {t('adminExportResults')}
                   </button>
                   <Link to={`/tournament/${tournament.code}`} target="_blank" className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-50 transition">
-                    View Final Standings
+                    {t('adminViewFinalStandings')}
                   </Link>
                 </div>
               </div>
@@ -295,22 +297,22 @@ export default function AdminDashboard() {
             {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl">{error}</div>}
 
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-700">Current Round: {currentRound}</h2>
+              <h2 className="text-2xl font-bold text-gray-700">{t('adminCurrentRound')}: {currentRound}</h2>
               <div className="grid gap-4">
                 {roundMatches.length === 0 ? (
-                  <p className="text-gray-400 italic">No matches generated yet. Start the round to begin.</p>
+                  <p className="text-gray-400 italic">{t('adminNoMatches')}</p>
                 ) : (
                   roundMatches.map((match) => (
                     <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col space-y-4">
                       <div className="flex justify-between items-center border-b border-gray-50 pb-2">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Table {match.table_number || '?'}</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('adminTable')} {match.table_number || '?'}</span>
                         {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Completed</span>}
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex-1 font-bold text-lg">{getPlayerName(match.player1_id)}</div>
 
                         {match.is_bye ? (
-                          <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">BYE</div>
+                          <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">{t('adminBye')}</div>
                         ) : (
                           <div className="flex-1 flex items-center justify-center space-x-2 px-4">
                             <input
@@ -337,7 +339,7 @@ export default function AdminDashboard() {
                               }`}
                               disabled={isTournamentFinished}
                             >
-                              {match.is_completed ? 'Override' : 'Report'}
+                              {match.is_completed ? t('adminOverride') : t('adminReport')}
                             </button>
                           </div>
                         )}
@@ -369,21 +371,21 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-      <h1 className="text-3xl font-bold text-blue-600 mb-6 uppercase tracking-wider">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold text-blue-600 mb-6 uppercase tracking-wider">{t('adminTitle')}</h1>
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-100">
-        <h2 className="text-xl font-semibold mb-6 text-gray-800">Create Tournament</h2>
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">{t('adminCreateTournament')}</h2>
         <form onSubmit={handleCreateTournament} className="space-y-5" noValidate>
           <div>
-            <label htmlFor="tournament-name" className="block text-sm font-medium text-gray-700 mb-1">Tournament Name</label>
-            <input id="tournament-name" type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Swiss Open #1" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition outline-none" />
+            <label htmlFor="tournament-name" className="block text-sm font-medium text-gray-700 mb-1">{t('adminTournamentName')}</label>
+            <input id="tournament-name" type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder={t('adminTournamentNamePlaceholder')} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition outline-none" />
           </div>
           <div>
-            <label htmlFor="rounds-count" className="block text-sm font-medium text-gray-700 mb-1">Number of Rounds</label>
+            <label htmlFor="rounds-count" className="block text-sm font-medium text-gray-700 mb-1">{t('adminRounds')}</label>
             <input id="rounds-count" type="number" min="1" max="10" value={rounds} onChange={(e) => setRounds(Number.parseInt(e.target.value, 10))} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition outline-none" />
-            {!isRoundsValid && <p className="text-xs text-red-600 mt-1">Rounds must be between 1 and 10.</p>}
+            {!isRoundsValid && <p className="text-xs text-red-600 mt-1">{t('adminRoundsHint')}</p>}
           </div>
           <button type="submit" disabled={loading || !isFormValid} className={`w-full py-3 px-4 bg-blue-600 text-white font-bold rounded-lg transition ${(loading || !isFormValid) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 shadow-md'}`}>
-            {loading ? 'Creating...' : 'Create New Tournament'}
+            {loading ? t('adminCreating') : t('adminCreateNewTournament')}
           </button>
         </form>
         {error && <div className="mt-6 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">{error}</div>}
