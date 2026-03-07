@@ -6,11 +6,21 @@ from sqlalchemy.orm import Session
 from backend.app.adapters.sqlalchemy_repositories import (
     SqlAlchemyMatchRepository,
     SqlAlchemyParticipantRepository,
+    SqlAlchemyTournamentRepository,
 )
 from backend.app.core.manager import manager
 
 from backend.app.api.tournaments.models import Tournament
+from backend.app.api.tournaments.use_cases import calculate_swiss_rounds
 from . import models, schemas, use_cases
+
+
+def _sync_tournament_rounds(db: Session, tournament: Tournament) -> None:
+    participant_repo = SqlAlchemyParticipantRepository(db)
+    tournament_repo = SqlAlchemyTournamentRepository(db)
+    participant_count = len(participant_repo.get_by_tournament(tournament.id))
+    tournament.rounds = calculate_swiss_rounds(participant_count)
+    tournament_repo.save(tournament)
 
 
 async def join_tournament(
@@ -22,6 +32,7 @@ async def join_tournament(
         tournament=tournament,
         participant_name=participant.name,
     )
+    _sync_tournament_rounds(db, tournament)
 
     await manager.broadcast(
         code,
@@ -45,6 +56,7 @@ async def remove_participant(
         tournament=tournament,
         participant_id=participant_id,
     )
+    _sync_tournament_rounds(db, tournament)
 
     await manager.broadcast(
         code, {"event": "participant_removed", "data": {"id": participant_id}}

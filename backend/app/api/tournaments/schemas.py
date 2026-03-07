@@ -1,19 +1,15 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional
 
 
-class TournamentBase(BaseModel):
+class TournamentCreate(BaseModel):
     name: str
-    rounds: Optional[int] = 3
 
 
-class TournamentCreate(TournamentBase):
-    pass
-
-
-class TournamentResponse(TournamentBase):
+class TournamentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    name: str
+    rounds: int
     code: str
     status: str

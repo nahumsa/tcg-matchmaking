@@ -32,7 +32,6 @@ interface Participant {
 
 export default function AdminDashboard() {
   const [name, setName] = useState('');
-  const [rounds, setRounds] = useState(3);
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -132,7 +131,6 @@ export default function AdminDashboard() {
   const handleCreateTournament = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const safeRounds = Number.isFinite(rounds) ? Math.min(10, Math.max(1, rounds)) : 3;
     if (!name.trim()) {
       setError('Please provide a tournament name.');
       return;
@@ -147,7 +145,7 @@ export default function AdminDashboard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: name.trim(), rounds: safeRounds }),
+        body: JSON.stringify({ name: name.trim() }),
       });
 
       if (!response.ok) {
@@ -364,8 +362,7 @@ export default function AdminDashboard() {
     );
   }
 
-  const isRoundsValid = Number.isFinite(rounds) && rounds >= 1 && rounds <= 10;
-  const isFormValid = name.trim().length > 0 && isRoundsValid;
+  const isFormValid = name.trim().length > 0;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
@@ -376,11 +373,6 @@ export default function AdminDashboard() {
           <div>
             <label htmlFor="tournament-name" className="block text-sm font-medium text-gray-700 mb-1">Tournament Name</label>
             <input id="tournament-name" type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Swiss Open #1" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition outline-none" />
-          </div>
-          <div>
-            <label htmlFor="rounds-count" className="block text-sm font-medium text-gray-700 mb-1">Number of Rounds</label>
-            <input id="rounds-count" type="number" min="1" max="10" value={rounds} onChange={(e) => setRounds(Number.parseInt(e.target.value, 10))} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition outline-none" />
-            {!isRoundsValid && <p className="text-xs text-red-600 mt-1">Rounds must be between 1 and 10.</p>}
           </div>
           <button type="submit" disabled={loading || !isFormValid} className={`w-full py-3 px-4 bg-blue-600 text-white font-bold rounded-lg transition ${(loading || !isFormValid) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 shadow-md'}`}>
             {loading ? 'Creating...' : 'Create New Tournament'}
