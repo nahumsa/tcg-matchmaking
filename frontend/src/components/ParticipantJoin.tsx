@@ -4,9 +4,90 @@ import { config } from '../config';
 
 const TOURNAMENT_CODE_LENGTH = 6;
 
+const POKEMON_OPTIONS = [
+  { name: 'Bulbasaur', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png' },
+  { name: 'Charmander', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png' },
+  { name: 'Squirtle', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png' },
+  { name: 'Pikachu', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png' },
+  { name: 'Eevee', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png' },
+  { name: 'Snorlax', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png' },
+  { name: 'Mewtwo', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png' },
+  { name: 'Gengar', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png' },
+  { name: 'Dragonite', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/149.png' },
+  { name: 'Lucario', sprite: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/448.png' },
+] as const;
+
+type PokemonName = (typeof POKEMON_OPTIONS)[number]['name'];
+
+interface PokemonDropdownProps {
+  label: string;
+  selected: PokemonName | null;
+  excluded?: PokemonName | null;
+  onSelect: (pokemon: PokemonName | null) => void;
+}
+
+function PokemonDropdown({ label, selected, excluded = null, onSelect }: PokemonDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const availableOptions = POKEMON_OPTIONS.filter((option) => option.name !== excluded || option.name === selected);
+  const selectedOption = POKEMON_OPTIONS.find((option) => option.name === selected) ?? null;
+
+  return (
+    <div className="relative">
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="w-full p-2.5 border border-gray-300 rounded-lg bg-white text-left focus:ring-2 focus:ring-green-500 transition outline-none flex items-center justify-between"
+      >
+        {selectedOption ? (
+          <span className="flex items-center gap-2">
+            <img src={selectedOption.sprite} alt={selectedOption.name} className="w-8 h-8" />
+            <span className="font-medium">{selectedOption.name}</span>
+          </span>
+        ) : (
+          <span className="text-gray-400">Choose a Pokémon</span>
+        )}
+        <span className="text-gray-400">▾</span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-auto">
+          <button
+            type="button"
+            className="w-full px-3 py-2 text-left text-sm text-gray-500 hover:bg-gray-50"
+            onClick={() => {
+              onSelect(null);
+              setIsOpen(false);
+            }}
+          >
+            None
+          </button>
+          {availableOptions.map((option) => (
+            <button
+              key={option.name}
+              type="button"
+              className="w-full px-3 py-2 text-left hover:bg-green-50 flex items-center gap-2"
+              onClick={() => {
+                onSelect(option.name);
+                setIsOpen(false);
+              }}
+            >
+              <img src={option.sprite} alt={option.name} className="w-8 h-8" />
+              <span>{option.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ParticipantJoin() {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
+  const [pokemon1, setPokemon1] = useState<PokemonName | null>(null);
+  const [pokemon2, setPokemon2] = useState<PokemonName | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -38,7 +119,11 @@ export default function ParticipantJoin() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: trimmedName }),
+        body: JSON.stringify({
+          name: trimmedName,
+          pokemon_1: pokemon1,
+          pokemon_2: pokemon2,
+        }),
       });
 
       if (!response.ok) {
@@ -92,6 +177,22 @@ export default function ParticipantJoin() {
               maxLength={TOURNAMENT_CODE_LENGTH}
             />
             <p className={`mt-1 text-xs ${codeIsValid ? 'text-green-600' : 'text-gray-500'}`}>{helperText}</p>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-gray-700">Deck Pokémon (up to 2)</p>
+            <PokemonDropdown
+              label="Pokémon 1"
+              selected={pokemon1}
+              excluded={pokemon2}
+              onSelect={setPokemon1}
+            />
+            <PokemonDropdown
+              label="Pokémon 2 (optional)"
+              selected={pokemon2}
+              excluded={pokemon1}
+              onSelect={setPokemon2}
+            />
           </div>
 
           <button

@@ -88,3 +88,28 @@ def test_join_non_existent_tournament(setup_db):
     )
     assert response.status_code == 404
     assert response.json()["detail"] == "Tournament not found"
+
+
+def test_join_tournament_with_pokemon_selection(setup_db):
+    create_resp = client.post("/tournaments", json={"name": "Pokemon Join"})
+    code = create_resp.json()["code"]
+
+    join_resp = client.post(
+        f"/tournaments/{code}/join",
+        json={"name": "Misty", "pokemon_1": "Pikachu", "pokemon_2": "Eevee"},
+    )
+    assert join_resp.status_code == 200
+    data = join_resp.json()
+    assert data["pokemon_1"] == "Pikachu"
+    assert data["pokemon_2"] == "Eevee"
+
+
+def test_join_tournament_rejects_duplicate_pokemon(setup_db):
+    create_resp = client.post("/tournaments", json={"name": "Pokemon Validation"})
+    code = create_resp.json()["code"]
+
+    join_resp = client.post(
+        f"/tournaments/{code}/join",
+        json={"name": "Brock", "pokemon_1": "Pikachu", "pokemon_2": "Pikachu"},
+    )
+    assert join_resp.status_code == 422

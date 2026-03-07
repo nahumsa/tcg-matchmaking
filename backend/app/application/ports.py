@@ -33,7 +33,13 @@ class ParticipantRepositoryPort(Protocol):
 
     def exists_with_name(self, tournament_id: int, name: str) -> bool: ...
 
-    def add(self, tournament_id: int, name: str) -> Participant: ...
+    def add(
+        self,
+        tournament_id: int,
+        name: str,
+        pokemon_1: str | None = None,
+        pokemon_2: str | None = None,
+    ) -> Participant: ...
 
     def delete(self, participant: Participant) -> None: ...
 

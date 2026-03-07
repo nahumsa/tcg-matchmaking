@@ -30,6 +30,7 @@ describe('ParticipantJoin', () => {
     expect(screen.getByPlaceholderText(/e.g. Ash Ketchum/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/e.g. ABCDEF/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Join Tournament/i })).toBeInTheDocument();
+    expect(screen.getByText(/Deck Pokémon/i)).toBeInTheDocument();
   });
 
   it('handles form submission successfully', async () => {
@@ -37,7 +38,9 @@ describe('ParticipantJoin', () => {
       id: 1,
       name: 'Ash Ketchum',
       tournament_id: 1,
-      points: 0
+      points: 0,
+      pokemon_1: null,
+      pokemon_2: null,
     };
 
     (fetch as any).mockResolvedValue({
@@ -58,11 +61,42 @@ describe('ParticipantJoin', () => {
     expect(screen.getByText(/Joining.../i)).toBeInTheDocument();
 
     await waitFor(() => {
-      // Should have redirected to the new tournament path
       expect(mockNavigate).toHaveBeenCalledWith('/tournament/ABCDEF');
       expect(fetch).toHaveBeenCalledWith(`${config.apiUrl}/tournaments/ABCDEF/join`, expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ name: 'Ash Ketchum' })
+        body: JSON.stringify({ name: 'Ash Ketchum', pokemon_1: null, pokemon_2: null })
+      }));
+    });
+  });
+
+  it('submits selected pokemon choices', async () => {
+    (fetch as any).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ id: 1, name: 'Ash', tournament_id: 1, points: 0, pokemon_1: 'Pikachu', pokemon_2: 'Eevee' })
+    });
+
+    render(
+      <MemoryRouter>
+        <ParticipantJoin />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByPlaceholderText(/e.g. Ash Ketchum/i), { target: { value: 'Ash' } });
+    fireEvent.change(screen.getByPlaceholderText(/e.g. ABCDEF/i), { target: { value: 'ABCDEF' } });
+
+    const pokemonButtons = screen.getAllByRole('button', { name: /choose a pokémon/i });
+    fireEvent.click(pokemonButtons[0]);
+    fireEvent.click(screen.getByRole('button', { name: /Pikachu/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /choose a pokémon/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Eevee/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /Join Tournament/i }));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(`${config.apiUrl}/tournaments/ABCDEF/join`, expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ name: 'Ash', pokemon_1: 'Pikachu', pokemon_2: 'Eevee' })
       }));
     });
   });

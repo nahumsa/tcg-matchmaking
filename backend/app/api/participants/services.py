@@ -21,6 +21,8 @@ async def join_tournament(
         participants=participant_repo,
         tournament=tournament,
         participant_name=participant.name,
+        pokemon_1=participant.pokemon_1,
+        pokemon_2=participant.pokemon_2,
     )
 
     await manager.broadcast(

@@ -10,6 +10,8 @@ class Participant(Base):
     tournament_id = Column(Integer, ForeignKey("tournaments.id"), nullable=False)
     name = Column(String, index=True, nullable=False)
     points = Column(Integer, default=0)
+    pokemon_1 = Column(String, nullable=True)
+    pokemon_2 = Column(String, nullable=True)
 
     tournament = relationship("Tournament", back_populates="participants")
     matches_as_p1 = relationship(

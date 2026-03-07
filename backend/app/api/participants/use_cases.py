@@ -14,6 +14,8 @@ def join_tournament(
     participants: ParticipantRepositoryPort,
     tournament: Tournament,
     participant_name: str,
+    pokemon_1: str | None = None,
+    pokemon_2: str | None = None,
 ) -> Participant:
     assert_tournament_can_accept_changes(tournament)
     if participants.exists_with_name(tournament.id, participant_name):
@@ -21,7 +23,12 @@ def join_tournament(
             status_code=400,
             detail="Participant with this name already exists in this tournament",
         )
-    return participants.add(tournament.id, participant_name)
+    return participants.add(
+        tournament.id,
+        participant_name,
+        pokemon_1=pokemon_1,
+        pokemon_2=pokemon_2,
+    )
 
 
 def remove_participant(
