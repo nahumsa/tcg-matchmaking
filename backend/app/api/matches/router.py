@@ -14,29 +14,6 @@ async def generate_pairings(code: str, db: Session = Depends(get_db)):
     if not db_tournament:
         raise HTTPException(status_code=404, detail="Tournament not found")
 
-    if not db_tournament.participants:
-        raise HTTPException(status_code=400, detail="No participants in tournament")
-
-    if db_tournament.status == "COMPLETED":
-        raise HTTPException(status_code=400, detail="Tournament is already completed")
-
-    # Check for incomplete matches in current round
-    past_matches = services.get_tournament_matches(db, db_tournament.id).all()
-    if past_matches:
-        max_round = max(m.round_number for m in past_matches)
-        incomplete = [
-            m
-            for m in past_matches
-            if m.round_number == max_round and not m.is_completed and not m.is_bye
-        ]
-        if incomplete:
-            raise HTTPException(
-                status_code=400, detail="Complete all current round matches first"
-            )
-
-        if max_round >= db_tournament.rounds:
-            raise HTTPException(status_code=400, detail="Tournament already completed")
-
     return await services.generate_pairings(db, db_tournament)
 
 
