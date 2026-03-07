@@ -72,3 +72,66 @@ def test_admin_remove_participant(setup_db):
         f"/tournaments/{code}/join", json={"name": "RemoveMe"}
     )
     assert join_again_resp.status_code == 200
+
+
+def test_removing_participants_mid_event_does_not_shrink_rounds(setup_db):
+    create_resp = client.post("/tournaments", json={"name": "Stable Rounds Tournament"})
+    code = create_resp.json()["code"]
+
+    participant_ids = []
+    for idx in range(8):
+        join_resp = client.post(f"/tournaments/{code}/join", json={"name": f"P{idx}"})
+        participant_ids.append(join_resp.json()["id"])
+
+    pairings_resp = client.post(f"/tournaments/{code}/pairings")
+    assert pairings_resp.status_code == 200
+    tournament_resp = client.get(f"/tournaments/{code}")
+    assert tournament_resp.status_code == 200
+    assert tournament_resp.json()["rounds"] == 3
+
+    matches = client.get(f"/tournaments/{code}/matches").json()
+    round_1_matches = [match for match in matches if match["round_number"] == 1]
+    for match in round_1_matches:
+        report_resp = client.post(
+            f"/matches/{match['id']}/report",
+            json={"player1_score": 2, "player2_score": 0, "is_admin": True},
+        )
+        assert report_resp.status_code == 200
+
+    for participant_id in participant_ids[4:]:
+        delete_resp = client.delete(
+            f"/tournaments/{code}/participants/{participant_id}"
+        )
+        assert delete_resp.status_code == 204
+
+    tournament_resp = client.get(f"/tournaments/{code}")
+    assert tournament_resp.status_code == 200
+    assert tournament_resp.json()["rounds"] == 3
+
+    pairings_resp = client.post(f"/tournaments/{code}/pairings")
+    assert pairings_resp.status_code == 200
+    matches = client.get(f"/tournaments/{code}/matches").json()
+    round_2_matches = [match for match in matches if match["round_number"] == 2]
+    assert round_2_matches
+    for match in round_2_matches:
+        report_resp = client.post(
+            f"/matches/{match['id']}/report",
+            json={"player1_score": 2, "player2_score": 0, "is_admin": True},
+        )
+        assert report_resp.status_code == 200
+
+    pairings_resp = client.post(f"/tournaments/{code}/pairings")
+    assert pairings_resp.status_code == 200
+    matches = client.get(f"/tournaments/{code}/matches").json()
+    round_3_matches = [match for match in matches if match["round_number"] == 3]
+    assert round_3_matches
+    for match in round_3_matches:
+        report_resp = client.post(
+            f"/matches/{match['id']}/report",
+            json={"player1_score": 2, "player2_score": 0, "is_admin": True},
+        )
+        assert report_resp.status_code == 200
+
+    tournament_resp = client.get(f"/tournaments/{code}")
+    assert tournament_resp.status_code == 200
+    assert tournament_resp.json()["status"] == "COMPLETED"

@@ -4,8 +4,8 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from backend.app.adapters.sqlalchemy_repositories import (
-    SqlAlchemyMatchRepository,
     SqlAlchemyParticipantRepository,
+    SqlAlchemyMatchRepository,
 )
 from backend.app.core.manager import manager
 
