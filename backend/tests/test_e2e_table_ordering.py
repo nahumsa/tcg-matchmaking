@@ -62,10 +62,12 @@ def test_e2e_table_ordering(setup_db):
 
     # We need to know who is who in matches
     client.post(
-        f"/matches/{m1['id']}/report", json={"player1_score": 2, "player2_score": 0, "is_admin": True}
+        f"/matches/{m1['id']}/report",
+        json={"player1_score": 2, "player2_score": 0, "is_admin": True},
     )
     client.post(
-        f"/matches/{m2['id']}/report", json={"player1_score": 2, "player2_score": 0, "is_admin": True}
+        f"/matches/{m2['id']}/report",
+        json={"player1_score": 2, "player2_score": 0, "is_admin": True},
     )
 
     # 5. Generate Round 2 pairings

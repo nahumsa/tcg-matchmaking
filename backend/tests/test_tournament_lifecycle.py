@@ -63,7 +63,8 @@ def test_tournament_completes_after_last_round(setup_db):
 
     # 5. Report match result
     client.post(
-        f"/matches/{match_id}/report", json={"player1_score": 2, "player2_score": 0, "is_admin": True}
+        f"/matches/{match_id}/report",
+        json={"player1_score": 2, "player2_score": 0, "is_admin": True},
     )
 
     # 6. Check tournament status
@@ -112,12 +113,14 @@ def test_cannot_report_match_in_completed_tournament(setup_db):
     matches = client.get(f"/tournaments/{code}/matches").json()
     match_id = matches[0]["id"]
     client.post(
-        f"/matches/{match_id}/report", json={"player1_score": 2, "player2_score": 0, "is_admin": True}
+        f"/matches/{match_id}/report",
+        json={"player1_score": 2, "player2_score": 0, "is_admin": True},
     )
 
     # 2. Try to report again
     report_resp = client.post(
-        f"/matches/{match_id}/report", json={"player1_score": 1, "player2_score": 1, "is_admin": True}
+        f"/matches/{match_id}/report",
+        json={"player1_score": 1, "player2_score": 1, "is_admin": True},
     )
     assert report_resp.status_code == 400
     assert "completed" in report_resp.json()["detail"].lower()
