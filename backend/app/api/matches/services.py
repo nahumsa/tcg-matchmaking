@@ -77,24 +77,54 @@ async def report_match(
     db_match.player2_score = update.player2_score
     db_match.is_completed = 1
 
-    # Update points
-    p1 = db.query(Participant).filter(Participant.id == db_match.player1_id).first()
-    p2 = db.query(Participant).filter(Participant.id == db_match.player2_id).first()
-
-    if update.player1_score > update.player2_score:
-        p1.points += 3
-    elif update.player2_score > update.player1_score:
-        p2.points += 3
-    else:
-        p1.points += 1
-        p2.points += 1
-
     db.commit()
 
-    # Find tournament code for broadcasting
+    # Recalculate all participant points for this tournament to handle edits
     tournament = (
         db.query(Tournament).filter(Tournament.id == db_match.tournament_id).first()
     )
+
+    # Reset all points
+    db.query(Participant).filter(Participant.tournament_id == tournament.id).update(
+        {Participant.points: 0}
+    )
+    db.commit()
+
+    # Re-fetch participants and matches
+    participants = (
+        db.query(Participant).filter(Participant.tournament_id == tournament.id).all()
+    )
+    matches = (
+        db.query(models.Match)
+        .filter(
+            models.Match.tournament_id == tournament.id, models.Match.is_completed == 1
+        )
+        .all()
+    )
+
+    # Recalculate from all matches
+    for m in matches:
+        if m.is_bye:
+            p1 = next((p for p in participants if p.id == m.player1_id), None)
+            if p1:
+                p1.points += 3
+            continue
+
+        p1 = next((p for p in participants if p.id == m.player1_id), None)
+        p2 = next((p for p in participants if p.id == m.player2_id), None)
+
+        if not p1 or not p2:
+            continue
+
+        if m.player1_score > m.player2_score:
+            p1.points += 3
+        elif m.player2_score > m.player1_score:
+            p2.points += 3
+        else:
+            p1.points += 1
+            p2.points += 1
+
+    db.commit()
 
     # Check if tournament should be completed
     if db_match.round_number == tournament.rounds:
@@ -112,7 +142,16 @@ async def report_match(
             db.commit()
 
     await manager.broadcast(
-        tournament.code, {"event": "match_reported", "match_id": match_id}
+        tournament.code,
+        {
+            "event": "match_reported",
+            "match_id": match_id,
+            "round": db_match.round_number,
+            "player1_score": db_match.player1_score,
+            "player2_score": db_match.player2_score,
+            "is_completed": db_match.is_completed,
+            "tournament_status": tournament.status,
+        },
     )
 
     db.refresh(db_match)

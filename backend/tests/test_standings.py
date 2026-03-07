@@ -58,12 +58,14 @@ def test_standings_calculation(setup_db):
     # Report results: First match is a win for P1 (whoever that is), second is a draw.
     m1 = matches[0]
     client.post(
-        f"/matches/{m1['id']}/report", json={"player1_score": 2, "player2_score": 0}
+        f"/matches/{m1['id']}/report",
+        json={"player1_score": 2, "player2_score": 0, "is_admin": True},
     )
 
     m2 = matches[1]
     client.post(
-        f"/matches/{m2['id']}/report", json={"player1_score": 1, "player2_score": 1}
+        f"/matches/{m2['id']}/report",
+        json={"player1_score": 1, "player2_score": 1, "is_admin": True},
     )
 
     # Get standings
