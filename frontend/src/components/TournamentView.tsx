@@ -44,6 +44,7 @@ export default function TournamentView() {
   const [activeTab, setActiveTab] = useState<'pairings' | 'standings'>('pairings');
   const [loading, setLoading] = useState(true);
   const [socketStatus, setSocketStatus] = useState<SocketStatus>('connecting');
+  const [tournamentStatus, setTournamentStatus] = useState<string>('ACTIVE');
   const [reportingMatch, setReportingMatch] = useState<Match | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<[number, number] | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,16 +58,12 @@ export default function TournamentView() {
     [1, 2],
     [0, 2],
     [1, 1]
-  ];
+    ];
 
-  const tournamentCompleted = standings.length > 0 && matches.length > 0 && matches.every(m => m.is_completed);
-  // Actually, we should check the tournament status if available.
-  // But based on current matches, we can infer.
-  // Let's check the tournament status from the first match's tournament_id if we have it?
-  // No, we should probably fetch tournament status too.
-  // For now I'll use a simpler check or just trust the backend to 400 if it's completed.
+    const tournamentCompleted = tournamentStatus === 'COMPLETED';
 
-  useEffect(() => {
+    useEffect(() => {
+
     if (!code) return;
 
     fetchData();
@@ -109,9 +106,10 @@ export default function TournamentView() {
 
   const fetchData = async () => {
     try {
-      const [matchesRes, standingsRes] = await Promise.all([
+      const [matchesRes, standingsRes, tournamentRes] = await Promise.all([
         fetch(`${config.apiUrl}/tournaments/${code}/matches`),
         fetch(`${config.apiUrl}/tournaments/${code}/standings`),
+        fetch(`${config.apiUrl}/tournaments/${code}`),
       ]);
 
       if (matchesRes.ok) {
@@ -122,6 +120,11 @@ export default function TournamentView() {
       if (standingsRes.ok) {
         const data = await standingsRes.json();
         setStandings(data);
+      }
+
+      if (tournamentRes.ok) {
+        const data = await tournamentRes.json();
+        setTournamentStatus(data.status);
       }
 
       if (participantId) {
@@ -180,10 +183,6 @@ export default function TournamentView() {
 
     return (
       <div className="flex items-center space-x-2">
-        <div className="flex -space-x-2 opacity-80">
-          <PokemonSprite pokemonId={player.pokemon_1} size="sm" />
-          <PokemonSprite pokemonId={player.pokemon_2} size="sm" />
-        </div>
         <span className="font-bold">{player.name}</span>
       </div>
     );
@@ -216,11 +215,10 @@ export default function TournamentView() {
                 <button
                   key={`${s1}-${s2}`}
                   onClick={() => setSelectedPreset([s1, s2])}
-                  className={`py-4 rounded-2xl border-2 font-black text-xl transition-all ${
-                    selectedPreset?.[0] === s1 && selectedPreset?.[1] === s2
-                      ? 'bg-blue-600 border-blue-600 text-white scale-105 shadow-lg shadow-blue-200'
-                      : 'bg-white border-gray-100 text-gray-800 hover:border-blue-200'
-                  }`}
+                  className={`py-4 rounded-2xl border-2 font-black text-xl transition-all ${selectedPreset?.[0] === s1 && selectedPreset?.[1] === s2
+                    ? 'bg-blue-600 border-blue-600 text-white scale-105 shadow-lg shadow-blue-200'
+                    : 'bg-white border-gray-100 text-gray-800 hover:border-blue-200'
+                    }`}
                 >
                   {s1} - {s2}
                 </button>
@@ -376,6 +374,7 @@ export default function TournamentView() {
               <tr className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-gray-100">
                 <th className="px-6 py-4">Rank</th>
                 <th className="px-6 py-4">Player</th>
+                <th className="px-6 py-4">Pokemon</th>
                 <th className="px-6 py-4">Points</th>
                 <th className="px-6 py-4">Record</th>
                 <th className="px-6 py-4 text-right">OMW%</th>
@@ -387,12 +386,18 @@ export default function TournamentView() {
                   <td className="px-6 py-4 font-black text-gray-400">#{s.rank}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-3">
-                      <div className="flex -space-x-3">
-                        <PokemonSprite pokemonId={s.pokemon_1} size="md" />
-                        <PokemonSprite pokemonId={s.pokemon_2} size="md" />
-                      </div>
                       <span className="font-bold text-gray-800">{s.name}</span>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {tournamentCompleted ? (
+                      <div className="flex -space-x-2">
+                        <PokemonSprite pokemonId={s.pokemon_1} size="sm" />
+                        <PokemonSprite pokemonId={s.pokemon_2} size="sm" />
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">Hidden</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 font-black text-blue-600">{s.points}</td>
                   <td className="px-6 py-4 text-sm text-gray-500 font-medium">{s.wins}-{s.losses}-{s.draws}</td>
@@ -401,7 +406,7 @@ export default function TournamentView() {
               ))}
               {standings.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400 italic">No participants yet.</td>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 italic">No participants yet.</td>
                 </tr>
               )}
             </tbody>

@@ -52,3 +52,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: I want a player to be able to report their own match**
 *Link: [./tracks/player_match_reporting_20260304/](./tracks/player_match_reporting_20260304/)*
+
+---
+
+- [x] **Track: Manual Tournament Completion & Standings Visibility**
+*Link: [./archive/manual_tournament_completion_20260309/](./archive/manual_tournament_completion_20260309/)*

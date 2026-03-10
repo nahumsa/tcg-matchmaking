@@ -54,3 +54,25 @@ def get_standings(code: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Tournament not found")
 
     return standings.calculate_standings(db, db_tournament.id)
+
+
+@router.post("/{code}/complete", response_model=schemas.TournamentResponse)
+async def complete_tournament(code: str, db: Session = Depends(get_db)):
+    from backend.app.core.manager import manager
+
+    db_tournament = services.get_tournament_by_code(db, code)
+    if not db_tournament:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+
+    db_tournament.status = "COMPLETED"
+    db.commit()
+    db.refresh(db_tournament)
+
+    await manager.broadcast(
+        code,
+        {
+            "event": "tournament_completed",
+            "tournament_status": db_tournament.status,
+        },
+    )
+    return db_tournament

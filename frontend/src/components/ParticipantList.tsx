@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { config } from '../config';
-import PokemonSprite from './PokemonSprite';
 
 interface Participant {
   id: number;
@@ -100,10 +99,6 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
             participants.map((p) => (
               <div key={p.id} className="py-3 flex items-center justify-between group">
                 <div className="flex items-center space-x-3">
-                  <div className="flex -space-x-2">
-                    <PokemonSprite pokemonId={p.pokemon_1} size="md" />
-                    <PokemonSprite pokemonId={p.pokemon_2} size="md" />
-                  </div>
                   <div>
                     <div className="font-bold text-gray-800">{p.name}</div>
                     <div className="text-xs text-gray-500">{p.points} points</div>
