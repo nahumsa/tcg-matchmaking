@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 
 class ParticipantBase(BaseModel):
@@ -6,7 +6,14 @@ class ParticipantBase(BaseModel):
 
 
 class ParticipantJoin(ParticipantBase):
-    pass
+    pokemon_1: str | None = None
+    pokemon_2: str | None = None
+
+    @model_validator(mode="after")
+    def validate_unique_pokemon(self):
+        if self.pokemon_1 and self.pokemon_1 == self.pokemon_2:
+            raise ValueError("Please select up to two different Pokémon")
+        return self
 
 
 class ParticipantResponse(ParticipantBase):
@@ -15,8 +22,10 @@ class ParticipantResponse(ParticipantBase):
     id: int
     tournament_id: int
     points: int
+    pokemon_1: str | None = None
+    pokemon_2: str | None = None
     rank: int = 0
     wins: int = 0
     losses: int = 0
     draws: int = 0
-    omw_percentage: float = 0.0
+    omw_percentage: float = 0.00

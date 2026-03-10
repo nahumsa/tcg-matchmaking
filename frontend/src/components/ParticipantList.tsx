@@ -5,6 +5,8 @@ interface Participant {
   id: number;
   name: string;
   points: number;
+  pokemon_1?: string | null;
+  pokemon_2?: string | null;
 }
 
 interface ParticipantListProps {
@@ -14,6 +16,7 @@ interface ParticipantListProps {
 }
 
 export default function ParticipantList({ tournamentCode, participants, onUpdate }: ParticipantListProps) {
+  // ... rest of state
   const [newName, setNewName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -95,9 +98,11 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
           ) : (
             participants.map((p) => (
               <div key={p.id} className="py-3 flex items-center justify-between group">
-                <div>
-                  <div className="font-bold text-gray-800">{p.name}</div>
-                  <div className="text-xs text-gray-500">{p.points} points</div>
+                <div className="flex items-center space-x-3">
+                  <div>
+                    <div className="font-bold text-gray-800">{p.name}</div>
+                    <div className="text-xs text-gray-500">{p.points} points</div>
+                  </div>
                 </div>
                 <button
                   onClick={() => handleRemoveParticipant(p.id)}

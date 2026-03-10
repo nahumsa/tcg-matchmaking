@@ -25,8 +25,8 @@ jobs:
 
       - name: Lint and Format Check
         run: |
-          uv run --project ./backend ruff check .
-          uv run --project ./backend ruff format --check .
+          uv run --project ./backend ruff check ./backend
+          uv run --project ./backend ruff format --check ./backend
 
       - name: Run Tests with Coverage
         run: |
