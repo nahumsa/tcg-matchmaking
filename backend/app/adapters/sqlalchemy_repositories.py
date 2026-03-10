@@ -61,8 +61,19 @@ class SqlAlchemyParticipantRepository:
             is not None
         )
 
-    def add(self, tournament_id: int, name: str) -> Participant:
-        participant = Participant(name=name, tournament_id=tournament_id)
+    def add(
+        self,
+        tournament_id: int,
+        name: str,
+        pokemon_1: str | None = None,
+        pokemon_2: str | None = None,
+    ) -> Participant:
+        participant = Participant(
+            name=name,
+            tournament_id=tournament_id,
+            pokemon_1=pokemon_1,
+            pokemon_2=pokemon_2,
+        )
         self.db.add(participant)
         self.db.commit()
         self.db.refresh(participant)

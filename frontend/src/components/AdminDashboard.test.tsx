@@ -6,9 +6,18 @@ import AdminDashboard from './AdminDashboard';
 
 describe('AdminDashboard', () => {
   beforeEach(() => {
-    localStorage.clear();
-    localStorage.setItem('app_language', 'en');
-    vi.stubGlobal('fetch', vi.fn());
+    vi.stubGlobal('fetch', vi.fn((url: string) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: [] })
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([])
+      });
+    }));
   });
 
   it('renders correctly', () => {

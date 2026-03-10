@@ -28,6 +28,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+
+  db-migrate:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: tcg-db-migrate
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/tcg_matchmaking
+    command:
+      ["uv", "run", "--project", "./backend", "alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build:

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { config } from '../config';
+import PokemonSprite from './PokemonSprite';
 
 interface Match {
   id: number;
@@ -23,6 +24,8 @@ interface Standing {
   losses: number;
   draws: number;
   omw_percentage: number;
+  pokemon_1?: string | null;
+  pokemon_2?: string | null;
 }
 
 interface PotentialPairing {
@@ -41,6 +44,7 @@ export default function TournamentView() {
   const [activeTab, setActiveTab] = useState<'pairings' | 'standings'>('pairings');
   const [loading, setLoading] = useState(true);
   const [socketStatus, setSocketStatus] = useState<SocketStatus>('connecting');
+  const [tournamentStatus, setTournamentStatus] = useState<string>('ACTIVE');
   const [reportingMatch, setReportingMatch] = useState<Match | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<[number, number] | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,16 +58,12 @@ export default function TournamentView() {
     [1, 2],
     [0, 2],
     [1, 1]
-  ];
+    ];
 
-  const tournamentCompleted = standings.length > 0 && matches.length > 0 && matches.every(m => m.is_completed);
-  // Actually, we should check the tournament status if available.
-  // But based on current matches, we can infer.
-  // Let's check the tournament status from the first match's tournament_id if we have it?
-  // No, we should probably fetch tournament status too.
-  // For now I'll use a simpler check or just trust the backend to 400 if it's completed.
+    const tournamentCompleted = tournamentStatus === 'COMPLETED';
 
-  useEffect(() => {
+    useEffect(() => {
+
     if (!code) return;
 
     fetchData();
@@ -106,9 +106,10 @@ export default function TournamentView() {
 
   const fetchData = async () => {
     try {
-      const [matchesRes, standingsRes] = await Promise.all([
+      const [matchesRes, standingsRes, tournamentRes] = await Promise.all([
         fetch(`${config.apiUrl}/tournaments/${code}/matches`),
         fetch(`${config.apiUrl}/tournaments/${code}/standings`),
+        fetch(`${config.apiUrl}/tournaments/${code}`),
       ]);
 
       if (matchesRes.ok) {
@@ -119,6 +120,11 @@ export default function TournamentView() {
       if (standingsRes.ok) {
         const data = await standingsRes.json();
         setStandings(data);
+      }
+
+      if (tournamentRes.ok) {
+        const data = await tournamentRes.json();
+        setTournamentStatus(data.status);
       }
 
       if (participantId) {
@@ -170,6 +176,18 @@ export default function TournamentView() {
   const rounds = [...new Set(matches.map((m) => m.round_number))].sort((a, b) => b - a);
   const myStanding = standings.find((s) => s.id === participantId);
 
+  const renderPlayer = (id: number | null) => {
+    if (id === null) return <span className="text-gray-400">-</span>;
+    const player = standings.find((s) => s.id === id);
+    if (!player) return <span>Player {id}</span>;
+
+    return (
+      <div className="flex items-center space-x-2">
+        <span className="font-bold">{player.name}</span>
+      </div>
+    );
+  };
+
   const getPlayerName = (id: number | null) => {
     if (id === null) return '-';
     const player = standings.find((s) => s.id === id);
@@ -197,11 +215,10 @@ export default function TournamentView() {
                 <button
                   key={`${s1}-${s2}`}
                   onClick={() => setSelectedPreset([s1, s2])}
-                  className={`py-4 rounded-2xl border-2 font-black text-xl transition-all ${
-                    selectedPreset?.[0] === s1 && selectedPreset?.[1] === s2
-                      ? 'bg-blue-600 border-blue-600 text-white scale-105 shadow-lg shadow-blue-200'
-                      : 'bg-white border-gray-100 text-gray-800 hover:border-blue-200'
-                  }`}
+                  className={`py-4 rounded-2xl border-2 font-black text-xl transition-all ${selectedPreset?.[0] === s1 && selectedPreset?.[1] === s2
+                    ? 'bg-blue-600 border-blue-600 text-white scale-105 shadow-lg shadow-blue-200'
+                    : 'bg-white border-gray-100 text-gray-800 hover:border-blue-200'
+                    }`}
                 >
                   {s1} - {s2}
                 </button>
@@ -314,19 +331,19 @@ export default function TournamentView() {
                           {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-[0.2em]">Completed</span>}
                         </div>
                         {match.is_bye ? (
-                          <div className="text-center py-2">
-                            <span className="font-bold text-gray-800 text-lg">{getPlayerName(match.player1_id)}</span>
+                          <div className="text-center py-2 flex justify-center">
+                            <span className="font-bold text-gray-800 text-lg">{renderPlayer(match.player1_id)}</span>
                           </div>
                         ) : (
                           <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                              <div className="flex-1 text-right pr-4 truncate font-bold text-gray-800">{getPlayerName(match.player1_id)}</div>
+                              <div className="flex-1 flex justify-end pr-4 truncate font-bold text-gray-800 text-right">{renderPlayer(match.player1_id)}</div>
                               <div className="flex items-center space-x-2 bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl font-mono font-black text-xl">
                                 <span>{match.player1_score}</span>
                                 <span className="text-gray-300">-</span>
                                 <span>{match.player2_score}</span>
                               </div>
-                              <div className="flex-1 text-left pl-4 truncate font-bold text-gray-800">{getPlayerName(match.player2_id)}</div>
+                              <div className="flex-1 flex justify-start pl-4 truncate font-bold text-gray-800 text-left">{renderPlayer(match.player2_id)}</div>
                             </div>
 
                             {canReport && (
@@ -357,6 +374,7 @@ export default function TournamentView() {
               <tr className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-gray-100">
                 <th className="px-6 py-4">Rank</th>
                 <th className="px-6 py-4">Player</th>
+                <th className="px-6 py-4">Pokemon</th>
                 <th className="px-6 py-4">Points</th>
                 <th className="px-6 py-4">Record</th>
                 <th className="px-6 py-4 text-right">OMW%</th>
@@ -366,7 +384,21 @@ export default function TournamentView() {
               {standings.map((s) => (
                 <tr key={s.id} className={`hover:bg-blue-50/30 transition-colors ${s.id === participantId ? 'bg-blue-50/50' : ''}`}>
                   <td className="px-6 py-4 font-black text-gray-400">#{s.rank}</td>
-                  <td className="px-6 py-4 font-bold text-gray-800">{s.name}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-3">
+                      <span className="font-bold text-gray-800">{s.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {tournamentCompleted ? (
+                      <div className="flex -space-x-2">
+                        <PokemonSprite pokemonId={s.pokemon_1} size="sm" />
+                        <PokemonSprite pokemonId={s.pokemon_2} size="sm" />
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">Hidden</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 font-black text-blue-600">{s.points}</td>
                   <td className="px-6 py-4 text-sm text-gray-500 font-medium">{s.wins}-{s.losses}-{s.draws}</td>
                   <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">{(s.omw_percentage * 100).toFixed(1)}%</td>
@@ -374,7 +406,7 @@ export default function TournamentView() {
               ))}
               {standings.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400 italic">No participants yet.</td>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 italic">No participants yet.</td>
                 </tr>
               )}
             </tbody>
