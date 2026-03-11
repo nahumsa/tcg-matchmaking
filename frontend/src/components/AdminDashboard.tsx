@@ -247,6 +247,26 @@ export default function AdminDashboard() {
     }
   };
 
+  const completeTournament = async () => {
+    if (!tournament) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/complete`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || 'Failed to complete tournament');
+      }
+      await fetchTournament();
+      await fetchStandings();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const reportResult = async (matchId: number) => {
     if (!tournament) return;
     const existingMatch = matches.find((m) => m.id === matchId);

@@ -152,6 +152,30 @@ export default function ParticipantJoin() {
     fetchPokemon();
   }, []);
 
+  useEffect(() => {
+    const fetchPokemon = async () => {
+      try {
+        // Fetch a large enough list of pokemon (Gen 1-9 is ~1025)
+        const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025');
+        const data = await response.json();
+        const formatted = data.results.map((p: { name: string; url: string }) => {
+          const id = parseInt(p.url.split('/').filter(Boolean).pop() || '0');
+          return {
+            ...p,
+            id,
+            sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`
+          };
+        });
+        setPokemonList(formatted);
+      } catch (err) {
+        console.error('Failed to fetch pokemon list', err);
+      } finally {
+        setFetchingPokemon(false);
+      }
+    };
+    fetchPokemon();
+  }, []);
+
   const trimmedName = name.trim();
   const normalizedCode = code.trim().toUpperCase();
   const codeIsValid = /^[A-Z0-9]{6}$/.test(normalizedCode);
