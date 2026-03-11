@@ -247,26 +247,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const completeTournament = async () => {
-    if (!tournament) return;
-    setLoading(true);
-    try {
-      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/complete`, {
-        method: 'POST',
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || 'Failed to complete tournament');
-      }
-      await fetchTournament();
-      await fetchStandings();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const reportResult = async (matchId: number) => {
     if (!tournament) return;
     const existingMatch = matches.find((m) => m.id === matchId);
@@ -309,10 +289,16 @@ export default function AdminDashboard() {
     const allCompleted = roundMatches.every((m) => m.is_completed);
     const isTournamentFinished = tournament.status === 'COMPLETED';
 
+    const getPlayerName = (id: number | null) => {
+      if (id === null) return '-';
+      const player = participants.find((p) => p.id === id);
+      return player ? player.name : t('commonPlayerWithId', { id });
+    };
+
     const renderPlayer = (id: number | null) => {
       if (id === null) return <span className="text-gray-400">-</span>;
       const player = participants.find((p) => p.id === id);
-      if (!player) return <span>Player {id}</span>;
+      if (!player) return <span>{t('commonPlayerWithId', { id })}</span>;
 
       return (
         <div className="flex items-center space-x-2">
@@ -331,8 +317,8 @@ export default function AdminDashboard() {
         if (response.ok) {
           const standingsData = await response.json();
           const summary = standingsData.map((s: Participant) => {
-            const p1Name = (s.pokemon_1 ? pokemonMap[s.pokemon_1] : null) || s.pokemon_1 || 'None';
-            const p2Name = (s.pokemon_2 ? pokemonMap[s.pokemon_2] : null) || s.pokemon_2 || 'None';
+            const p1Name = (s.pokemon_1 ? pokemonMap[s.pokemon_1] : null) || s.pokemon_1 || t('commonNone');
+            const p2Name = (s.pokemon_2 ? pokemonMap[s.pokemon_2] : null) || s.pokemon_2 || t('commonNone');
             return `${s.rank}. ${s.name} (${s.points} pts, ${s.wins}-${s.losses}-${s.draws}) (${p1Name}, ${p2Name})`;
           }).join('\n');
 
@@ -480,7 +466,7 @@ export default function AdminDashboard() {
                               className="w-16 p-2 border rounded text-center font-bold"
                               value={scoreInputs[match.id]?.p1 ?? 0}
                               onChange={(e) => handleScoreChange(match.id, 'p1', e.target.value)}
-                              aria-label={`Score for player 1`}
+                              aria-label={t('commonScoreForPlayer', { name: getPlayerName(match.player1_id) })}
                             />
                             <span className="text-gray-300">-</span>
                             <input
@@ -489,7 +475,7 @@ export default function AdminDashboard() {
                               className="w-16 p-2 border rounded text-center font-bold"
                               value={scoreInputs[match.id]?.p2 ?? 0}
                               onChange={(e) => handleScoreChange(match.id, 'p2', e.target.value)}
-                              aria-label={`Score for player 2`}
+                              aria-label={t('commonScoreForPlayer', { name: getPlayerName(match.player2_id) })}
                             />
                             <button
                               onClick={() => reportResult(match.id)}

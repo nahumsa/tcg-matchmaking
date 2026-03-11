@@ -181,7 +181,7 @@ export default function TournamentView() {
   const renderPlayer = (id: number | null) => {
     if (id === null) return <span className="text-gray-400">-</span>;
     const player = standings.find((s) => s.id === id);
-    if (!player) return <span>Player {id}</span>;
+    if (!player) return <span>{t('commonPlayerWithId', { id })}</span>;
 
     return (
       <div className="flex items-center space-x-2">
@@ -193,7 +193,7 @@ export default function TournamentView() {
   const getPlayerName = (id: number | null) => {
     if (id === null) return '-';
     const player = standings.find((s) => s.id === id);
-    return player ? player.name : `Player ${id}`;
+    return player ? player.name : t('commonPlayerWithId', { id });
   };
 
   const socketStatusClass = socketStatus === 'connected'

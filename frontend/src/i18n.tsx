@@ -60,6 +60,8 @@ const MESSAGES = {
 
     commonUnexpectedError: 'An unexpected error occurred',
     commonNone: 'None',
+    commonPlayerWithId: 'Player {id}',
+    commonScoreForPlayer: 'Score for {name}',
 
     adminMatchReported: 'Match results reported.',
     adminProvideTournamentName: 'Please provide a tournament name.',
@@ -187,6 +189,8 @@ const MESSAGES = {
 
     commonUnexpectedError: 'Ocorreu um erro inesperado',
     commonNone: 'Nenhum',
+    commonPlayerWithId: 'Jogador {id}',
+    commonScoreForPlayer: 'Resultado de {name}',
 
     adminMatchReported: 'Resultado de partida reportado.',
     adminProvideTournamentName: 'Informe o nome do torneio.',
