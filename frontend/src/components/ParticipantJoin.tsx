@@ -23,6 +23,7 @@ interface PokemonSelectorProps {
 function PokemonSelector({ label, selected, excluded = null, onSelect, pokemonList }: PokemonSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const { t } = useLanguage();
 
   const selectedPokemon = useMemo(() =>
     pokemonList.find(p => p.id.toString() === selected)
@@ -53,7 +54,7 @@ function PokemonSelector({ label, selected, excluded = null, onSelect, pokemonLi
               <span className="font-medium capitalize">{selectedPokemon.name}</span>
             </span>
           ) : (
-            <span className="text-gray-400">Choose a Pokémon</span>
+            <span className="text-gray-400">{t('joinChoosePokemon')}</span>
           )}
           <span className="text-gray-400">▾</span>
         </button>
@@ -64,7 +65,7 @@ function PokemonSelector({ label, selected, excluded = null, onSelect, pokemonLi
               <input
                 type="text"
                 autoFocus
-                placeholder="Search Pokémon..."
+                placeholder={t('joinSearchPokemon')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full p-2 text-sm border border-gray-200 rounded focus:ring-1 focus:ring-green-500 outline-none"
@@ -80,7 +81,7 @@ function PokemonSelector({ label, selected, excluded = null, onSelect, pokemonLi
                   setIsOpen(false);
                 }}
               >
-                None
+                {t('commonNone')}
               </button>
               {filteredOptions.map((option) => (
                 <button
@@ -104,7 +105,7 @@ function PokemonSelector({ label, selected, excluded = null, onSelect, pokemonLi
               ))}
               {filteredOptions.length === 0 && (
                 <div className="px-3 py-4 text-center text-sm text-gray-400">
-                  No Pokémon found
+                  {t('joinNoPokemonFound')}
                 </div>
               )}
             </div>
@@ -239,16 +240,16 @@ export default function ParticipantJoin() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-sm font-medium text-gray-700">Deck Pokémon (up to 2)</p>
+            <p className="text-sm font-medium text-gray-700">{t('joinDeckPokemon')}</p>
             <PokemonSelector
-              label="Pokémon 1"
+              label={t('joinPokemon1')}
               selected={pokemon1}
               excluded={pokemon2}
               onSelect={setPokemon1}
               pokemonList={pokemonList}
             />
             <PokemonSelector
-              label="Pokémon 2 (optional)"
+              label={t('joinPokemon2')}
               selected={pokemon2}
               excluded={pokemon1}
               onSelect={setPokemon2}

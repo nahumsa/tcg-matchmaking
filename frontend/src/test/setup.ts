@@ -20,3 +20,4 @@ const localStorageMock = (function() {
 vi.stubGlobal('localStorage', localStorageMock);
 
 localStorage.clear();
+localStorage.setItem('app_language', 'en');

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { config } from '../config';
 import PokemonSprite from './PokemonSprite';
+import { useLanguage } from '../i18n';
 
 interface Match {
   id: number;
@@ -48,6 +49,7 @@ export default function TournamentView() {
   const [reportingMatch, setReportingMatch] = useState<Match | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<[number, number] | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useLanguage();
 
   const participantIdStr = localStorage.getItem(`participant_id_${code}`);
   const participantId = participantIdStr ? Number.parseInt(participantIdStr, 10) : null;
@@ -81,7 +83,7 @@ export default function TournamentView() {
 
       ws.onmessage = (event) => {
         const message = JSON.parse(event.data);
-        if (message.event === 'pairings_generated' || message.event === 'match_reported' || message.event === 'participant_joined') {
+        if (message.event === 'pairings_generated' || message.event === 'match_reported' || message.event === 'participant_joined' || message.event === 'tournament_completed') {
           fetchData();
         }
       };
@@ -161,17 +163,17 @@ export default function TournamentView() {
         fetchData();
       } else {
         const errData = await res.json();
-        alert(errData.detail || 'Failed to report score');
+        alert(errData.detail || t('tournamentReportFailed'));
       }
     } catch (err) {
       console.error('Failed to report score', err);
-      alert('Network error while reporting score');
+      alert(t('commonUnexpectedError'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading) return <div className="p-8 text-center font-bold text-gray-500 uppercase tracking-widest animate-pulse">Loading tournament...</div>;
+  if (loading) return <div className="p-8 text-center font-bold text-gray-500 uppercase tracking-widest animate-pulse">{t('tournamentLoading')}</div>;
 
   const rounds = [...new Set(matches.map((m) => m.round_number))].sort((a, b) => b - a);
   const myStanding = standings.find((s) => s.id === participantId);
@@ -199,15 +201,22 @@ export default function TournamentView() {
     : socketStatus === 'reconnecting'
       ? 'bg-yellow-100 text-yellow-700'
       : 'bg-gray-100 text-gray-700';
+
+  const socketStatusText = socketStatus === 'connected'
+    ? t('tournamentConnected')
+    : socketStatus === 'reconnecting'
+      ? t('tournamentReconnecting')
+      : t('tournamentConnecting');
+
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-8">
       {/* Reporting Modal */}
       {reportingMatch && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in duration-300">
-            <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight mb-2">Report Score</h3>
+            <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight mb-2">{t('tournamentReportScoreTitle')}</h3>
             <p className="text-gray-500 text-sm mb-6 font-medium">
-              Select the final score for your match against <span className="text-blue-600 font-bold">{getPlayerName(reportingMatch.player1_id === participantId ? reportingMatch.player2_id : reportingMatch.player1_id)}</span>.
+              {t('tournamentReportScoreDescription', { name: getPlayerName(reportingMatch.player1_id === participantId ? reportingMatch.player2_id : reportingMatch.player1_id) })}
             </p>
 
             <div className="grid gap-3 mb-8">
@@ -230,14 +239,14 @@ export default function TournamentView() {
                 onClick={() => { setReportingMatch(null); setSelectedPreset(null); }}
                 className="flex-1 py-4 rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition"
               >
-                Cancel
+                {t('tournamentCancel')}
               </button>
               <button
                 disabled={!selectedPreset || isSubmitting}
                 onClick={handleReportSubmit}
                 className="flex-1 py-4 rounded-2xl font-black text-white bg-blue-600 shadow-lg shadow-blue-200 disabled:opacity-50 disabled:shadow-none transition-all active:scale-95"
               >
-                {isSubmitting ? '...' : 'Submit Result'}
+                {isSubmitting ? t('tournamentLoadingShort') : t('tournamentSubmitResult')}
               </button>
             </div>
           </div>
@@ -245,12 +254,12 @@ export default function TournamentView() {
       )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-black text-gray-800 uppercase tracking-tighter">
-          Tournament <span className="text-blue-600">#{code}</span>
+          {t('tournamentTournament')} <span className="text-blue-600">#{code}</span>
         </h1>
 
         <div className="flex items-center gap-3">
           <span className={`text-xs font-bold px-3 py-1 rounded-full ${socketStatusClass}`}>
-            {socketStatus === 'connected' ? 'Connected' : socketStatus === 'reconnecting' ? 'Reconnecting...' : 'Connecting...'}
+            {socketStatusText}
           </span>
 
           <div className="flex bg-gray-100 p-1 rounded-xl">
@@ -258,13 +267,13 @@ export default function TournamentView() {
               onClick={() => setActiveTab('pairings')}
               className={`px-6 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'pairings' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              Pairings
+              {t('tournamentPairings')}
             </button>
             <button
               onClick={() => setActiveTab('standings')}
               className={`px-6 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'standings' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              Standings
+              {t('tournamentStandings')}
             </button>
           </div>
         </div>
@@ -274,32 +283,32 @@ export default function TournamentView() {
         <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-xl shadow-blue-200">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <div className="text-blue-100 text-xs font-bold uppercase tracking-widest mb-1">My Status</div>
+              <div className="text-blue-100 text-xs font-bold uppercase tracking-widest mb-1">{t('tournamentMyStatus')}</div>
               <h2 className="text-2xl font-black uppercase tracking-tight">{myStanding.name}</h2>
             </div>
             <div className="text-right">
-              <div className="text-blue-100 text-xs font-bold uppercase tracking-widest mb-1">Current Rank</div>
+              <div className="text-blue-100 text-xs font-bold uppercase tracking-widest mb-1">{t('tournamentCurrentRank')}</div>
               <div className="text-3xl font-black">#{myStanding.rank}</div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-blue-500">
             <div>
-              <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">Points</div>
+              <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">{t('tournamentPoints')}</div>
               <div className="text-lg font-bold">{myStanding.points}</div>
             </div>
             <div>
-              <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">Record (W-L-D)</div>
+              <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">{t('tournamentRecord')}</div>
               <div className="text-lg font-bold">{myStanding.wins}-{myStanding.losses}-{myStanding.draws}</div>
             </div>
             <div>
-              <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">OMW%</div>
+              <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">{t('tournamentOMW')}</div>
               <div className="text-lg font-bold">{(myStanding.omw_percentage * 100).toFixed(1)}%</div>
             </div>
             <div>
-              <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">Possible Opponents</div>
+              <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">{t('tournamentPossibleOpponents')}</div>
               <div className="text-xs font-medium mt-1 truncate">
-                {potentialPairings.length > 0 ? potentialPairings.map((p) => p.name).join(', ') : 'None'}
+                {potentialPairings.length > 0 ? potentialPairings.map((p) => p.name).join(', ') : t('tournamentNone')}
               </div>
             </div>
           </div>
@@ -309,14 +318,14 @@ export default function TournamentView() {
       {activeTab === 'pairings' ? (
         rounds.length === 0 ? (
           <div className="p-12 text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
-            <p className="text-gray-400 font-medium italic">No matches yet. Waiting for the organizer to start the round.</p>
+            <p className="text-gray-400 font-medium italic">{t('tournamentNoMatchesYet')}</p>
           </div>
         ) : (
           <div className="space-y-10">
             {rounds.map((round) => (
               <div key={round} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center">
-                  <span className="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm mr-3">Round {round}</span>
+                  <span className="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm mr-3">{t('tournamentRound')} {round}</span>
                   <div className="flex-1 h-px bg-gray-200" />
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -327,8 +336,8 @@ export default function TournamentView() {
                     return (
                       <div key={match.id} className={`p-5 rounded-2xl border transition-all ${match.is_completed ? 'bg-white border-gray-100 opacity-60 grayscale' : 'bg-white border-blue-100 shadow-sm hover:shadow-md'}`}>
                         <div className="flex justify-between items-center mb-4">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Table {match.table_number || '?'}</span>
-                          {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-[0.2em]">Completed</span>}
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">{t('tournamentTable')} {match.table_number || '?'}</span>
+                          {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-[0.2em]">{t('tournamentCompletedStatus')}</span>}
                         </div>
                         {match.is_bye ? (
                           <div className="text-center py-2 flex justify-center">
@@ -354,7 +363,7 @@ export default function TournamentView() {
                                 }}
                                 className="w-full py-2 rounded-xl bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all active:scale-95"
                               >
-                                {match.is_completed ? 'Edit Score' : 'Report Score'}
+                                {match.is_completed ? t('tournamentEditScore') : t('tournamentReportScore')}
                               </button>
                             )}
                           </div>
@@ -372,12 +381,12 @@ export default function TournamentView() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-gray-100">
-                <th className="px-6 py-4">Rank</th>
-                <th className="px-6 py-4">Player</th>
-                <th className="px-6 py-4">Pokemon</th>
-                <th className="px-6 py-4">Points</th>
-                <th className="px-6 py-4">Record</th>
-                <th className="px-6 py-4 text-right">OMW%</th>
+                <th className="px-6 py-4">{t('tournamentRank')}</th>
+                <th className="px-6 py-4">{t('tournamentPlayer')}</th>
+                <th className="px-6 py-4">{t('tournamentPokemon')}</th>
+                <th className="px-6 py-4">{t('tournamentPoints')}</th>
+                <th className="px-6 py-4">{t('tournamentRecord')}</th>
+                <th className="px-6 py-4 text-right">{t('tournamentOMW')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -396,7 +405,7 @@ export default function TournamentView() {
                         <PokemonSprite pokemonId={s.pokemon_2} size="sm" />
                       </div>
                     ) : (
-                      <span className="text-xs text-gray-400 italic">Hidden</span>
+                      <span className="text-xs text-gray-400 italic">{t('tournamentHidden')}</span>
                     )}
                   </td>
                   <td className="px-6 py-4 font-black text-blue-600">{s.points}</td>
@@ -406,7 +415,7 @@ export default function TournamentView() {
               ))}
               {standings.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 italic">No participants yet.</td>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 italic">{t('tournamentNoParticipants')}</td>
                 </tr>
               )}
             </tbody>

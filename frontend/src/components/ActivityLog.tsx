@@ -14,6 +14,12 @@ interface ActivityLogProps {
 export default function ActivityLog({ events }: ActivityLogProps) {
   const { t } = useLanguage();
 
+  const getEventLabel = (type: string) => {
+    if (type === 'participant_joined') return t('activityEventParticipantJoined');
+    if (type === 'match_reported') return t('activityEventMatchReported');
+    return type.replace('_', ' ');
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-64 overflow-hidden">
       <div className="p-4 border-b border-gray-50 bg-gray-50/50">
@@ -32,7 +38,7 @@ export default function ActivityLog({ events }: ActivityLogProps) {
                   event.type === 'match_reported' ? 'bg-blue-100 text-blue-700' :
                   'bg-gray-100 text-gray-700'
                 }`}>
-                  {event.type.replace('_', ' ')}
+                  {getEventLabel(event.type)}
                 </span>
                 <span className="text-[9px] font-bold text-gray-400">
                   {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}

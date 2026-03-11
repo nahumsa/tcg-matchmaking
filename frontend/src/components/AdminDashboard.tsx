@@ -120,7 +120,7 @@ export default function AdminDashboard() {
     };
 
     return () => ws.close();
-  }, [tournament]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tournament, t]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchMatches = async () => {
     if (!tournament) return;
@@ -236,12 +236,12 @@ export default function AdminDashboard() {
       });
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Failed to complete tournament');
+        throw new Error(data.detail || t('adminExportFailed'));
       }
       await fetchTournament();
       await fetchStandings();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -309,10 +309,10 @@ export default function AdminDashboard() {
       try {
         const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/standings`);
         if (response.ok) {
-          const standings = await response.json();
-          const summary = standings.map((s: { rank: number; name: string; points: number; wins: number; losses: number; draws: number; pokemon_1: string; pokemon_2: string }) => {
-            const p1Name = pokemonMap[s.pokemon_1] || s.pokemon_1;
-            const p2Name = pokemonMap[s.pokemon_2] || s.pokemon_2;
+          const standingsData = await response.json();
+          const summary = standingsData.map((s: Participant) => {
+            const p1Name = (s.pokemon_1 ? pokemonMap[s.pokemon_1] : null) || s.pokemon_1 || 'None';
+            const p2Name = (s.pokemon_2 ? pokemonMap[s.pokemon_2] : null) || s.pokemon_2 || 'None';
             return `${s.rank}. ${s.name} (${s.points} pts, ${s.wins}-${s.losses}-${s.draws}) (${p1Name}, ${p2Name})`;
           }).join('\n');
 
@@ -325,7 +325,7 @@ export default function AdminDashboard() {
           URL.revokeObjectURL(url);
         }
       } catch (err) {
-        console.error(t('adminExportFailed'), err);
+        console.error('Failed to export standings', err);
       }
     };
 
@@ -341,31 +341,6 @@ export default function AdminDashboard() {
                   <Link to={`/tournament/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">{t('adminPublicView')}</Link>
                 </div>
               </div>
-              <button
-                onClick={generatePairings}
-                disabled={loading || (currentRound > 0 && !allCompleted) || isTournamentFinished}
-                className="py-3 px-6 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-              >
-                {currentRound === 0 ? t('adminStartRound') : t('adminNextRound')}
-              </button>
-            </div>
-
-            {isTournamentFinished && (
-              <div className="mb-8 p-6 bg-green-600 rounded-2xl text-white shadow-xl shadow-green-100 flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-black uppercase tracking-tight">{t('adminCompleted')}</h2>
-                  <p className="text-green-100 font-medium">{t('adminCompletedDescription')}</p>
-                </div>
-                <div className="flex space-x-4">
-                  <button
-                    onClick={handleExport}
-                    className="px-6 py-2 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 transition"
-                  >
-                    {t('adminExportResults')}
-                  </button>
-                  <Link to={`/tournament/${tournament.code}`} target="_blank" className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-50 transition">
-                    {t('adminViewFinalStandings')}
-                  </Link>
               <div className="flex space-x-4">
                 <button
                   onClick={currentRound >= tournament.rounds ? completeTournament : generatePairings}
@@ -374,7 +349,7 @@ export default function AdminDashboard() {
                     currentRound >= tournament.rounds ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
                   }`}
                 >
-                  {currentRound === 0 ? 'Start Round 1' : currentRound >= tournament.rounds ? 'End Tournament' : 'Next Round'}
+                  {currentRound === 0 ? t('adminStartRound') : currentRound >= tournament.rounds ? t('adminEndTournament') : t('adminNextRound')}
                 </button>
                 {currentRound > 0 && currentRound < tournament.rounds && allCompleted && !isTournamentFinished && (
                   <button
@@ -382,7 +357,7 @@ export default function AdminDashboard() {
                     disabled={loading}
                     className="py-3 px-6 bg-gray-600 text-white font-bold rounded-xl hover:bg-gray-700 transition shadow-lg"
                   >
-                    End Early
+                    {t('adminEndEarly')}
                   </button>
                 )}
               </div>
@@ -392,36 +367,36 @@ export default function AdminDashboard() {
               <div className="space-y-6">
                 <div className="p-6 bg-green-600 rounded-2xl text-white shadow-xl shadow-green-100 flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-black uppercase tracking-tight">Tournament Completed</h2>
-                    <p className="text-green-100 font-medium">All rounds have been played and results are finalized.</p>
+                    <h2 className="text-2xl font-black uppercase tracking-tight">{t('adminCompleted')}</h2>
+                    <p className="text-green-100 font-medium">{t('adminCompletedDescription')}</p>
                   </div>
                   <div className="flex space-x-4">
                     <button
                       onClick={handleExport}
                       className="px-6 py-2 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 transition"
                     >
-                      Export Results
+                      {t('adminExportResults')}
                     </button>
                     <Link to={`/tournament/${tournament.code}`} target="_blank" className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-50 transition">
-                      View Final Standings
+                      {t('adminViewFinalStandings')}
                     </Link>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                   <div className="p-6 border-b border-gray-50 flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-gray-800">Final Standings</h3>
+                    <h3 className="text-xl font-bold text-gray-800">{t('adminFinalStandings')}</h3>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
                       <thead>
                         <tr className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-gray-100">
-                          <th className="px-6 py-4 text-center">Rank</th>
-                          <th className="px-6 py-4">Player</th>
-                          <th className="px-6 py-4">Pokemon</th>
-                          <th className="px-6 py-4">Points</th>
-                          <th className="px-6 py-4">Record</th>
-                          <th className="px-6 py-4 text-right">OMW%</th>
+                          <th className="px-6 py-4 text-center">{t('adminRank')}</th>
+                          <th className="px-6 py-4">{t('adminPlayer')}</th>
+                          <th className="px-6 py-4">{t('adminPokemon')}</th>
+                          <th className="px-6 py-4">{t('adminPoints')}</th>
+                          <th className="px-6 py-4">{t('adminRecord')}</th>
+                          <th className="px-6 py-4 text-right">{t('adminOMW')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-50">
@@ -459,9 +434,8 @@ export default function AdminDashboard() {
             {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl">{error}</div>}
 
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-700">{t('adminCurrentRound')}: {currentRound}</h2>
               <h2 className="text-2xl font-bold text-gray-700">
-                {currentRound === 0 ? 'Tournament Not Started' : `Round ${currentRound} of ${tournament.rounds}`}
+                {currentRound === 0 ? t('adminTournamentNotStarted') : t('adminRoundOf', { current: currentRound, total: tournament.rounds })}
               </h2>
               <div className="grid gap-4">
                 {roundMatches.length === 0 ? (
@@ -471,7 +445,7 @@ export default function AdminDashboard() {
                     <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col space-y-4">
                       <div className="flex justify-between items-center border-b border-gray-50 pb-2">
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('adminTable')} {match.table_number || '?'}</span>
-                        {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Completed</span>}
+                        {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">{t('adminCompletedStatus')}</span>}
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex-1 font-bold text-lg">{renderPlayer(match.player1_id)}</div>
