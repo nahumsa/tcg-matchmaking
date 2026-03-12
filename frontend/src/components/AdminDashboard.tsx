@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { config } from '../config';
 import ParticipantList from './ParticipantList';
 import ActivityLog, { type ActivityEvent } from './ActivityLog';
+import { useLanguage } from '../i18n';
 import PokemonSprite from './PokemonSprite';
 
 interface Tournament {
@@ -48,6 +49,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scoreInputs, setScoreInputs] = useState<Record<number, { p1: number; p2: number }>>({});
+  const { t } = useLanguage();
   const [pokemonMap, setPokemonMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -102,7 +104,7 @@ export default function AdminDashboard() {
         const newEvent: ActivityEvent = {
           id: Math.random().toString(36).substr(2, 9),
           type: message.event,
-          message: `${message.data.name} joined the tournament.`,
+          message: t('adminJoinedTournament', { name: message.data.name }),
           timestamp: message.data.timestamp || new Date().toISOString(),
         };
         setEvents((prev) => [...prev, newEvent]);
@@ -110,7 +112,7 @@ export default function AdminDashboard() {
         const newEvent: ActivityEvent = {
           id: Math.random().toString(36).substr(2, 9),
           type: message.event,
-          message: 'Match results reported.',
+          message: t('adminMatchReported'),
           timestamp: new Date().toISOString(),
         };
         setEvents((prev) => [...prev, newEvent]);
@@ -118,7 +120,7 @@ export default function AdminDashboard() {
     };
 
     return () => ws.close();
-  }, [tournament]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tournament, t]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchMatches = async () => {
     if (!tournament) return;
@@ -176,7 +178,7 @@ export default function AdminDashboard() {
     e.preventDefault();
 
     if (!name.trim()) {
-      setError('Please provide a tournament name.');
+      setError(t('adminProvideTournamentName'));
       return;
     }
 
@@ -193,14 +195,14 @@ export default function AdminDashboard() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create tournament');
+        throw new Error(t('adminCreateFailed'));
       }
 
       const data = await response.json();
       setTournament(data);
       localStorage.setItem('last_tournament_code', data.code);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -215,11 +217,11 @@ export default function AdminDashboard() {
       });
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Failed to generate pairings');
+        throw new Error(data.detail || t('adminPairingsFailed'));
       }
       await fetchMatches();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -234,12 +236,12 @@ export default function AdminDashboard() {
       });
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Failed to complete tournament');
+        throw new Error(data.detail || t('adminExportFailed'));
       }
       await fetchTournament();
       await fetchStandings();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -262,11 +264,11 @@ export default function AdminDashboard() {
           is_admin: true
         }),
       });
-      if (!response.ok) throw new Error('Failed to report result');
+      if (!response.ok) throw new Error(t('adminReportFailed'));
       await fetchMatches();
       await fetchStandings();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
     }
   };
 
@@ -287,10 +289,16 @@ export default function AdminDashboard() {
     const allCompleted = roundMatches.every((m) => m.is_completed);
     const isTournamentFinished = tournament.status === 'COMPLETED';
 
+    const getPlayerName = (id: number | null) => {
+      if (id === null) return '-';
+      const player = participants.find((p) => p.id === id);
+      return player ? player.name : t('commonPlayerWithId', { id });
+    };
+
     const renderPlayer = (id: number | null) => {
       if (id === null) return <span className="text-gray-400">-</span>;
       const player = participants.find((p) => p.id === id);
-      if (!player) return <span>Player {id}</span>;
+      if (!player) return <span>{t('commonPlayerWithId', { id })}</span>;
 
       return (
         <div className="flex items-center space-x-2">
@@ -307,10 +315,10 @@ export default function AdminDashboard() {
       try {
         const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/standings`);
         if (response.ok) {
-          const standings = await response.json();
-          const summary = standings.map((s: { rank: number; name: string; points: number; wins: number; losses: number; draws: number; pokemon_1: string; pokemon_2: string }) => {
-            const p1Name = pokemonMap[s.pokemon_1] || s.pokemon_1;
-            const p2Name = pokemonMap[s.pokemon_2] || s.pokemon_2;
+          const standingsData = await response.json();
+          const summary = standingsData.map((s: Participant) => {
+            const p1Name = (s.pokemon_1 ? pokemonMap[s.pokemon_1] : null) || s.pokemon_1 || t('commonNone');
+            const p2Name = (s.pokemon_2 ? pokemonMap[s.pokemon_2] : null) || s.pokemon_2 || t('commonNone');
             return `${s.rank}. ${s.name} (${s.points} pts, ${s.wins}-${s.losses}-${s.draws}) (${p1Name}, ${p2Name})`;
           }).join('\n');
 
@@ -336,7 +344,7 @@ export default function AdminDashboard() {
                 <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter mb-2">{tournament.name}</h1>
                 <div className="flex items-center space-x-4">
                   <span className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold tracking-widest uppercase">{tournament.code}</span>
-                  <Link to={`/tournament/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">Public View ↗</Link>
+                  <Link to={`/tournament/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">{t('adminPublicView')}</Link>
                 </div>
               </div>
               <div className="flex space-x-4">
@@ -347,7 +355,7 @@ export default function AdminDashboard() {
                     currentRound >= tournament.rounds ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
                   }`}
                 >
-                  {currentRound === 0 ? 'Start Round 1' : currentRound >= tournament.rounds ? 'End Tournament' : 'Next Round'}
+                  {currentRound === 0 ? t('adminStartRound') : currentRound >= tournament.rounds ? t('adminEndTournament') : t('adminNextRound')}
                 </button>
                 {currentRound > 0 && currentRound < tournament.rounds && allCompleted && !isTournamentFinished && (
                   <button
@@ -355,7 +363,7 @@ export default function AdminDashboard() {
                     disabled={loading}
                     className="py-3 px-6 bg-gray-600 text-white font-bold rounded-xl hover:bg-gray-700 transition shadow-lg"
                   >
-                    End Early
+                    {t('adminEndEarly')}
                   </button>
                 )}
               </div>
@@ -365,36 +373,36 @@ export default function AdminDashboard() {
               <div className="space-y-6">
                 <div className="p-6 bg-green-600 rounded-2xl text-white shadow-xl shadow-green-100 flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-black uppercase tracking-tight">Tournament Completed</h2>
-                    <p className="text-green-100 font-medium">All rounds have been played and results are finalized.</p>
+                    <h2 className="text-2xl font-black uppercase tracking-tight">{t('adminCompleted')}</h2>
+                    <p className="text-green-100 font-medium">{t('adminCompletedDescription')}</p>
                   </div>
                   <div className="flex space-x-4">
                     <button
                       onClick={handleExport}
                       className="px-6 py-2 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 transition"
                     >
-                      Export Results
+                      {t('adminExportResults')}
                     </button>
                     <Link to={`/tournament/${tournament.code}`} target="_blank" className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-50 transition">
-                      View Final Standings
+                      {t('adminViewFinalStandings')}
                     </Link>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                   <div className="p-6 border-b border-gray-50 flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-gray-800">Final Standings</h3>
+                    <h3 className="text-xl font-bold text-gray-800">{t('adminFinalStandings')}</h3>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
                       <thead>
                         <tr className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-gray-100">
-                          <th className="px-6 py-4 text-center">Rank</th>
-                          <th className="px-6 py-4">Player</th>
-                          <th className="px-6 py-4">Pokemon</th>
-                          <th className="px-6 py-4">Points</th>
-                          <th className="px-6 py-4">Record</th>
-                          <th className="px-6 py-4 text-right">OMW%</th>
+                          <th className="px-6 py-4 text-center">{t('adminRank')}</th>
+                          <th className="px-6 py-4">{t('adminPlayer')}</th>
+                          <th className="px-6 py-4">{t('adminPokemon')}</th>
+                          <th className="px-6 py-4">{t('adminPoints')}</th>
+                          <th className="px-6 py-4">{t('adminRecord')}</th>
+                          <th className="px-6 py-4 text-right">{t('adminOMW')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-50">
@@ -433,23 +441,23 @@ export default function AdminDashboard() {
 
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-700">
-                {currentRound === 0 ? 'Tournament Not Started' : `Round ${currentRound} of ${tournament.rounds}`}
+                {currentRound === 0 ? t('adminTournamentNotStarted') : t('adminRoundOf', { current: currentRound, total: tournament.rounds })}
               </h2>
               <div className="grid gap-4">
                 {roundMatches.length === 0 ? (
-                  <p className="text-gray-400 italic">No matches generated yet. Start the round to begin.</p>
+                  <p className="text-gray-400 italic">{t('adminNoMatches')}</p>
                 ) : (
                   roundMatches.map((match) => (
                     <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col space-y-4">
                       <div className="flex justify-between items-center border-b border-gray-50 pb-2">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Table {match.table_number || '?'}</span>
-                        {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Completed</span>}
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('adminTable')} {match.table_number || '?'}</span>
+                        {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">{t('adminCompletedStatus')}</span>}
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex-1 font-bold text-lg">{renderPlayer(match.player1_id)}</div>
 
                         {match.is_bye ? (
-                          <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">BYE</div>
+                          <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">{t('adminBye')}</div>
                         ) : (
                           <div className="flex-1 flex items-center justify-center space-x-2 px-4">
                             <input
@@ -458,7 +466,7 @@ export default function AdminDashboard() {
                               className="w-16 p-2 border rounded text-center font-bold"
                               value={scoreInputs[match.id]?.p1 ?? 0}
                               onChange={(e) => handleScoreChange(match.id, 'p1', e.target.value)}
-                              aria-label={`Score for player 1`}
+                              aria-label={t('commonScoreForPlayer', { name: getPlayerName(match.player1_id) })}
                             />
                             <span className="text-gray-300">-</span>
                             <input
@@ -467,7 +475,7 @@ export default function AdminDashboard() {
                               className="w-16 p-2 border rounded text-center font-bold"
                               value={scoreInputs[match.id]?.p2 ?? 0}
                               onChange={(e) => handleScoreChange(match.id, 'p2', e.target.value)}
-                              aria-label={`Score for player 2`}
+                              aria-label={t('commonScoreForPlayer', { name: getPlayerName(match.player2_id) })}
                             />
                             <button
                               onClick={() => reportResult(match.id)}
@@ -475,7 +483,7 @@ export default function AdminDashboard() {
                                 }`}
                               disabled={isTournamentFinished}
                             >
-                              {match.is_completed ? 'Override' : 'Report'}
+                              {match.is_completed ? t('adminOverride') : t('adminReport')}
                             </button>
                           </div>
                         )}
@@ -506,16 +514,16 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-      <h1 className="text-3xl font-bold text-blue-600 mb-6 uppercase tracking-wider">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold text-blue-600 mb-6 uppercase tracking-wider">{t('adminTitle')}</h1>
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-100">
-        <h2 className="text-xl font-semibold mb-6 text-gray-800">Create Tournament</h2>
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">{t('adminCreateTournament')}</h2>
         <form onSubmit={handleCreateTournament} className="space-y-5" noValidate>
           <div>
-            <label htmlFor="tournament-name" className="block text-sm font-medium text-gray-700 mb-1">Tournament Name</label>
-            <input id="tournament-name" type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Swiss Open #1" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition outline-none" />
+            <label htmlFor="tournament-name" className="block text-sm font-medium text-gray-700 mb-1">{t('adminTournamentName')}</label>
+            <input id="tournament-name" type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder={t('adminTournamentNamePlaceholder')} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition outline-none" />
           </div>
           <button type="submit" disabled={loading || !isFormValid} className={`w-full py-3 px-4 bg-blue-600 text-white font-bold rounded-lg transition ${(loading || !isFormValid) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 shadow-md'}`}>
-            {loading ? 'Creating...' : 'Create New Tournament'}
+            {loading ? t('adminCreating') : t('adminCreateNewTournament')}
           </button>
         </form>
         {error && <div className="mt-6 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">{error}</div>}

@@ -1,8 +1,12 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import ActivityLog, { type ActivityEvent } from './ActivityLog';
 
 describe('ActivityLog', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem('app_language', 'en');
+  });
   it('renders empty state correctly', () => {
     render(<ActivityLog events={[]} />);
     expect(screen.getByText(/No recent activity/i)).toBeInTheDocument();

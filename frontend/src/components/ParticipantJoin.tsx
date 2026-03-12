@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
+import { useLanguage } from '../i18n';
 
 const TOURNAMENT_CODE_LENGTH = 6;
 
@@ -22,6 +23,7 @@ interface PokemonSelectorProps {
 function PokemonSelector({ label, selected, excluded = null, onSelect, pokemonList }: PokemonSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const { t } = useLanguage();
 
   const selectedPokemon = useMemo(() =>
     pokemonList.find(p => p.id.toString() === selected)
@@ -52,7 +54,7 @@ function PokemonSelector({ label, selected, excluded = null, onSelect, pokemonLi
               <span className="font-medium capitalize">{selectedPokemon.name}</span>
             </span>
           ) : (
-            <span className="text-gray-400">Choose a Pokémon</span>
+            <span className="text-gray-400">{t('joinChoosePokemon')}</span>
           )}
           <span className="text-gray-400">▾</span>
         </button>
@@ -63,7 +65,7 @@ function PokemonSelector({ label, selected, excluded = null, onSelect, pokemonLi
               <input
                 type="text"
                 autoFocus
-                placeholder="Search Pokémon..."
+                placeholder={t('joinSearchPokemon')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full p-2 text-sm border border-gray-200 rounded focus:ring-1 focus:ring-green-500 outline-none"
@@ -79,7 +81,7 @@ function PokemonSelector({ label, selected, excluded = null, onSelect, pokemonLi
                   setIsOpen(false);
                 }}
               >
-                None
+                {t('commonNone')}
               </button>
               {filteredOptions.map((option) => (
                 <button
@@ -103,7 +105,7 @@ function PokemonSelector({ label, selected, excluded = null, onSelect, pokemonLi
               ))}
               {filteredOptions.length === 0 && (
                 <div className="px-3 py-4 text-center text-sm text-gray-400">
-                  No Pokémon found
+                  {t('joinNoPokemonFound')}
                 </div>
               )}
             </div>
@@ -124,6 +126,7 @@ export default function ParticipantJoin() {
   const [fetchingPokemon, setFetchingPokemon] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchPokemon = async () => {
@@ -155,15 +158,15 @@ export default function ParticipantJoin() {
   const isFormValid = trimmedName.length > 1 && codeIsValid && !fetchingPokemon;
 
   const helperText = useMemo(() => {
-    if (!code) return `Tournament code must be ${TOURNAMENT_CODE_LENGTH} letters or numbers.`;
-    if (!codeIsValid) return `Enter exactly ${TOURNAMENT_CODE_LENGTH} letters or numbers.`;
-    return 'Code looks good.';
-  }, [code, codeIsValid]);
+    if (!code) return t('joinCodeMustBe', { length: TOURNAMENT_CODE_LENGTH });
+    if (!codeIsValid) return t('joinCodeExactLength', { length: TOURNAMENT_CODE_LENGTH });
+    return t('joinCodeLooksGood');
+  }, [code, codeIsValid, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) {
-      setError('Please provide a valid name and tournament code.');
+      setError(t('joinInvalidForm'));
       return;
     }
 
@@ -185,7 +188,7 @@ export default function ParticipantJoin() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to join tournament');
+        throw new Error(errorData.detail || t('joinFailed'));
       }
 
       const data = await response.json();
@@ -194,7 +197,7 @@ export default function ParticipantJoin() {
 
       navigate(`/tournament/${normalizedCode}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -202,34 +205,34 @@ export default function ParticipantJoin() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-      <h1 className="text-3xl font-bold text-green-600 mb-6 uppercase tracking-wider">Join Tournament</h1>
+      <h1 className="text-3xl font-bold text-green-600 mb-6 uppercase tracking-wider">{t('joinTitle')}</h1>
 
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-100">
-        <h2 className="text-xl font-semibold mb-6 text-gray-800">Enter Details</h2>
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">{t('joinDetails')}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div>
-            <label htmlFor="player-name" className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+            <label htmlFor="player-name" className="block text-sm font-medium text-gray-700 mb-1">{t('joinName')}</label>
             <input
               id="player-name"
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Ash Ketchum"
+              placeholder={t('joinNamePlaceholder')}
               className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition outline-none"
             />
           </div>
 
           <div>
-            <label htmlFor="tournament-code" className="block text-sm font-medium text-gray-700 mb-1">Tournament Code</label>
+            <label htmlFor="tournament-code" className="block text-sm font-medium text-gray-700 mb-1">{t('joinCode')}</label>
             <input
               id="tournament-code"
               type="text"
               required
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="e.g. ABCDEF"
+              placeholder={t('joinCodePlaceholder')}
               className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition outline-none font-mono uppercase text-center text-lg tracking-widest"
               maxLength={TOURNAMENT_CODE_LENGTH}
             />
@@ -237,16 +240,16 @@ export default function ParticipantJoin() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-sm font-medium text-gray-700">Deck Pokémon (up to 2)</p>
+            <p className="text-sm font-medium text-gray-700">{t('joinDeckPokemon')}</p>
             <PokemonSelector
-              label="Pokémon 1"
+              label={t('joinPokemon1')}
               selected={pokemon1}
               excluded={pokemon2}
               onSelect={setPokemon1}
               pokemonList={pokemonList}
             />
             <PokemonSelector
-              label="Pokémon 2 (optional)"
+              label={t('joinPokemon2')}
               selected={pokemon2}
               excluded={pokemon1}
               onSelect={setPokemon2}
@@ -259,7 +262,7 @@ export default function ParticipantJoin() {
             disabled={loading || !isFormValid}
             className={`w-full py-3 px-4 bg-green-600 text-white font-bold rounded-lg transition ${(loading || !isFormValid) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700 shadow-md hover:shadow-lg active:scale-[0.98]'}`}
           >
-            {loading ? 'Joining...' : 'Join Tournament'}
+            {loading ? t('joinLoading') : t('joinButton')}
           </button>
         </form>
 

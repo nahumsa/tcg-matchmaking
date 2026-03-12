@@ -3,6 +3,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import TournamentView from './TournamentView';
+import { LanguageProvider } from '../i18n';
 
 describe('ReportScore', () => {
   beforeEach(() => {
@@ -12,7 +13,16 @@ describe('ReportScore', () => {
       this.close = vi.fn();
     }));
     localStorage.clear();
+    localStorage.setItem('app_language', 'en');
   });
+
+  const renderWithProviders = (ui: React.ReactElement) => {
+    return render(
+      <LanguageProvider>
+        {ui}
+      </LanguageProvider>
+    );
+  };
 
   it('shows Report Score button only for the participant match', async () => {
     const mockCode = 'ABCDEF';
@@ -31,10 +41,11 @@ describe('ReportScore', () => {
       if (url.includes('/matches')) return Promise.resolve({ ok: true, json: () => Promise.resolve(mockMatches) });
       if (url.includes('/standings')) return Promise.resolve({ ok: true, json: () => Promise.resolve(mockStandings) });
       if (url.includes('/potential-pairings')) return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      if (url.includes(`/tournaments/${mockCode}`)) return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'ACTIVE' }) });
       return Promise.resolve({ ok: false });
     });
 
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={[`/${mockCode}`]}>
         <Routes>
           <Route path="/:code" element={<TournamentView />} />
@@ -67,10 +78,11 @@ describe('ReportScore', () => {
       if (url.includes('/matches')) return Promise.resolve({ ok: true, json: () => Promise.resolve(mockMatches) });
       if (url.includes('/standings')) return Promise.resolve({ ok: true, json: () => Promise.resolve(mockStandings) });
       if (url.includes('/potential-pairings')) return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      if (url.includes(`/tournaments/${mockCode}`)) return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'ACTIVE' }) });
       return Promise.resolve({ ok: false });
     });
 
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={[`/${mockCode}`]}>
         <Routes>
           <Route path="/:code" element={<TournamentView />} />
@@ -96,10 +108,11 @@ describe('ReportScore', () => {
       if (url.includes('/standings')) return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
       if (url.includes('/potential-pairings')) return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
       if (url.includes('/report')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ ...mockMatch, is_completed: 1, player1_score: 2, player2_score: 1 }) });
+      if (url.includes(`/tournaments/${mockCode}`)) return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'ACTIVE' }) });
       return Promise.resolve({ ok: false });
     });
 
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={[`/${mockCode}`]}>
         <Routes>
           <Route path="/:code" element={<TournamentView />} />

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { config } from '../config';
+import { useLanguage } from '../i18n';
 
 interface Participant {
   id: number;
@@ -20,6 +21,7 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
   const [newName, setNewName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const handleAddParticipant = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,37 +38,37 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || 'Failed to add participant');
+        throw new Error(data.detail || t('participantsAddFailed'));
       }
 
       setNewName('');
       onUpdate();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleRemoveParticipant = async (id: number) => {
-    if (!confirm('Are you sure you want to remove this participant?')) return;
+    if (!confirm(t('participantsRemoveConfirm'))) return;
 
     try {
       const response = await fetch(`${config.apiUrl}/tournaments/${tournamentCode}/participants/${id}`, {
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to remove participant');
+      if (!response.ok) throw new Error(t('participantsRemoveFailed'));
       onUpdate();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
     }
   };
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full overflow-hidden">
       <div className="p-6 border-b border-gray-50 bg-gray-50/50">
-        <h2 className="text-xl font-bold text-gray-800 uppercase tracking-tight">Participants</h2>
+        <h2 className="text-xl font-bold text-gray-800 uppercase tracking-tight">{t('participantsTitle')}</h2>
       </div>
 
       <div className="p-6 space-y-4">
@@ -75,7 +77,7 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
             type="text"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            placeholder="Player Name"
+            placeholder={t('participantsNamePlaceholder')}
             className="flex-1 p-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
             disabled={loading}
           />
@@ -84,7 +86,7 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
             disabled={loading || !newName.trim()}
             className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
           >
-            Add
+            {t('participantsAdd')}
           </button>
         </form>
 
@@ -94,14 +96,14 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
       <div className="flex-1 overflow-y-auto px-6 pb-6">
         <div className="divide-y divide-gray-50">
           {participants.length === 0 ? (
-            <p className="text-gray-400 text-sm py-4 italic">No participants joined yet.</p>
+            <p className="text-gray-400 text-sm py-4 italic">{t('participantsNoOne')}</p>
           ) : (
             participants.map((p) => (
               <div key={p.id} className="py-3 flex items-center justify-between group">
                 <div className="flex items-center space-x-3">
                   <div>
                     <div className="font-bold text-gray-800">{p.name}</div>
-                    <div className="text-xs text-gray-500">{p.points} points</div>
+                    <div className="text-xs text-gray-500">{p.points} {t('participantsPoints')}</div>
                   </div>
                 </div>
                 <button

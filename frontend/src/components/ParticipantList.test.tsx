@@ -12,6 +12,8 @@ describe('ParticipantList', () => {
   const mockOnUpdate = vi.fn();
 
   beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem('app_language', 'en');
     vi.stubGlobal('fetch', vi.fn());
     vi.stubGlobal('confirm', vi.fn(() => true));
     mockOnUpdate.mockClear();
