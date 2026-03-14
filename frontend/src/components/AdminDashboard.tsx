@@ -51,6 +51,10 @@ export default function AdminDashboard() {
   const [scoreInputs, setScoreInputs] = useState<Record<number, { p1: number; p2: number }>>({});
   const { t } = useLanguage();
   const [pokemonMap, setPokemonMap] = useState<Record<string, string>>({});
+  const [isStartModalOpen, setIsStartModalOpen] = useState(false);
+  const [startStep, setStartStep] = useState<1 | 2>(1);
+  const [confirmInput, setConfirmInput] = useState('');
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPokemon = async () => {
@@ -208,6 +212,15 @@ export default function AdminDashboard() {
     }
   };
 
+  const getCurrentRound = () => (matches.length > 0 ? Math.max(...matches.map((m) => m.round_number)) : 0);
+
+  const openStartModal = () => {
+    setStartStep(1);
+    setConfirmInput('');
+    setConfirmError(null);
+    setIsStartModalOpen(true);
+  };
+
   const generatePairings = async () => {
     if (!tournament) return;
     setLoading(true);
@@ -225,6 +238,37 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const closeStartModal = () => {
+    setIsStartModalOpen(false);
+    setConfirmInput('');
+    setConfirmError(null);
+  };
+
+  const handleStartConfirmContinue = () => {
+    setStartStep(2);
+    setConfirmError(null);
+  };
+
+  const handleStartConfirm = () => {
+    if (!tournament) return;
+    if (confirmInput.trim().toUpperCase() !== tournament.code.toUpperCase()) {
+      setConfirmError(t('adminStartCodeMismatch'));
+      return;
+    }
+    closeStartModal();
+    generatePairings();
+  };
+
+  const handleStartClick = () => {
+    if (!tournament) return;
+    const currentRound = getCurrentRound();
+    if (currentRound === 0) {
+      openStartModal();
+      return;
+    }
+    generatePairings();
   };
 
   const completeTournament = async () => {
@@ -288,6 +332,7 @@ export default function AdminDashboard() {
     const roundMatches = matches.filter((m) => m.round_number === currentRound);
     const allCompleted = roundMatches.every((m) => m.is_completed);
     const isTournamentFinished = tournament.status === 'COMPLETED';
+    const isConfirmValid = confirmInput.trim().toUpperCase() === tournament.code.toUpperCase();
 
     const getPlayerName = (id: number | null) => {
       if (id === null) return '-';
@@ -337,6 +382,79 @@ export default function AdminDashboard() {
 
     return (
       <div className="flex flex-col min-h-screen bg-gray-50">
+        {isStartModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4" role="dialog" aria-modal="true">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-widest font-bold text-gray-400">{t('adminStartConfirmStep', { step: startStep })}</p>
+                  <h3 className="text-2xl font-black text-gray-800 mt-1">{t('adminStartConfirmTitle')}</h3>
+                </div>
+                <button onClick={closeStartModal} className="text-gray-400 hover:text-gray-600" aria-label={t('adminStartCancel')}>
+                  X
+                </button>
+              </div>
+
+              {startStep === 1 ? (
+                <div className="space-y-3">
+                  <p className="text-gray-700 leading-relaxed">{t('adminStartConfirmBody')}</p>
+                  <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm text-gray-600 space-y-1">
+                    <p>- {t('adminStartConfirmLockRoster')}</p>
+                    <p>- {t('adminStartConfirmGenerate')}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700" htmlFor="confirmCode">
+                    {t('adminStartEnterCode', { code: tournament.code })}
+                  </label>
+                  <input
+                    id="confirmCode"
+                    type="text"
+                    value={confirmInput}
+                    onChange={(e) => {
+                      setConfirmInput(e.target.value);
+                      setConfirmError(null);
+                    }}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-3 text-lg font-mono tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={t('adminStartCodePlaceholder', { code: tournament.code })}
+                    autoFocus
+                  />
+                  {confirmError && <p className="text-sm text-red-600">{confirmError}</p>}
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-3 pt-2">
+                <button
+                  onClick={closeStartModal}
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+                >
+                  {t('adminStartCancel')}
+                </button>
+                {startStep === 1 ? (
+                  <button
+                    onClick={handleStartConfirmContinue}
+                    className="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700"
+                  >
+                    {t('adminStartContinue')}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleStartConfirm}
+                    disabled={!isConfirmValid || loading}
+                    className={`px-4 py-2 rounded-lg font-bold text-white transition ${
+                      !isConfirmValid || loading
+                        ? 'bg-blue-300 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    {t('adminStartConfirmButton')}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         <div className="flex flex-col md:flex-row flex-1 p-4 sm:p-8 space-y-8 md:space-y-0 md:space-x-8">
           <div className="flex-1 max-w-4xl">
             <div className="flex justify-between items-end mb-8">
@@ -344,12 +462,13 @@ export default function AdminDashboard() {
                 <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter mb-2">{tournament.name}</h1>
                 <div className="flex items-center space-x-4">
                   <span className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold tracking-widest uppercase">{tournament.code}</span>
+                  <span className="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold tracking-widest uppercase">{participants.length} {t('adminPlayers')}</span>
                   <Link to={`/tournament/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">{t('adminPublicView')}</Link>
                 </div>
               </div>
               <div className="flex space-x-4">
                 <button
-                  onClick={currentRound >= tournament.rounds ? completeTournament : generatePairings}
+                  onClick={() => (currentRound >= tournament.rounds ? completeTournament() : handleStartClick())}
                   disabled={loading || (currentRound > 0 && !allCompleted) || isTournamentFinished}
                   className={`py-3 px-6 text-white font-bold rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
                     currentRound >= tournament.rounds ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
