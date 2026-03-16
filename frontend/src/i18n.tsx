@@ -266,7 +266,7 @@ const MESSAGES = {
     tournamentConnected: 'Conectado',
     tournamentReconnecting: 'Reconectando...',
     tournamentConnecting: 'Conectando...',
-    tournamentPairings: 'Emparceiramentos',
+    tournamentPairings: 'Emparelhamentos',
     tournamentStandings: 'Classificação',
     tournamentMyStatus: 'Meu status',
     tournamentCurrentRank: 'Posição atual',
