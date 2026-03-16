@@ -14,7 +14,18 @@ describe('ParticipantList', () => {
   beforeEach(() => {
     localStorage.clear();
     localStorage.setItem('app_language', 'en');
-    vi.stubGlobal('fetch', vi.fn());
+    vi.stubGlobal('fetch', vi.fn((url: string) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: [] })
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([])
+      });
+    }));
     vi.stubGlobal('confirm', vi.fn(() => true));
     mockOnUpdate.mockClear();
   });
@@ -28,15 +39,30 @@ describe('ParticipantList', () => {
       />
     );
 
-    expect(screen.getAllByText(/Participants/i)[0]).toBeInTheDocument();
-    expect(screen.getByText('Alice')).toBeInTheDocument();
-    expect(screen.getByText('Bob')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getAllByText(/Participants/i)[0]).toBeInTheDocument();
+      expect(screen.getByText('Alice')).toBeInTheDocument();
+      expect(screen.getByText('Bob')).toBeInTheDocument();
+    });
   });
 
   it('handles manual participant addition', async () => {
-    (fetch as any).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ id: 3, name: 'Charlie', points: 0 })
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            results: [
+              { name: 'bulbasaur', url: 'https://pokeapi.co/api/v2/pokemon/1/' },
+              { name: 'charmander', url: 'https://pokeapi.co/api/v2/pokemon/4/' }
+            ]
+          })
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ id: 3, name: 'Charlie', points: 0 })
+      });
     });
 
     render(
@@ -51,23 +77,36 @@ describe('ParticipantList', () => {
     const addButton = screen.getByRole('button', { name: /Add/i });
 
     fireEvent.change(input, { target: { value: 'Charlie' } });
+
+    const pokemonButtons = await screen.findAllByRole('button', { name: /Choose a Pokémon/i });
+    fireEvent.click(pokemonButtons[0]);
+    fireEvent.click(await screen.findByRole('button', { name: /bulbasaur/i }));
+    fireEvent.click(pokemonButtons[1]);
+    fireEvent.click(await screen.findByRole('button', { name: /charmander/i }));
+
     fireEvent.click(addButton);
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining(`/tournaments/${mockTournamentCode}/participants`),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({ name: 'Charlie' })
-        })
-      );
+        expect(fetch).toHaveBeenCalledWith(
+          expect.stringContaining(`/tournaments/${mockTournamentCode}/participants`),
+          expect.objectContaining({
+            method: 'POST',
+            body: JSON.stringify({ name: 'Charlie', pokemon_1: '1', pokemon_2: '4' })
+          })
+        );
       expect(mockOnUpdate).toHaveBeenCalled();
     });
   });
 
   it('handles participant removal', async () => {
-    (fetch as any).mockResolvedValue({
-      ok: true
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: [] })
+        });
+      }
+      return Promise.resolve({ ok: true });
     });
 
     render(
