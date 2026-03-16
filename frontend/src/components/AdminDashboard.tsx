@@ -61,7 +61,9 @@ export default function AdminDashboard() {
   const presets: [number, number][] = [
     [2, 0],
     [2, 1],
+    [1, 0],
     [1, 2],
+    [0, 1],
     [0, 2],
     [1, 1]
   ];
@@ -469,9 +471,8 @@ export default function AdminDashboard() {
           <div className="flex-1 max-w-4xl">
             <ReportMatchModal
               isOpen={Boolean(reportingMatch)}
-              playerName={reportingMatch
-                ? `${getPlayerName(reportingMatch.player1_id)} vs ${getPlayerName(reportingMatch.player2_id)}`
-                : ''}
+              playerLabel={reportingMatch ? getPlayerName(reportingMatch.player1_id) : t('commonPlayerWithId', { id: '?' })}
+              opponentLabel={reportingMatch ? getPlayerName(reportingMatch.player2_id) : t('commonPlayerWithId', { id: '?' })}
               presets={presets}
               selectedPreset={selectedPreset}
               isSubmitting={isSubmittingReport}
