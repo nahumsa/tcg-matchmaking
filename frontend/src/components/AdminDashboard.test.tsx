@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import AdminDashboard from './AdminDashboard';
@@ -37,15 +37,17 @@ describe('AdminDashboard', () => {
     }));
   });
 
-  it('renders correctly', () => {
+  it('renders correctly', async () => {
     render(
       <MemoryRouter>
         <AdminDashboard />
       </MemoryRouter>
     );
-    expect(screen.getByText(/Admin Dashboard/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/e.g. Swiss Open #1/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Create New Tournament/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Admin Dashboard/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/e.g. Swiss Open #1/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Create New Tournament/i })).toBeInTheDocument();
+    });
   });
 
   it('handles form submission successfully and shows management view', async () => {
@@ -58,6 +60,12 @@ describe('AdminDashboard', () => {
     };
 
     (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: [] })
+        });
+      }
       if (url.includes('/tournaments/ABCDEF/matches')) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
       }
@@ -89,8 +97,14 @@ describe('AdminDashboard', () => {
   });
 
   it('handles form submission error', async () => {
-    (fetch as any).mockResolvedValue({
-      ok: false
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: [] })
+        });
+      }
+      return Promise.resolve({ ok: false });
     });
 
     render(
@@ -117,6 +131,12 @@ describe('AdminDashboard', () => {
     };
 
     (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: [] })
+        });
+      }
       if (url.includes('/tournaments/ABCDEF/matches')) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
       }
@@ -145,6 +165,54 @@ describe('AdminDashboard', () => {
         expect(link.closest('a')).toHaveAttribute('href', '/tournament/ABCDEF');
       });
     });
+  });
+
+  it('shows win percentage in final standings', async () => {
+    const mockTournament = {
+      id: 1,
+      name: 'Swiss Open #1',
+      code: 'ABCDEF',
+      rounds: 3,
+      status: 'COMPLETED'
+    };
+    const mockStandings = [
+      { id: 1, name: 'Alice', rank: 1, points: 7, wins: 2, losses: 1, draws: 1, omw_percentage: 0.6 }
+    ];
+
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [] }) });
+      }
+      if (url.includes('/tournaments/ABCDEF/matches')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.includes('/tournaments/ABCDEF/participants')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.includes('/tournaments/ABCDEF/standings')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(mockStandings) });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockTournament)
+      });
+    });
+
+    render(
+      <MemoryRouter>
+        <AdminDashboard />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByPlaceholderText(/e.g. Swiss Open #1/i), { target: { value: 'Swiss Open #1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Create New Tournament/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /Final Standings/i })).toBeInTheDocument();
+    });
+
+    const table = screen.getByRole('table');
+    expect(await within(table).findByText('62.5%')).toBeInTheDocument();
   });
 
   it('requires double confirmation before starting the first round', async () => {

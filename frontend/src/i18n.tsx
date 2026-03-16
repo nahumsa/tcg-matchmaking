@@ -114,6 +114,7 @@ const MESSAGES = {
     adminPokemon: 'Pokemon',
     adminPoints: 'Points',
     adminRecord: 'Record',
+    adminWinPercent: 'Win %',
     adminOMW: 'OMW%',
     adminCompletedStatus: 'Completed',
 
@@ -128,6 +129,7 @@ const MESSAGES = {
     tournamentCurrentRank: 'Current Rank',
     tournamentPoints: 'Points',
     tournamentRecord: 'Record (W-L-D)',
+    tournamentWinPercent: 'Win %',
     tournamentOMW: 'OMW%',
     tournamentPossibleOpponents: 'Possible Opponents',
     tournamentNone: 'None',
@@ -255,6 +257,7 @@ const MESSAGES = {
     adminPokemon: 'Pokémon',
     adminPoints: 'Pontos',
     adminRecord: 'Resultado',
+    adminWinPercent: '% de Vitórias',
     adminOMW: 'OMW%',
     adminCompletedStatus: 'Finalizado',
 
@@ -269,6 +272,7 @@ const MESSAGES = {
     tournamentCurrentRank: 'Posição atual',
     tournamentPoints: 'Pontos',
     tournamentRecord: 'Resultado (V-D-E)',
+    tournamentWinPercent: 'Vitórias %',
     tournamentOMW: 'OMW%',
     tournamentPossibleOpponents: 'Possíveis oponentes',
     tournamentNone: 'Nenhum',

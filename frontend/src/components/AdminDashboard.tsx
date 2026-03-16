@@ -327,6 +327,12 @@ export default function AdminDashboard() {
     }));
   };
 
+  const getWinPercentage = (wins = 0, losses = 0, draws = 0) => {
+    const total = wins + losses + draws;
+    if (total === 0) return 0;
+    return ((wins + draws * 0.5) / total) * 100;
+  };
+
   if (tournament) {
     const currentRound = matches.length > 0 ? Math.max(...matches.map((m) => m.round_number)) : 0;
     const roundMatches = matches.filter((m) => m.round_number === currentRound);
@@ -364,7 +370,8 @@ export default function AdminDashboard() {
           const summary = standingsData.map((s: Participant) => {
             const p1Name = (s.pokemon_1 ? pokemonMap[s.pokemon_1] : null) || s.pokemon_1 || t('commonNone');
             const p2Name = (s.pokemon_2 ? pokemonMap[s.pokemon_2] : null) || s.pokemon_2 || t('commonNone');
-            return `${s.rank}. ${s.name} (${s.points} pts, ${s.wins}-${s.losses}-${s.draws}) (${p1Name}, ${p2Name})`;
+            const winPercent = getWinPercentage(s.wins ?? 0, s.losses ?? 0, s.draws ?? 0).toFixed(1);
+            return `${s.rank}. ${s.name} (${s.points} pts, ${s.wins}-${s.losses}-${s.draws}, ${winPercent}%) (${p1Name}, ${p2Name})`;
           }).join('\n');
 
           const blob = new Blob([summary], { type: 'text/plain' });
@@ -442,11 +449,10 @@ export default function AdminDashboard() {
                   <button
                     onClick={handleStartConfirm}
                     disabled={!isConfirmValid || loading}
-                    className={`px-4 py-2 rounded-lg font-bold text-white transition ${
-                      !isConfirmValid || loading
+                    className={`px-4 py-2 rounded-lg font-bold text-white transition ${!isConfirmValid || loading
                         ? 'bg-blue-300 cursor-not-allowed'
                         : 'bg-blue-600 hover:bg-blue-700'
-                    }`}
+                      }`}
                   >
                     {t('adminStartConfirmButton')}
                   </button>
@@ -470,9 +476,8 @@ export default function AdminDashboard() {
                 <button
                   onClick={() => (currentRound >= tournament.rounds ? completeTournament() : handleStartClick())}
                   disabled={loading || (currentRound > 0 && !allCompleted) || isTournamentFinished}
-                  className={`py-3 px-6 text-white font-bold rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
-                    currentRound >= tournament.rounds ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
+                  className={`py-3 px-6 text-white font-bold rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${currentRound >= tournament.rounds ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                 >
                   {currentRound === 0 ? t('adminStartRound') : currentRound >= tournament.rounds ? t('adminEndTournament') : t('adminNextRound')}
                 </button>
@@ -521,6 +526,7 @@ export default function AdminDashboard() {
                           <th className="px-6 py-4">{t('adminPokemon')}</th>
                           <th className="px-6 py-4">{t('adminPoints')}</th>
                           <th className="px-6 py-4">{t('adminRecord')}</th>
+                          <th className="px-6 py-4 text-right">{t('adminWinPercent')}</th>
                           <th className="px-6 py-4 text-right">{t('adminOMW')}</th>
                         </tr>
                       </thead>
@@ -544,6 +550,9 @@ export default function AdminDashboard() {
                             </td>
                             <td className="px-6 py-4 font-black text-blue-600">{s.points}</td>
                             <td className="px-6 py-4 text-sm text-gray-500 font-medium">{s.wins}-{s.losses}-{s.draws}</td>
+                            <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">
+                              {getWinPercentage(s.wins ?? 0, s.losses ?? 0, s.draws ?? 0).toFixed(1)}%
+                            </td>
                             <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">
                               {((s.omw_percentage || 0) * 100).toFixed(1)}%
                             </td>

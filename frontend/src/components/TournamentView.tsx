@@ -178,6 +178,12 @@ export default function TournamentView() {
   const rounds = [...new Set(matches.map((m) => m.round_number))].sort((a, b) => b - a);
   const myStanding = standings.find((s) => s.id === participantId);
 
+  const getWinPercentage = (wins = 0, losses = 0, draws = 0) => {
+    const total = wins + losses + draws;
+    if (total === 0) return 0;
+    return ((wins + draws * 0.5) / total) * 100;
+  };
+
   const renderPlayer = (id: number | null) => {
     if (id === null) return <span className="text-gray-400">-</span>;
     const player = standings.find((s) => s.id === id);
@@ -292,7 +298,7 @@ export default function TournamentView() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-blue-500">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-4 border-t border-blue-500">
             <div>
               <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">{t('tournamentPoints')}</div>
               <div className="text-lg font-bold">{myStanding.points}</div>
@@ -300,6 +306,10 @@ export default function TournamentView() {
             <div>
               <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">{t('tournamentRecord')}</div>
               <div className="text-lg font-bold">{myStanding.wins}-{myStanding.losses}-{myStanding.draws}</div>
+            </div>
+            <div>
+              <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">{t('tournamentWinPercent')}</div>
+              <div className="text-lg font-bold">{getWinPercentage(myStanding.wins, myStanding.losses, myStanding.draws).toFixed(1)}%</div>
             </div>
             <div>
               <div className="text-blue-200 text-[10px] font-bold uppercase tracking-widest">{t('tournamentOMW')}</div>
@@ -386,6 +396,7 @@ export default function TournamentView() {
                 <th className="px-6 py-4">{t('tournamentPokemon')}</th>
                 <th className="px-6 py-4">{t('tournamentPoints')}</th>
                 <th className="px-6 py-4">{t('tournamentRecord')}</th>
+                <th className="px-6 py-4 text-right">{t('tournamentWinPercent')}</th>
                 <th className="px-6 py-4 text-right">{t('tournamentOMW')}</th>
               </tr>
             </thead>
@@ -410,12 +421,13 @@ export default function TournamentView() {
                   </td>
                   <td className="px-6 py-4 font-black text-blue-600">{s.points}</td>
                   <td className="px-6 py-4 text-sm text-gray-500 font-medium">{s.wins}-{s.losses}-{s.draws}</td>
+                  <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">{getWinPercentage(s.wins, s.losses, s.draws).toFixed(1)}%</td>
                   <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">{(s.omw_percentage * 100).toFixed(1)}%</td>
                 </tr>
               ))}
               {standings.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 italic">{t('tournamentNoParticipants')}</td>
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400 italic">{t('tournamentNoParticipants')}</td>
                 </tr>
               )}
             </tbody>
