@@ -290,4 +290,80 @@ describe('AdminDashboard', () => {
       expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/tournaments/ABCDEF/pairings'), expect.objectContaining({ method: 'POST' }));
     });
   });
+
+  it('uses the report modal to submit admin match results', async () => {
+    const mockTournament = {
+      id: 1,
+      name: 'Swiss Open #1',
+      code: 'ABCDEF',
+      rounds: 3,
+      status: 'ACTIVE'
+    };
+    const mockMatches = [
+      {
+        id: 10,
+        round_number: 1,
+        player1_id: 1,
+        player2_id: 2,
+        player1_score: 0,
+        player2_score: 0,
+        is_bye: 0,
+        is_completed: 0,
+        table_number: 1
+      }
+    ];
+    const mockParticipants = [
+      { id: 1, name: 'Alice', points: 0 },
+      { id: 2, name: 'Bob', points: 0 }
+    ];
+
+    const fetchMock = vi.fn((url: string) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [] }) });
+      }
+      if (url.endsWith('/tournaments')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(mockTournament) });
+      }
+      if (url.includes('/tournaments/ABCDEF/matches')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(mockMatches) });
+      }
+      if (url.includes('/tournaments/ABCDEF/participants')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(mockParticipants) });
+      }
+      if (url.includes('/tournaments/ABCDEF/standings')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.includes('/tournaments/ABCDEF/matches/10/report')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+    });
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(
+      <MemoryRouter>
+        <AdminDashboard />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. Swiss Open #1/i), { target: { value: 'Swiss Open #1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Create New Tournament/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Round 1 of 3/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Report/i }));
+    fireEvent.click(screen.getByRole('button', { name: /2 - 0/i }));
+
+    const submitButton = screen.getByRole('button', { name: /Submit Result/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      const reportCalls = fetchMock.mock.calls.filter(([u, opts]) => u.toString().includes('/matches/10/report') && opts?.method === 'POST');
+      expect(reportCalls.length).toBeGreaterThan(0);
+      expect(reportCalls[0][1]?.body).toBe(JSON.stringify({ player1_score: 2, player2_score: 0, is_admin: true }));
+    });
+  });
 });

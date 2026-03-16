@@ -5,6 +5,7 @@ import ParticipantList from './ParticipantList';
 import ActivityLog, { type ActivityEvent } from './ActivityLog';
 import { useLanguage } from '../i18n';
 import PokemonSprite from './PokemonSprite';
+import ReportMatchModal from './ReportMatchModal';
 
 interface Tournament {
   id: number;
@@ -48,13 +49,22 @@ export default function AdminDashboard() {
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [scoreInputs, setScoreInputs] = useState<Record<number, { p1: number; p2: number }>>({});
   const { t } = useLanguage();
   const [pokemonMap, setPokemonMap] = useState<Record<string, string>>({});
   const [isStartModalOpen, setIsStartModalOpen] = useState(false);
   const [startStep, setStartStep] = useState<1 | 2>(1);
   const [confirmInput, setConfirmInput] = useState('');
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [reportingMatch, setReportingMatch] = useState<Match | null>(null);
+  const [selectedPreset, setSelectedPreset] = useState<[number, number] | null>(null);
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const presets: [number, number][] = [
+    [2, 0],
+    [2, 1],
+    [1, 2],
+    [0, 2],
+    [1, 1]
+  ];
 
   useEffect(() => {
     const fetchPokemon = async () => {
@@ -291,40 +301,34 @@ export default function AdminDashboard() {
     }
   };
 
-  const reportResult = async (matchId: number) => {
-    if (!tournament) return;
-    const existingMatch = matches.find((m) => m.id === matchId);
-    const selectedScore = scoreInputs[matchId] ?? {
-      p1: existingMatch?.player1_score ?? 0,
-      p2: existingMatch?.player2_score ?? 0,
-    };
+  const reportResult = async () => {
+    if (!tournament || !reportingMatch || !selectedPreset) return;
+    setIsSubmittingReport(true);
     try {
-      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/matches/${matchId}/report`, {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/matches/${reportingMatch.id}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          player1_score: selectedScore.p1,
-          player2_score: selectedScore.p2,
+          player1_score: selectedPreset[0],
+          player2_score: selectedPreset[1],
           is_admin: true
         }),
       });
       if (!response.ok) throw new Error(t('adminReportFailed'));
       await fetchMatches();
       await fetchStandings();
+      setReportingMatch(null);
+      setSelectedPreset(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
+    } finally {
+      setIsSubmittingReport(false);
     }
   };
 
-  const handleScoreChange = (matchId: number, player: 'p1' | 'p2', value: string) => {
-    const parsedValue = Math.max(0, Number.parseInt(value, 10) || 0);
-    setScoreInputs((prev) => ({
-      ...prev,
-      [matchId]: {
-        p1: player === 'p1' ? parsedValue : (prev[matchId]?.p1 ?? 0),
-        p2: player === 'p2' ? parsedValue : (prev[matchId]?.p2 ?? 0),
-      },
-    }));
+  const handleReportOpen = (match: Match) => {
+    setReportingMatch(match);
+    setSelectedPreset([match.player1_score, match.player2_score]);
   };
 
   const getWinPercentage = (wins = 0, losses = 0, draws = 0) => {
@@ -463,6 +467,21 @@ export default function AdminDashboard() {
         )}
         <div className="flex flex-col md:flex-row flex-1 p-4 sm:p-8 space-y-8 md:space-y-0 md:space-x-8">
           <div className="flex-1 max-w-4xl">
+            <ReportMatchModal
+              isOpen={Boolean(reportingMatch)}
+              playerName={reportingMatch
+                ? `${getPlayerName(reportingMatch.player1_id)} vs ${getPlayerName(reportingMatch.player2_id)}`
+                : ''}
+              presets={presets}
+              selectedPreset={selectedPreset}
+              isSubmitting={isSubmittingReport}
+              onSelectPreset={setSelectedPreset}
+              onClose={() => {
+                setReportingMatch(null);
+                setSelectedPreset(null);
+              }}
+              onSubmit={reportResult}
+            />
             <div className="flex justify-between items-end mb-8">
               <div>
                 <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter mb-2">{tournament.name}</h1>
@@ -587,27 +606,10 @@ export default function AdminDashboard() {
                         {match.is_bye ? (
                           <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">{t('adminBye')}</div>
                         ) : (
-                          <div className="flex-1 flex items-center justify-center space-x-2 px-4">
-                            <input
-                              type="number"
-                              min={0}
-                              className="w-16 p-2 border rounded text-center font-bold"
-                              value={scoreInputs[match.id]?.p1 ?? 0}
-                              onChange={(e) => handleScoreChange(match.id, 'p1', e.target.value)}
-                              aria-label={t('commonScoreForPlayer', { name: getPlayerName(match.player1_id) })}
-                            />
-                            <span className="text-gray-300">-</span>
-                            <input
-                              type="number"
-                              min={0}
-                              className="w-16 p-2 border rounded text-center font-bold"
-                              value={scoreInputs[match.id]?.p2 ?? 0}
-                              onChange={(e) => handleScoreChange(match.id, 'p2', e.target.value)}
-                              aria-label={t('commonScoreForPlayer', { name: getPlayerName(match.player2_id) })}
-                            />
+                          <div className="flex-1 flex items-center justify-center px-4">
                             <button
-                              onClick={() => reportResult(match.id)}
-                              className={`ml-4 px-4 py-2 text-white text-sm font-bold rounded-lg transition ${match.is_completed ? 'bg-gray-400 hover:bg-gray-500' : 'bg-gray-800 hover:bg-black'
+                              onClick={() => handleReportOpen(match)}
+                              className={`px-4 py-2 text-white text-sm font-bold rounded-lg transition ${match.is_completed ? 'bg-gray-400 hover:bg-gray-500' : 'bg-gray-800 hover:bg-black'
                                 }`}
                               disabled={isTournamentFinished}
                             >
