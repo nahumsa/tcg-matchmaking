@@ -333,18 +333,18 @@ export default function AdminDashboard() {
   if (tournament) {
     const currentRound = matches.length > 0 ? Math.max(...matches.map((m) => m.round_number)) : 0;
     const roundMatches = matches.filter((m) => m.round_number === currentRound);
-    const allCompleted = roundMatches.every((m) => m.is_completed);
+    const allCompleted = roundMatches.every((m) => Number(m.is_completed) === 1);
     const isTournamentFinished = tournament.status === 'COMPLETED';
     const isConfirmValid = confirmInput.trim().toUpperCase() === tournament.code.toUpperCase();
 
     const getPlayerName = (id: number | null) => {
-      if (id === null) return '-';
+      if (id === null || id === 0) return '-';
       const player = participants.find((p) => p.id === id);
       return player ? player.name : t('commonPlayerWithId', { id });
     };
 
     const renderPlayer = (id: number | null) => {
-      if (id === null) return <span className="text-gray-400">-</span>;
+      if (id === null || id === 0) return <span className="text-gray-400">-</span>;
       const player = participants.find((p) => p.id === id);
       if (!player) return <span>{t('commonPlayerWithId', { id })}</span>;
 
@@ -447,8 +447,8 @@ export default function AdminDashboard() {
                     onClick={handleStartConfirm}
                     disabled={!isConfirmValid || loading}
                     className={`px-4 py-2 rounded-lg font-bold text-white transition ${!isConfirmValid || loading
-                        ? 'bg-blue-300 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700'
+                      ? 'bg-blue-300 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700'
                       }`}
                   >
                     {t('adminStartConfirmButton')}
@@ -586,44 +586,49 @@ export default function AdminDashboard() {
                 {roundMatches.length === 0 ? (
                   <p className="text-gray-400 italic">{t('adminNoMatches')}</p>
                 ) : (
-                  roundMatches.map((match) => (
-                    <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col space-y-4">
-                      <div className="flex justify-between items-center border-b border-gray-50 pb-2">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('adminTable')} {match.table_number || '?'}</span>
-                        {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">{t('adminCompletedStatus')}</span>}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 font-bold text-lg">{renderPlayer(match.player1_id)}</div>
+                  roundMatches.map((match) => {
+                    const isMatchCompleted = Number(match.is_completed) === 1;
+                    return (
+                      <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col space-y-4">
+                        <div className="flex justify-between items-center border-b border-gray-50 pb-2">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                            {t('adminTable')} {match.table_number || '-'}
+                          </span>
+                          {isMatchCompleted && <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">{t('adminCompletedStatus')}</span>}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 font-bold text-lg">{renderPlayer(match.player1_id)}</div>
 
-                        {match.is_bye ? (
-                          <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">{t('adminBye')}</div>
-                        ) : (
-                          <div className="flex-1 flex flex-col items-center justify-center px-4 gap-3">
-                            {match.is_completed && (
-                              <div
-                                data-testid={`match-score-${match.id}`}
-                                className="inline-flex items-center space-x-2 bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl font-mono font-black text-xl"
+                          {match.is_bye ? (
+                            <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">{t('adminBye')}</div>
+                          ) : (
+                            <div className="flex-1 flex flex-col items-center justify-center px-4 gap-3">
+                              {isMatchCompleted && (
+                                <div
+                                  data-testid={`match-score-${match.id}`}
+                                  className="inline-flex items-center space-x-2 bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl font-mono font-black text-xl"
+                                >
+                                  <span>{match.player1_score}</span>
+                                  <span className="text-gray-300">-</span>
+                                  <span>{match.player2_score}</span>
+                                </div>
+                              )}
+                              <button
+                                onClick={() => handleReportOpen(match)}
+                                className={`px-4 py-2 text-white text-sm font-bold rounded-lg transition ${isMatchCompleted ? 'bg-gray-400 hover:bg-gray-500' : 'bg-gray-800 hover:bg-black'
+                                  }`}
+                                disabled={isTournamentFinished}
                               >
-                                <span>{match.player1_score}</span>
-                                <span className="text-gray-300">-</span>
-                                <span>{match.player2_score}</span>
-                              </div>
-                            )}
-                            <button
-                              onClick={() => handleReportOpen(match)}
-                              className={`px-4 py-2 text-white text-sm font-bold rounded-lg transition ${match.is_completed ? 'bg-gray-400 hover:bg-gray-500' : 'bg-gray-800 hover:bg-black'
-                                }`}
-                              disabled={isTournamentFinished}
-                            >
-                              {match.is_completed ? t('adminOverride') : t('adminReport')}
-                            </button>
-                          </div>
-                        )}
+                                {isMatchCompleted ? t('adminOverride') : t('adminReport')}
+                              </button>
+                            </div>
+                          )}
 
-                        <div className="flex-1 font-bold text-lg text-right flex justify-end">{match.is_bye ? '-' : renderPlayer(match.player2_id)}</div>
+                          <div className="flex-1 font-bold text-lg text-right flex justify-end">{match.is_bye ? '-' : renderPlayer(match.player2_id)}</div>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>

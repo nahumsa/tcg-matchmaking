@@ -36,7 +36,7 @@ export default function ReportMatchModal({
         </p>
 
         <div className="mb-4 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
+          <div className="flex items-center justify-between text-lg md:text-xl font-bold uppercase tracking-wider text-gray-400">
             <span>{playerLabel}</span>
             <span>{opponentLabel}</span>
           </div>
