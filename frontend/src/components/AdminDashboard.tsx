@@ -607,7 +607,17 @@ export default function AdminDashboard() {
                         {match.is_bye ? (
                           <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">{t('adminBye')}</div>
                         ) : (
-                          <div className="flex-1 flex items-center justify-center px-4">
+                          <div className="flex-1 flex flex-col items-center justify-center px-4 gap-3">
+                            {match.is_completed && (
+                              <div
+                                data-testid={`match-score-${match.id}`}
+                                className="inline-flex items-center space-x-2 bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl font-mono font-black text-xl"
+                              >
+                                <span>{match.player1_score}</span>
+                                <span className="text-gray-300">-</span>
+                                <span>{match.player2_score}</span>
+                              </div>
+                            )}
                             <button
                               onClick={() => handleReportOpen(match)}
                               className={`px-4 py-2 text-white text-sm font-bold rounded-lg transition ${match.is_completed ? 'bg-gray-400 hover:bg-gray-500' : 'bg-gray-800 hover:bg-black'

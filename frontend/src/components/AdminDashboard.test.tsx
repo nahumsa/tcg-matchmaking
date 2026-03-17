@@ -366,4 +366,84 @@ describe('AdminDashboard', () => {
       expect(reportCalls[0][1]?.body).toBe(JSON.stringify({ player1_score: 2, player2_score: 0, is_admin: true }));
     });
   });
+
+  it('shows scores only for completed matches', async () => {
+    const mockTournament = {
+      id: 1,
+      name: 'Swiss Open #1',
+      code: 'ABCDEF',
+      rounds: 3,
+      status: 'ACTIVE'
+    };
+    const mockMatches = [
+      {
+        id: 10,
+        round_number: 1,
+        player1_id: 1,
+        player2_id: 2,
+        player1_score: 2,
+        player2_score: 1,
+        is_bye: 0,
+        is_completed: 1,
+        table_number: 1
+      },
+      {
+        id: 11,
+        round_number: 1,
+        player1_id: 3,
+        player2_id: 4,
+        player1_score: 0,
+        player2_score: 0,
+        is_bye: 0,
+        is_completed: 0,
+        table_number: 2
+      }
+    ];
+    const mockParticipants = [
+      { id: 1, name: 'Alice', points: 0 },
+      { id: 2, name: 'Bob', points: 0 },
+      { id: 3, name: 'Cara', points: 0 },
+      { id: 4, name: 'Dan', points: 0 }
+    ];
+
+    const fetchMock = vi.fn((url: string) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [] }) });
+      }
+      if (url.endsWith('/tournaments')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(mockTournament) });
+      }
+      if (url.includes('/tournaments/ABCDEF/matches')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(mockMatches) });
+      }
+      if (url.includes('/tournaments/ABCDEF/participants')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(mockParticipants) });
+      }
+      if (url.includes('/tournaments/ABCDEF/standings')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+    });
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(
+      <MemoryRouter>
+        <AdminDashboard />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. Swiss Open #1/i), { target: { value: 'Swiss Open #1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Create New Tournament/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Round 1 of 3/i)).toBeInTheDocument();
+    });
+
+    const completedScore = screen.getByTestId('match-score-10');
+    expect(within(completedScore).getByText('2')).toBeInTheDocument();
+    expect(within(completedScore).getByText('-')).toBeInTheDocument();
+    expect(within(completedScore).getByText('1')).toBeInTheDocument();
+    expect(screen.queryByTestId('match-score-11')).not.toBeInTheDocument();
+  });
 });
