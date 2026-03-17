@@ -34,7 +34,7 @@ export default function PokemonSelector({
       .filter(
         (p) =>
           (p.id.toString() !== excluded || p.id.toString() === selected)
-          && p.name.toLowerCase().includes(term)
+          && p.displayName.toLowerCase().includes(term)
       )
       .slice(0, 50);
   }, [pokemonList, search, excluded, selected]);
@@ -53,8 +53,8 @@ export default function PokemonSelector({
         >
           {selectedPokemon ? (
             <span className="flex items-center gap-2">
-              <img src={selectedPokemon.sprite} alt={selectedPokemon.name} className="w-8 h-8" />
-              <span className="font-medium capitalize">{selectedPokemon.name}</span>
+              <img src={selectedPokemon.sprite} alt={selectedPokemon.displayName} className="w-8 h-8" />
+              <span className="font-medium">{selectedPokemon.displayName}</span>
             </span>
           ) : (
             <span className="text-gray-400">{t('joinChoosePokemon')}</span>
@@ -97,8 +97,8 @@ export default function PokemonSelector({
                     setIsOpen(false);
                   }}
                 >
-                  <img src={option.sprite} alt={option.name} className="w-8 h-8" loading="lazy" />
-                  <span className="capitalize">{option.name}</span>
+                  <img src={option.sprite} alt={option.displayName} className="w-8 h-8" loading="lazy" />
+                  <span>{option.displayName}</span>
                 </button>
               ))}
               {filteredOptions.length === 0 && (

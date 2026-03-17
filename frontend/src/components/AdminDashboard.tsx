@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { config } from '../config';
 import ParticipantList from './ParticipantList';
@@ -6,6 +6,7 @@ import ActivityLog, { type ActivityEvent } from './ActivityLog';
 import { useLanguage } from '../i18n';
 import PokemonSprite from './PokemonSprite';
 import ReportMatchModal from './ReportMatchModal';
+import { usePokemonList } from '../hooks/usePokemonList';
 
 interface Tournament {
   id: number;
@@ -50,7 +51,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { t } = useLanguage();
-  const [pokemonMap, setPokemonMap] = useState<Record<string, string>>({});
+  const { pokemonList } = usePokemonList();
   const [isStartModalOpen, setIsStartModalOpen] = useState(false);
   const [startStep, setStartStep] = useState<1 | 2>(1);
   const [confirmInput, setConfirmInput] = useState('');
@@ -68,23 +69,13 @@ export default function AdminDashboard() {
     [1, 1]
   ];
 
-  useEffect(() => {
-    const fetchPokemon = async () => {
-      try {
-        const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025');
-        const data = await response.json();
-        const map: Record<string, string> = {};
-        data.results.forEach((p: { name: string; url: string }) => {
-          const id = p.url.split('/').filter(Boolean).pop() || '0';
-          map[id] = p.name.charAt(0).toUpperCase() + p.name.slice(1);
-        });
-        setPokemonMap(map);
-      } catch (err) {
-        console.error('Failed to fetch pokemon list', err);
-      }
-    };
-    fetchPokemon();
-  }, []);
+  const pokemonMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    pokemonList.forEach((pokemon) => {
+      map[pokemon.id.toString()] = pokemon.displayName;
+    });
+    return map;
+  }, [pokemonList]);
 
   useEffect(() => {
     if (!tournament) {
