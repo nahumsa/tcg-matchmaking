@@ -428,17 +428,17 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              <div className="flex justify-end space-x-3 pt-2">
+              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
                 <button
                   onClick={closeStartModal}
-                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:w-auto"
                 >
                   {t('adminStartCancel')}
                 </button>
                 {startStep === 1 ? (
                   <button
                     onClick={handleStartConfirmContinue}
-                    className="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700"
+                    className="w-full rounded-lg bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700 sm:w-auto"
                   >
                     {t('adminStartContinue')}
                   </button>
@@ -446,7 +446,7 @@ export default function AdminDashboard() {
                   <button
                     onClick={handleStartConfirm}
                     disabled={!isConfirmValid || loading}
-                    className={`px-4 py-2 rounded-lg font-bold text-white transition ${!isConfirmValid || loading
+                    className={`w-full rounded-lg px-4 py-2 font-bold text-white transition sm:w-auto ${!isConfirmValid || loading
                       ? 'bg-blue-300 cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-700'
                       }`}
@@ -458,7 +458,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-        <div className="flex flex-col md:flex-row flex-1 p-4 sm:p-8 space-y-8 md:space-y-0 md:space-x-8">
+        <div className="flex flex-1 flex-col gap-6 p-4 sm:gap-8 sm:p-6 md:flex-row md:items-start md:p-8">
           <div className="flex-1 max-w-4xl">
             <ReportMatchModal
               isOpen={Boolean(reportingMatch)}
@@ -474,20 +474,20 @@ export default function AdminDashboard() {
               }}
               onSubmit={reportResult}
             />
-            <div className="flex justify-between items-end mb-8">
-              <div>
-                <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter mb-2">{tournament.name}</h1>
-                <div className="flex items-center space-x-4">
-                  <span className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold tracking-widest uppercase">{tournament.code}</span>
-                  <span className="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold tracking-widest uppercase">{participants.length} {t('adminPlayers')}</span>
-                  <Link to={`/tournament/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">{t('adminPublicView')}</Link>
+            <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:gap-6 md:flex-row md:items-end md:justify-between">
+              <div className="space-y-3">
+                <h1 className="mb-0 text-3xl font-black uppercase tracking-tighter text-gray-800 sm:text-4xl">{tournament.name}</h1>
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="rounded bg-blue-600 px-3 py-1 text-sm font-bold uppercase tracking-widest text-white">{tournament.code}</span>
+                  <span className="rounded bg-green-600 px-3 py-1 text-sm font-bold uppercase tracking-widest text-white">{participants.length} {t('adminPlayers')}</span>
+                  <Link to={`/tournament/${tournament.code}`} target="_blank" className="text-sm font-medium text-blue-600 hover:underline">{t('adminPublicView')}</Link>
                 </div>
               </div>
-              <div className="flex space-x-4">
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap md:w-auto md:justify-end">
                 <button
                   onClick={() => (currentRound >= tournament.rounds ? completeTournament() : handleStartClick())}
                   disabled={loading || (currentRound > 0 && !allCompleted) || isTournamentFinished}
-                  className={`py-3 px-6 text-white font-bold rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${currentRound >= tournament.rounds ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
+                  className={`w-full rounded-xl px-6 py-3 text-center font-bold text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${currentRound >= tournament.rounds ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
                     }`}
                 >
                   {currentRound === 0 ? t('adminStartRound') : currentRound >= tournament.rounds ? t('adminEndTournament') : t('adminNextRound')}
@@ -496,7 +496,7 @@ export default function AdminDashboard() {
                   <button
                     onClick={completeTournament}
                     disabled={loading}
-                    className="py-3 px-6 bg-gray-600 text-white font-bold rounded-xl hover:bg-gray-700 transition shadow-lg"
+                    className="w-full rounded-xl bg-gray-600 px-6 py-3 text-center font-bold text-white shadow-lg transition hover:bg-gray-700 sm:w-auto"
                   >
                     {t('adminEndEarly')}
                   </button>
@@ -506,19 +506,19 @@ export default function AdminDashboard() {
 
             {isTournamentFinished && (
               <div className="space-y-6">
-                <div className="p-6 bg-green-600 rounded-2xl text-white shadow-xl shadow-green-100 flex items-center justify-between">
-                  <div>
+                <div className="flex flex-col gap-4 rounded-2xl bg-green-600 p-5 text-white shadow-xl shadow-green-100 sm:p-6 md:flex-row md:items-center md:justify-between">
+                  <div className="space-y-1">
                     <h2 className="text-2xl font-black uppercase tracking-tight">{t('adminCompleted')}</h2>
                     <p className="text-green-100 font-medium">{t('adminCompletedDescription')}</p>
                   </div>
-                  <div className="flex space-x-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:justify-end">
                     <button
                       onClick={handleExport}
-                      className="px-6 py-2 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 transition"
+                      className="w-full rounded-lg bg-green-700 px-6 py-2 text-center font-bold text-white transition hover:bg-green-800 sm:w-auto"
                     >
                       {t('adminExportResults')}
                     </button>
-                    <Link to={`/tournament/${tournament.code}`} target="_blank" className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-50 transition">
+                    <Link to={`/tournament/${tournament.code}`} target="_blank" className="w-full rounded-lg bg-white px-6 py-2 text-center font-bold text-green-700 transition hover:bg-green-50 sm:w-auto">
                       {t('adminViewFinalStandings')}
                     </Link>
                   </div>
@@ -650,10 +650,10 @@ export default function AdminDashboard() {
   const isFormValid = name.trim().length > 0;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-      <h1 className="text-3xl font-bold text-blue-600 mb-6 uppercase tracking-wider">{t('adminTitle')}</h1>
-      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-100">
-        <h2 className="text-xl font-semibold mb-6 text-gray-800">{t('adminCreateTournament')}</h2>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-6 sm:px-6 sm:py-10">
+      <h1 className="mb-4 text-2xl font-bold uppercase tracking-wider text-blue-600 sm:mb-6 sm:text-3xl">{t('adminTitle')}</h1>
+      <div className="w-full max-w-md rounded-xl border border-gray-100 bg-white p-5 shadow-lg sm:p-8">
+        <h2 className="mb-5 text-lg font-semibold text-gray-800 sm:mb-6 sm:text-xl">{t('adminCreateTournament')}</h2>
         <form onSubmit={handleCreateTournament} className="space-y-5" noValidate>
           <div>
             <label htmlFor="tournament-name" className="block text-sm font-medium text-gray-700 mb-1">{t('adminTournamentName')}</label>
