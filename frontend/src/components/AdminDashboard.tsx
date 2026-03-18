@@ -330,6 +330,20 @@ export default function AdminDashboard() {
     return ((wins + draws * 0.5) / total) * 100;
   };
 
+  const renderStandingPokemon = (standing: Participant, compact = false) => (
+    <div className="flex items-center space-x-2">
+      <div className="flex -space-x-2">
+        <PokemonSprite pokemonId={standing.pokemon_1} size={compact ? 'md' : 'sm'} />
+        <PokemonSprite pokemonId={standing.pokemon_2} size={compact ? 'md' : 'sm'} />
+      </div>
+      {!compact && (
+        <span className="text-xs text-gray-500 capitalize">
+          {pokemonMap[standing.pokemon_1 || ''] || ''} / {pokemonMap[standing.pokemon_2 || ''] || ''}
+        </span>
+      )}
+    </div>
+  );
+
   if (tournament) {
     const currentRound = matches.length > 0 ? Math.max(...matches.map((m) => m.round_number)) : 0;
     const roundMatches = matches.filter((m) => m.round_number === currentRound);
@@ -528,49 +542,103 @@ export default function AdminDashboard() {
                   <div className="p-6 border-b border-gray-50 flex justify-between items-center">
                     <h3 className="text-xl font-bold text-gray-800">{t('adminFinalStandings')}</h3>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-gray-100">
-                          <th className="px-6 py-4 text-center">{t('adminRank')}</th>
-                          <th className="px-6 py-4">{t('adminPlayer')}</th>
-                          <th className="px-6 py-4">{t('adminPokemon')}</th>
-                          <th className="px-6 py-4">{t('adminPoints')}</th>
-                          <th className="px-6 py-4">{t('adminRecord')}</th>
-                          <th className="px-6 py-4 text-right">{t('adminWinPercent')}</th>
-                          <th className="px-6 py-4 text-right">{t('adminOMW')}</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {standings.map((s) => (
-                          <tr key={s.id} className="hover:bg-blue-50/30 transition-colors">
-                            <td className="px-6 py-4 font-black text-gray-400 text-center">#{s.rank}</td>
-                            <td className="px-6 py-4">
-                              <span className="font-bold text-gray-800">{s.name}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center space-x-2">
-                                <div className="flex -space-x-2">
-                                  <PokemonSprite pokemonId={s.pokemon_1} size="sm" />
-                                  <PokemonSprite pokemonId={s.pokemon_2} size="sm" />
-                                </div>
-                                <span className="text-xs text-gray-500 capitalize">
-                                  {pokemonMap[s.pokemon_1 || ''] || ''} / {pokemonMap[s.pokemon_2 || ''] || ''}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 font-black text-blue-600">{s.points}</td>
-                            <td className="px-6 py-4 text-sm text-gray-500 font-medium">{s.wins}-{s.losses}-{s.draws}</td>
-                            <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">
-                              {getWinPercentage(s.wins ?? 0, s.losses ?? 0, s.draws ?? 0).toFixed(1)}%
-                            </td>
-                            <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">
-                              {((s.omw_percentage || 0) * 100).toFixed(1)}%
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="space-y-4 p-4 sm:p-6">
+                    <div className="grid gap-4 md:hidden">
+                      {standings.map((s) => (
+                        <article key={s.id} className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">{t('adminRank')}</div>
+                              <div className="mt-1 text-3xl font-black text-gray-800">#{s.rank}</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">{t('adminPoints')}</div>
+                              <div className="mt-1 text-2xl font-black text-blue-600">{s.points}</div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex items-start justify-between gap-4">
+                            <div className="min-w-0">
+                              <h4 className="truncate text-xl font-black text-gray-800">{s.name}</h4>
+                              <div className="mt-2">{renderStandingPokemon(s, true)}</div>
+                            </div>
+                          </div>
+
+                          <dl className="mt-5 grid grid-cols-3 gap-3 rounded-2xl border border-gray-100 bg-gray-50/80 p-4">
+                            <div>
+                              <dt className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{t('adminRecord')}</dt>
+                              <dd className="mt-1 text-sm font-bold text-gray-700">{s.wins}-{s.losses}-{s.draws}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{t('adminWinPercent')}</dt>
+                              <dd className="mt-1 text-sm font-bold text-gray-700">
+                                {getWinPercentage(s.wins ?? 0, s.losses ?? 0, s.draws ?? 0).toFixed(1)}%
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{t('adminOMW')}</dt>
+                              <dd className="mt-1 text-sm font-bold text-gray-700">{((s.omw_percentage || 0) * 100).toFixed(1)}%</dd>
+                            </div>
+                          </dl>
+                        </article>
+                      ))}
+                      {standings.length === 0 && (
+                        <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center text-gray-400 italic">
+                          {t('tournamentNoParticipants')}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="hidden md:block">
+                      <div className="mb-2 flex items-center justify-end px-1 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+                        <span>{t('commonScrollToSeeMore')}</span>
+                      </div>
+                      <div className="relative overflow-hidden rounded-2xl border border-gray-100">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-6 bg-gradient-to-r from-white via-white/90 to-transparent" />
+                        <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-8 bg-gradient-to-l from-white via-white/90 to-transparent" />
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full text-left">
+                            <thead>
+                              <tr className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-gray-100">
+                                <th className="sticky left-0 z-10 bg-gray-50 px-6 py-4 text-center">{t('adminRank')}</th>
+                                <th className="px-6 py-4">{t('adminPlayer')}</th>
+                                <th className="px-6 py-4">{t('adminPokemon')}</th>
+                                <th className="px-6 py-4">{t('adminPoints')}</th>
+                                <th className="px-6 py-4">{t('adminRecord')}</th>
+                                <th className="px-6 py-4 text-right">{t('adminWinPercent')}</th>
+                                <th className="px-6 py-4 text-right">{t('adminOMW')}</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                              {standings.map((s) => (
+                                <tr key={s.id} className="hover:bg-blue-50/30 transition-colors">
+                                  <td className="sticky left-0 bg-white px-6 py-4 font-black text-gray-400 text-center">#{s.rank}</td>
+                                  <td className="px-6 py-4">
+                                    <span className="font-bold text-gray-800">{s.name}</span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    {renderStandingPokemon(s)}
+                                  </td>
+                                  <td className="px-6 py-4 font-black text-blue-600">{s.points}</td>
+                                  <td className="px-6 py-4 text-sm text-gray-500 font-medium">{s.wins}-{s.losses}-{s.draws}</td>
+                                  <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">
+                                    {getWinPercentage(s.wins ?? 0, s.losses ?? 0, s.draws ?? 0).toFixed(1)}%
+                                  </td>
+                                  <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">
+                                    {((s.omw_percentage || 0) * 100).toFixed(1)}%
+                                  </td>
+                                </tr>
+                              ))}
+                              {standings.length === 0 && (
+                                <tr>
+                                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400 italic">{t('tournamentNoParticipants')}</td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

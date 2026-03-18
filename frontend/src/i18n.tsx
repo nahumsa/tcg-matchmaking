@@ -62,6 +62,7 @@ const MESSAGES = {
     commonNone: 'None',
     commonPlayerWithId: 'Player {id}',
     commonScoreForPlayer: 'Score for {name}',
+    commonScrollToSeeMore: 'Scroll for more',
 
     adminMatchReported: 'Match results reported.',
     adminProvideTournamentName: 'Please provide a tournament name.',
@@ -206,6 +207,7 @@ const MESSAGES = {
     commonNone: 'Nenhum',
     commonPlayerWithId: 'Jogador {id}',
     commonScoreForPlayer: 'Resultado de {name}',
+    commonScrollToSeeMore: 'Role para ver mais',
 
     adminMatchReported: 'Resultado de partida reportado.',
     adminProvideTournamentName: 'Informe o nome do torneio.',

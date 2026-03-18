@@ -209,6 +209,7 @@ describe('AdminDashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /Final Standings/i })).toBeInTheDocument();
+      expect(screen.getByText(/Scroll for more/i)).toBeInTheDocument();
     });
 
     const table = screen.getByRole('table');

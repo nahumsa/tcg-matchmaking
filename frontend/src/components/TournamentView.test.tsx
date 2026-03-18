@@ -118,6 +118,7 @@ describe('TournamentView', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('table')).toBeInTheDocument();
+      expect(screen.getByText(/Scroll for more/i)).toBeInTheDocument();
       expect(screen.getAllByText('Alice').length).toBeGreaterThan(0);
       expect(screen.getAllByText('100.0%').length).toBeGreaterThan(0);
     });

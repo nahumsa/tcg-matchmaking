@@ -187,6 +187,19 @@ export default function TournamentView() {
     return ((wins + draws * 0.5) / total) * 100;
   };
 
+  const renderPokemonVisibility = (standing: Standing, compact = false) => {
+    if (tournamentCompleted) {
+      return (
+        <div className="flex -space-x-2">
+          <PokemonSprite pokemonId={standing.pokemon_1} size={compact ? 'md' : 'sm'} />
+          <PokemonSprite pokemonId={standing.pokemon_2} size={compact ? 'md' : 'sm'} />
+        </div>
+      );
+    }
+
+    return <span className="text-xs text-gray-400 italic">{t('tournamentHidden')}</span>;
+  };
+
   const renderPlayer = (id: number | null) => {
     if (id === null) return <span className="text-gray-400">-</span>;
     const player = standings.find((s) => s.id === id);
@@ -364,51 +377,126 @@ export default function TournamentView() {
           </div>
         )
       ) : (
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden animate-in fade-in duration-500">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-gray-100">
-                <th className="px-6 py-4">{t('tournamentRank')}</th>
-                <th className="px-6 py-4">{t('tournamentPlayer')}</th>
-                <th className="px-6 py-4">{t('tournamentPokemon')}</th>
-                <th className="px-6 py-4">{t('tournamentPoints')}</th>
-                <th className="px-6 py-4">{t('tournamentRecord')}</th>
-                <th className="px-6 py-4 text-right">{t('tournamentWinPercent')}</th>
-                <th className="px-6 py-4 text-right">{t('tournamentOMW')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {standings.map((s) => (
-                <tr key={s.id} className={`hover:bg-blue-50/30 transition-colors ${s.id === participantId ? 'bg-blue-50/50' : ''}`}>
-                  <td className="px-6 py-4 font-black text-gray-400">#{s.rank}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-3">
-                      <span className="font-bold text-gray-800">{s.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {tournamentCompleted ? (
-                      <div className="flex -space-x-2">
-                        <PokemonSprite pokemonId={s.pokemon_1} size="sm" />
-                        <PokemonSprite pokemonId={s.pokemon_2} size="sm" />
+        <div className="space-y-4 animate-in fade-in duration-500">
+          <div className="grid gap-4 sm:hidden">
+            {standings.map((s) => {
+              const isCurrentParticipant = s.id === participantId;
+              const winPercentage = getWinPercentage(s.wins, s.losses, s.draws).toFixed(1);
+
+              return (
+                <article
+                  key={s.id}
+                  className={`rounded-3xl border p-5 shadow-sm transition-all ${
+                    isCurrentParticipant
+                      ? 'border-blue-300 bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-500 text-white shadow-xl shadow-blue-200 ring-2 ring-blue-200'
+                      : 'border-gray-100 bg-white'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isCurrentParticipant ? 'text-blue-100' : 'text-gray-400'}`}>
+                        {t('tournamentRank')}
                       </div>
-                    ) : (
-                      <span className="text-xs text-gray-400 italic">{t('tournamentHidden')}</span>
+                      <div className={`mt-1 text-3xl font-black ${isCurrentParticipant ? 'text-white' : 'text-gray-800'}`}>#{s.rank}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isCurrentParticipant ? 'text-blue-100' : 'text-gray-400'}`}>
+                        {t('tournamentPoints')}
+                      </div>
+                      <div className={`mt-1 text-2xl font-black ${isCurrentParticipant ? 'text-white' : 'text-blue-600'}`}>{s.points}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <h3 className={`truncate text-xl font-black ${isCurrentParticipant ? 'text-white' : 'text-gray-800'}`}>{s.name}</h3>
+                      {isCurrentParticipant && (
+                        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-100">{t('tournamentMyStatus')}</p>
+                      )}
+                    </div>
+                    <div className="shrink-0">
+                      {renderPokemonVisibility(s, true)}
+                    </div>
+                  </div>
+
+                  <dl className={`mt-5 grid grid-cols-3 gap-3 rounded-2xl border p-4 ${isCurrentParticipant ? 'border-white/15 bg-white/10' : 'border-gray-100 bg-gray-50/80'}`}>
+                    <div>
+                      <dt className={`text-[10px] font-bold uppercase tracking-widest ${isCurrentParticipant ? 'text-blue-100' : 'text-gray-400'}`}>
+                        {t('tournamentRecord')}
+                      </dt>
+                      <dd className={`mt-1 text-sm font-bold ${isCurrentParticipant ? 'text-white' : 'text-gray-700'}`}>{s.wins}-{s.losses}-{s.draws}</dd>
+                    </div>
+                    <div>
+                      <dt className={`text-[10px] font-bold uppercase tracking-widest ${isCurrentParticipant ? 'text-blue-100' : 'text-gray-400'}`}>
+                        {t('tournamentWinPercent')}
+                      </dt>
+                      <dd className={`mt-1 text-sm font-bold ${isCurrentParticipant ? 'text-white' : 'text-gray-700'}`}>{winPercentage}%</dd>
+                    </div>
+                    <div>
+                      <dt className={`text-[10px] font-bold uppercase tracking-widest ${isCurrentParticipant ? 'text-blue-100' : 'text-gray-400'}`}>
+                        {t('tournamentOMW')}
+                      </dt>
+                      <dd className={`mt-1 text-sm font-bold ${isCurrentParticipant ? 'text-white' : 'text-gray-700'}`}>{(s.omw_percentage * 100).toFixed(1)}%</dd>
+                    </div>
+                  </dl>
+                </article>
+              );
+            })}
+            {standings.length === 0 && (
+              <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center text-gray-400 italic">
+                {t('tournamentNoParticipants')}
+              </div>
+            )}
+          </div>
+
+          <div className="hidden sm:block">
+            <div className="mb-2 flex items-center justify-end px-1 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+              <span>{t('commonScrollToSeeMore')}</span>
+            </div>
+            <div className="relative overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-6 bg-gradient-to-r from-white via-white/90 to-transparent" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-8 bg-gradient-to-l from-white via-white/90 to-transparent" />
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-widest border-b border-gray-100">
+                      <th className="sticky left-0 z-10 bg-gray-50 px-6 py-4">{t('tournamentRank')}</th>
+                      <th className="px-6 py-4">{t('tournamentPlayer')}</th>
+                      <th className="px-6 py-4">{t('tournamentPokemon')}</th>
+                      <th className="px-6 py-4">{t('tournamentPoints')}</th>
+                      <th className="px-6 py-4">{t('tournamentRecord')}</th>
+                      <th className="px-6 py-4 text-right">{t('tournamentWinPercent')}</th>
+                      <th className="px-6 py-4 text-right">{t('tournamentOMW')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {standings.map((s) => (
+                      <tr key={s.id} className={`hover:bg-blue-50/30 transition-colors ${s.id === participantId ? 'bg-blue-50/50' : ''}`}>
+                        <td className={`sticky left-0 px-6 py-4 font-black text-gray-400 ${s.id === participantId ? 'bg-blue-50/50' : 'bg-white'}`}>#{s.rank}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-3">
+                            <span className="font-bold text-gray-800">{s.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {renderPokemonVisibility(s)}
+                        </td>
+                        <td className="px-6 py-4 font-black text-blue-600">{s.points}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500 font-medium">{s.wins}-{s.losses}-{s.draws}</td>
+                        <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">{getWinPercentage(s.wins, s.losses, s.draws).toFixed(1)}%</td>
+                        <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">{(s.omw_percentage * 100).toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                    {standings.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="px-6 py-12 text-center text-gray-400 italic">{t('tournamentNoParticipants')}</td>
+                      </tr>
                     )}
-                  </td>
-                  <td className="px-6 py-4 font-black text-blue-600">{s.points}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500 font-medium">{s.wins}-{s.losses}-{s.draws}</td>
-                  <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">{getWinPercentage(s.wins, s.losses, s.draws).toFixed(1)}%</td>
-                  <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">{(s.omw_percentage * 100).toFixed(1)}%</td>
-                </tr>
-              ))}
-              {standings.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400 italic">{t('tournamentNoParticipants')}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
