@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { config } from '../config';
 import { useLanguage } from '../i18n';
+import PokemonSelector from './PokemonSelector';
+import { usePokemonList } from '../hooks/usePokemonList';
 
 interface Participant {
   id: number;
@@ -19,9 +21,12 @@ interface ParticipantListProps {
 export default function ParticipantList({ tournamentCode, participants, onUpdate }: ParticipantListProps) {
   // ... rest of state
   const [newName, setNewName] = useState('');
+  const [pokemon1, setPokemon1] = useState<string | null>(null);
+  const [pokemon2, setPokemon2] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { t } = useLanguage();
+  const { pokemonList, fetchingPokemon } = usePokemonList();
 
   const handleAddParticipant = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +38,11 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
       const response = await fetch(`${config.apiUrl}/tournaments/${tournamentCode}/participants`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newName.trim() }),
+        body: JSON.stringify({
+          name: newName.trim(),
+          pokemon_1: pokemon1,
+          pokemon_2: pokemon2,
+        }),
       });
 
       if (!response.ok) {
@@ -42,6 +51,8 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
       }
 
       setNewName('');
+      setPokemon1(null);
+      setPokemon2(null);
       onUpdate();
     } catch (err) {
       setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
@@ -83,12 +94,32 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
           />
           <button
             type="submit"
-            disabled={loading || !newName.trim()}
+            disabled={loading || !newName.trim() || fetchingPokemon}
             className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
           >
             {t('participantsAdd')}
           </button>
         </form>
+
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-gray-700">{t('joinDeckPokemon')}</p>
+          <PokemonSelector
+            theme="blue"
+            label={t('joinPokemon1')}
+            selected={pokemon1}
+            excluded={pokemon2}
+            onSelect={setPokemon1}
+            pokemonList={pokemonList}
+          />
+          <PokemonSelector
+            theme="blue"
+            label={t('joinPokemon2')}
+            selected={pokemon2}
+            excluded={pokemon1}
+            onSelect={setPokemon2}
+            pokemonList={pokemonList}
+          />
+        </div>
 
         {error && <div className="text-xs text-red-500 font-medium" role="alert">{error}</div>}
       </div>

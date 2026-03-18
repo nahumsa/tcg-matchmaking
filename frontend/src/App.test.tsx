@@ -6,13 +6,19 @@ describe('App Integration', () => {
   beforeEach(() => {
     localStorage.clear();
     localStorage.setItem('app_language', 'en');
-    // Mock fetch for TournamentView component
-    global.fetch = vi.fn().mockImplementation(() =>
-      Promise.resolve({
+    // Mock fetch for components that load data on mount
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: [] }),
+        });
+      }
+      return Promise.resolve({
         ok: true,
         json: () => Promise.resolve([]),
-      })
-    );
+      });
+    });
   });
 
   it('renders NavigationBar and the LandingPage', () => {
@@ -23,18 +29,18 @@ describe('App Integration', () => {
     expect(screen.getByRole('button', { name: /Player/i })).toBeInTheDocument();
   });
 
-  it('allows access to /admin directly', () => {
+  it('allows access to /admin directly', async () => {
     window.history.pushState({}, 'Test page', '/admin');
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: /Admin Dashboard/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Admin Dashboard/i })).toBeInTheDocument();
   });
 
-  it('allows access to /join directly', () => {
+  it('allows access to /join directly', async () => {
     window.history.pushState({}, 'Test page', '/join');
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: /Join Tournament/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Join Tournament/i })).toBeInTheDocument();
   });
 
   it('allows access to /tournament/:code directly', async () => {

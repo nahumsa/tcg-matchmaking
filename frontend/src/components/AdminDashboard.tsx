@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { config } from '../config';
 import ParticipantList from './ParticipantList';
 import ActivityLog, { type ActivityEvent } from './ActivityLog';
 import { useLanguage } from '../i18n';
 import PokemonSprite from './PokemonSprite';
+import ReportMatchModal from './ReportMatchModal';
+import { usePokemonList } from '../hooks/usePokemonList';
 
 interface Tournament {
   id: number;
@@ -48,27 +50,32 @@ export default function AdminDashboard() {
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [scoreInputs, setScoreInputs] = useState<Record<number, { p1: number; p2: number }>>({});
   const { t } = useLanguage();
-  const [pokemonMap, setPokemonMap] = useState<Record<string, string>>({});
+  const { pokemonList } = usePokemonList();
+  const [isStartModalOpen, setIsStartModalOpen] = useState(false);
+  const [startStep, setStartStep] = useState<1 | 2>(1);
+  const [confirmInput, setConfirmInput] = useState('');
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [reportingMatch, setReportingMatch] = useState<Match | null>(null);
+  const [selectedPreset, setSelectedPreset] = useState<[number, number] | null>(null);
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const presets: [number, number][] = [
+    [2, 0],
+    [2, 1],
+    [1, 0],
+    [1, 2],
+    [0, 1],
+    [0, 2],
+    [1, 1]
+  ];
 
-  useEffect(() => {
-    const fetchPokemon = async () => {
-      try {
-        const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025');
-        const data = await response.json();
-        const map: Record<string, string> = {};
-        data.results.forEach((p: { name: string; url: string }) => {
-          const id = p.url.split('/').filter(Boolean).pop() || '0';
-          map[id] = p.name.charAt(0).toUpperCase() + p.name.slice(1);
-        });
-        setPokemonMap(map);
-      } catch (err) {
-        console.error('Failed to fetch pokemon list', err);
-      }
-    };
-    fetchPokemon();
-  }, []);
+  const pokemonMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    pokemonList.forEach((pokemon) => {
+      map[pokemon.id.toString()] = pokemon.displayName;
+    });
+    return map;
+  }, [pokemonList]);
 
   useEffect(() => {
     if (!tournament) {
@@ -208,6 +215,15 @@ export default function AdminDashboard() {
     }
   };
 
+  const getCurrentRound = () => (matches.length > 0 ? Math.max(...matches.map((m) => m.round_number)) : 0);
+
+  const openStartModal = () => {
+    setStartStep(1);
+    setConfirmInput('');
+    setConfirmError(null);
+    setIsStartModalOpen(true);
+  };
+
   const generatePairings = async () => {
     if (!tournament) return;
     setLoading(true);
@@ -225,6 +241,37 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const closeStartModal = () => {
+    setIsStartModalOpen(false);
+    setConfirmInput('');
+    setConfirmError(null);
+  };
+
+  const handleStartConfirmContinue = () => {
+    setStartStep(2);
+    setConfirmError(null);
+  };
+
+  const handleStartConfirm = () => {
+    if (!tournament) return;
+    if (confirmInput.trim().toUpperCase() !== tournament.code.toUpperCase()) {
+      setConfirmError(t('adminStartCodeMismatch'));
+      return;
+    }
+    closeStartModal();
+    generatePairings();
+  };
+
+  const handleStartClick = () => {
+    if (!tournament) return;
+    const currentRound = getCurrentRound();
+    if (currentRound === 0) {
+      openStartModal();
+      return;
+    }
+    generatePairings();
   };
 
   const completeTournament = async () => {
@@ -247,56 +294,57 @@ export default function AdminDashboard() {
     }
   };
 
-  const reportResult = async (matchId: number) => {
-    if (!tournament) return;
-    const existingMatch = matches.find((m) => m.id === matchId);
-    const selectedScore = scoreInputs[matchId] ?? {
-      p1: existingMatch?.player1_score ?? 0,
-      p2: existingMatch?.player2_score ?? 0,
-    };
+  const reportResult = async () => {
+    if (!tournament || !reportingMatch || !selectedPreset) return;
+    setIsSubmittingReport(true);
     try {
-      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/matches/${matchId}/report`, {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/matches/${reportingMatch.id}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          player1_score: selectedScore.p1,
-          player2_score: selectedScore.p2,
+          player1_score: selectedPreset[0],
+          player2_score: selectedPreset[1],
           is_admin: true
         }),
       });
       if (!response.ok) throw new Error(t('adminReportFailed'));
       await fetchMatches();
       await fetchStandings();
+      setReportingMatch(null);
+      setSelectedPreset(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
+    } finally {
+      setIsSubmittingReport(false);
     }
   };
 
-  const handleScoreChange = (matchId: number, player: 'p1' | 'p2', value: string) => {
-    const parsedValue = Math.max(0, Number.parseInt(value, 10) || 0);
-    setScoreInputs((prev) => ({
-      ...prev,
-      [matchId]: {
-        p1: player === 'p1' ? parsedValue : (prev[matchId]?.p1 ?? 0),
-        p2: player === 'p2' ? parsedValue : (prev[matchId]?.p2 ?? 0),
-      },
-    }));
+  const handleReportOpen = (match: Match) => {
+    setReportingMatch(match);
+    setSelectedPreset([match.player1_score, match.player2_score]);
+  };
+
+  const getWinPercentage = (wins = 0, losses = 0, draws = 0) => {
+    const total = wins + losses + draws;
+    if (total === 0) return 0;
+    return ((wins + draws * 0.5) / total) * 100;
   };
 
   if (tournament) {
     const currentRound = matches.length > 0 ? Math.max(...matches.map((m) => m.round_number)) : 0;
     const roundMatches = matches.filter((m) => m.round_number === currentRound);
-    const allCompleted = roundMatches.every((m) => m.is_completed);
+    const allCompleted = roundMatches.every((m) => Number(m.is_completed) === 1);
     const isTournamentFinished = tournament.status === 'COMPLETED';
+    const isConfirmValid = confirmInput.trim().toUpperCase() === tournament.code.toUpperCase();
 
     const getPlayerName = (id: number | null) => {
-      if (id === null) return '-';
+      if (id === null || id === 0) return '-';
       const player = participants.find((p) => p.id === id);
       return player ? player.name : t('commonPlayerWithId', { id });
     };
 
     const renderPlayer = (id: number | null) => {
-      if (id === null) return <span className="text-gray-400">-</span>;
+      if (id === null || id === 0) return <span className="text-gray-400">-</span>;
       const player = participants.find((p) => p.id === id);
       if (!player) return <span>{t('commonPlayerWithId', { id })}</span>;
 
@@ -319,7 +367,8 @@ export default function AdminDashboard() {
           const summary = standingsData.map((s: Participant) => {
             const p1Name = (s.pokemon_1 ? pokemonMap[s.pokemon_1] : null) || s.pokemon_1 || t('commonNone');
             const p2Name = (s.pokemon_2 ? pokemonMap[s.pokemon_2] : null) || s.pokemon_2 || t('commonNone');
-            return `${s.rank}. ${s.name} (${s.points} pts, ${s.wins}-${s.losses}-${s.draws}) (${p1Name}, ${p2Name})`;
+            const winPercent = getWinPercentage(s.wins ?? 0, s.losses ?? 0, s.draws ?? 0).toFixed(1);
+            return `${s.rank}. ${s.name} (${s.points} pts, ${s.wins}-${s.losses}-${s.draws}, ${winPercent}%) (${p1Name}, ${p2Name})`;
           }).join('\n');
 
           const blob = new Blob([summary], { type: 'text/plain' });
@@ -337,23 +386,109 @@ export default function AdminDashboard() {
 
     return (
       <div className="flex flex-col min-h-screen bg-gray-50">
+        {isStartModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4" role="dialog" aria-modal="true">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-widest font-bold text-gray-400">{t('adminStartConfirmStep', { step: startStep })}</p>
+                  <h3 className="text-2xl font-black text-gray-800 mt-1">{t('adminStartConfirmTitle')}</h3>
+                </div>
+                <button onClick={closeStartModal} className="text-gray-400 hover:text-gray-600" aria-label={t('adminStartCancel')}>
+                  X
+                </button>
+              </div>
+
+              {startStep === 1 ? (
+                <div className="space-y-3">
+                  <p className="text-gray-700 leading-relaxed">{t('adminStartConfirmBody')}</p>
+                  <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm text-gray-600 space-y-1">
+                    <p>- {t('adminStartConfirmLockRoster')}</p>
+                    <p>- {t('adminStartConfirmGenerate')}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700" htmlFor="confirmCode">
+                    {t('adminStartEnterCode', { code: tournament.code })}
+                  </label>
+                  <input
+                    id="confirmCode"
+                    type="text"
+                    value={confirmInput}
+                    onChange={(e) => {
+                      setConfirmInput(e.target.value);
+                      setConfirmError(null);
+                    }}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-3 text-lg font-mono tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={t('adminStartCodePlaceholder', { code: tournament.code })}
+                    autoFocus
+                  />
+                  {confirmError && <p className="text-sm text-red-600">{confirmError}</p>}
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-3 pt-2">
+                <button
+                  onClick={closeStartModal}
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+                >
+                  {t('adminStartCancel')}
+                </button>
+                {startStep === 1 ? (
+                  <button
+                    onClick={handleStartConfirmContinue}
+                    className="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700"
+                  >
+                    {t('adminStartContinue')}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleStartConfirm}
+                    disabled={!isConfirmValid || loading}
+                    className={`px-4 py-2 rounded-lg font-bold text-white transition ${!isConfirmValid || loading
+                      ? 'bg-blue-300 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                      }`}
+                  >
+                    {t('adminStartConfirmButton')}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         <div className="flex flex-col md:flex-row flex-1 p-4 sm:p-8 space-y-8 md:space-y-0 md:space-x-8">
           <div className="flex-1 max-w-4xl">
+            <ReportMatchModal
+              isOpen={Boolean(reportingMatch)}
+              playerLabel={reportingMatch ? getPlayerName(reportingMatch.player1_id) : t('commonPlayerWithId', { id: '?' })}
+              opponentLabel={reportingMatch ? getPlayerName(reportingMatch.player2_id) : t('commonPlayerWithId', { id: '?' })}
+              presets={presets}
+              selectedPreset={selectedPreset}
+              isSubmitting={isSubmittingReport}
+              onSelectPreset={setSelectedPreset}
+              onClose={() => {
+                setReportingMatch(null);
+                setSelectedPreset(null);
+              }}
+              onSubmit={reportResult}
+            />
             <div className="flex justify-between items-end mb-8">
               <div>
                 <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter mb-2">{tournament.name}</h1>
                 <div className="flex items-center space-x-4">
                   <span className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold tracking-widest uppercase">{tournament.code}</span>
+                  <span className="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold tracking-widest uppercase">{participants.length} {t('adminPlayers')}</span>
                   <Link to={`/tournament/${tournament.code}`} target="_blank" className="text-blue-600 hover:underline text-sm font-medium">{t('adminPublicView')}</Link>
                 </div>
               </div>
               <div className="flex space-x-4">
                 <button
-                  onClick={currentRound >= tournament.rounds ? completeTournament : generatePairings}
+                  onClick={() => (currentRound >= tournament.rounds ? completeTournament() : handleStartClick())}
                   disabled={loading || (currentRound > 0 && !allCompleted) || isTournamentFinished}
-                  className={`py-3 px-6 text-white font-bold rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
-                    currentRound >= tournament.rounds ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
+                  className={`py-3 px-6 text-white font-bold rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${currentRound >= tournament.rounds ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                 >
                   {currentRound === 0 ? t('adminStartRound') : currentRound >= tournament.rounds ? t('adminEndTournament') : t('adminNextRound')}
                 </button>
@@ -402,6 +537,7 @@ export default function AdminDashboard() {
                           <th className="px-6 py-4">{t('adminPokemon')}</th>
                           <th className="px-6 py-4">{t('adminPoints')}</th>
                           <th className="px-6 py-4">{t('adminRecord')}</th>
+                          <th className="px-6 py-4 text-right">{t('adminWinPercent')}</th>
                           <th className="px-6 py-4 text-right">{t('adminOMW')}</th>
                         </tr>
                       </thead>
@@ -426,6 +562,9 @@ export default function AdminDashboard() {
                             <td className="px-6 py-4 font-black text-blue-600">{s.points}</td>
                             <td className="px-6 py-4 text-sm text-gray-500 font-medium">{s.wins}-{s.losses}-{s.draws}</td>
                             <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">
+                              {getWinPercentage(s.wins ?? 0, s.losses ?? 0, s.draws ?? 0).toFixed(1)}%
+                            </td>
+                            <td className="px-6 py-4 text-right font-mono text-xs font-bold text-gray-400">
                               {((s.omw_percentage || 0) * 100).toFixed(1)}%
                             </td>
                           </tr>
@@ -447,51 +586,49 @@ export default function AdminDashboard() {
                 {roundMatches.length === 0 ? (
                   <p className="text-gray-400 italic">{t('adminNoMatches')}</p>
                 ) : (
-                  roundMatches.map((match) => (
-                    <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col space-y-4">
-                      <div className="flex justify-between items-center border-b border-gray-50 pb-2">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('adminTable')} {match.table_number || '?'}</span>
-                        {match.is_completed && <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">{t('adminCompletedStatus')}</span>}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 font-bold text-lg">{renderPlayer(match.player1_id)}</div>
+                  roundMatches.map((match) => {
+                    const isMatchCompleted = Number(match.is_completed) === 1;
+                    return (
+                      <div key={match.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col space-y-4">
+                        <div className="flex justify-between items-center border-b border-gray-50 pb-2">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                            {t('adminTable')} {match.table_number || '-'}
+                          </span>
+                          {isMatchCompleted && <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">{t('adminCompletedStatus')}</span>}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 font-bold text-lg">{renderPlayer(match.player1_id)}</div>
 
-                        {match.is_bye ? (
-                          <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">{t('adminBye')}</div>
-                        ) : (
-                          <div className="flex-1 flex items-center justify-center space-x-2 px-4">
-                            <input
-                              type="number"
-                              min={0}
-                              className="w-16 p-2 border rounded text-center font-bold"
-                              value={scoreInputs[match.id]?.p1 ?? 0}
-                              onChange={(e) => handleScoreChange(match.id, 'p1', e.target.value)}
-                              aria-label={t('commonScoreForPlayer', { name: getPlayerName(match.player1_id) })}
-                            />
-                            <span className="text-gray-300">-</span>
-                            <input
-                              type="number"
-                              min={0}
-                              className="w-16 p-2 border rounded text-center font-bold"
-                              value={scoreInputs[match.id]?.p2 ?? 0}
-                              onChange={(e) => handleScoreChange(match.id, 'p2', e.target.value)}
-                              aria-label={t('commonScoreForPlayer', { name: getPlayerName(match.player2_id) })}
-                            />
-                            <button
-                              onClick={() => reportResult(match.id)}
-                              className={`ml-4 px-4 py-2 text-white text-sm font-bold rounded-lg transition ${match.is_completed ? 'bg-gray-400 hover:bg-gray-500' : 'bg-gray-800 hover:bg-black'
-                                }`}
-                              disabled={isTournamentFinished}
-                            >
-                              {match.is_completed ? t('adminOverride') : t('adminReport')}
-                            </button>
-                          </div>
-                        )}
+                          {match.is_bye ? (
+                            <div className="flex-1 text-center font-black text-blue-600 uppercase tracking-widest">{t('adminBye')}</div>
+                          ) : (
+                            <div className="flex-1 flex flex-col items-center justify-center px-4 gap-3">
+                              {isMatchCompleted && (
+                                <div
+                                  data-testid={`match-score-${match.id}`}
+                                  className="inline-flex items-center space-x-2 bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl font-mono font-black text-xl"
+                                >
+                                  <span>{match.player1_score}</span>
+                                  <span className="text-gray-300">-</span>
+                                  <span>{match.player2_score}</span>
+                                </div>
+                              )}
+                              <button
+                                onClick={() => handleReportOpen(match)}
+                                className={`px-4 py-2 text-white text-sm font-bold rounded-lg transition ${isMatchCompleted ? 'bg-gray-400 hover:bg-gray-500' : 'bg-gray-800 hover:bg-black'
+                                  }`}
+                                disabled={isTournamentFinished}
+                              >
+                                {isMatchCompleted ? t('adminOverride') : t('adminReport')}
+                              </button>
+                            </div>
+                          )}
 
-                        <div className="flex-1 font-bold text-lg text-right flex justify-end">{match.is_bye ? '-' : renderPlayer(match.player2_id)}</div>
+                          <div className="flex-1 font-bold text-lg text-right flex justify-end">{match.is_bye ? '-' : renderPlayer(match.player2_id)}</div>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>

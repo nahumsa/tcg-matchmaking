@@ -109,6 +109,7 @@ describe('TournamentView', () => {
       expect(screen.getByText(/Alice/i)).toBeInTheDocument();
       expect(screen.getByText(/#1/i)).toBeInTheDocument();
       expect(screen.getByText(/1-0-0/i)).toBeInTheDocument();
+      expect(screen.getByText(/100.0%/i)).toBeInTheDocument();
       expect(screen.getByText(/Bob/i)).toBeInTheDocument(); // In possible opponents
     });
 
@@ -118,6 +119,7 @@ describe('TournamentView', () => {
     await waitFor(() => {
       expect(screen.getByRole('table')).toBeInTheDocument();
       expect(screen.getAllByText('Alice').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('100.0%').length).toBeGreaterThan(0);
     });
   });
 
