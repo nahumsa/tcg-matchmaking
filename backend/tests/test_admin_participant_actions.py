@@ -92,6 +92,13 @@ def test_admin_remove_participant(setup_db):
     # Once the next round starts, reassignment is allowed.
     pairings_resp = client.post(f"/tournaments/{code}/pairings")
     assert pairings_resp.status_code == 200
+
+    # Repeated drop requests should be idempotent and not shift reassign eligibility.
+    repeated_del_resp = client.delete(
+        f"/tournaments/{code}/participants/{participant_id}"
+    )
+    assert repeated_del_resp.status_code == 204
+
     join_again_resp = client.post(
         f"/tournaments/{code}/join", json={"name": "RemoveMe"}
     )

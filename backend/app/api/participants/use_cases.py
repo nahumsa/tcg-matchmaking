@@ -59,6 +59,9 @@ def remove_participant(
     participant = participants.get_by_id(participant_id)
     if not participant or participant.tournament_id != tournament.id:
         raise HTTPException(status_code=404, detail="Participant not found")
+    if not participant.is_active:
+        return
+
     current_round = _get_current_round(matches, tournament.id)
     if current_round == 0 or not _is_round_complete(
         matches, tournament.id, current_round
