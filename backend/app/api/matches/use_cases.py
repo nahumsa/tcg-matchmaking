@@ -139,3 +139,23 @@ def report_match(
         tournaments.save(tournament)
 
     return match
+
+
+def assert_match_belongs_to_tournament(match: Match, tournament: Tournament) -> None:
+    if match.tournament_id != tournament.id:
+        raise HTTPException(
+            status_code=404, detail="Match not found in this tournament"
+        )
+
+
+def assert_report_permission(match: Match, update: MatchUpdate) -> None:
+    if update.is_admin:
+        return
+
+    if update.reported_by_id is None or update.reported_by_id not in [
+        match.player1_id,
+        match.player2_id,
+    ]:
+        raise HTTPException(
+            status_code=403, detail="Not authorized to report this match"
+        )

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { config } from '../config';
 import PokemonSprite from './PokemonSprite';
 import { useLanguage } from '../i18n';
 import ReportMatchModal from './ReportMatchModal';
+import { useTournamentSocket } from '../hooks/useTournamentSocket';
 
 interface Match {
   id: number;
@@ -67,49 +68,7 @@ export default function TournamentView() {
 
     const tournamentCompleted = tournamentStatus === 'COMPLETED';
 
-    useEffect(() => {
-
-    if (!code) return;
-
-    fetchData();
-
-    let ws: WebSocket | null = null;
-    let reconnectTimer: number | null = null;
-
-    const connect = () => {
-      setSocketStatus((prev) => (prev === 'connected' ? prev : 'connecting'));
-      ws = new WebSocket(`${config.wsUrl}/ws/${code}`);
-
-      ws.onopen = () => {
-        setSocketStatus('connected');
-      };
-
-      ws.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        if (message.event === 'pairings_generated' || message.event === 'match_reported' || message.event === 'participant_joined' || message.event === 'tournament_completed') {
-          fetchData();
-        }
-      };
-
-      ws.onclose = () => {
-        setSocketStatus('reconnecting');
-        reconnectTimer = window.setTimeout(() => connect(), 1500);
-      };
-
-      ws.onerror = () => {
-        setSocketStatus('offline');
-      };
-    };
-
-    connect();
-
-    return () => {
-      if (reconnectTimer) window.clearTimeout(reconnectTimer);
-      ws?.close();
-    };
-  }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [matchesRes, standingsRes, tournamentRes] = await Promise.all([
         fetch(`${config.apiUrl}/tournaments/${code}/matches`),
@@ -144,7 +103,37 @@ export default function TournamentView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [code, participantId]);
+
+  useEffect(() => {
+    if (!code) return;
+    fetchData();
+  }, [code, fetchData]);
+
+  useTournamentSocket({
+    code,
+    enableReconnect: true,
+    onOpen: () => {
+      setSocketStatus('connected');
+    },
+    onClose: () => {
+      setSocketStatus('reconnecting');
+    },
+    onError: () => {
+      setSocketStatus('offline');
+    },
+    onMessage: (payload) => {
+      const message = payload as { event?: string };
+      if (
+        message.event === 'pairings_generated'
+        || message.event === 'match_reported'
+        || message.event === 'participant_joined'
+        || message.event === 'tournament_completed'
+      ) {
+        fetchData();
+      }
+    },
+  });
 
   const handleReportSubmit = async () => {
     if (!reportingMatch || !selectedPreset) return;

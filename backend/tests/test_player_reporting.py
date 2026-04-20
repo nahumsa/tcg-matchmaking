@@ -214,3 +214,25 @@ def test_legacy_report_requires_admin_or_match_participant(setup_db):
     )
     assert unauth_resp.status_code == 403
     assert "Not authorized" in unauth_resp.json()["detail"]
+
+
+def test_v2_report_rejects_match_from_another_tournament(setup_db):
+    first = client.post("/tournaments", json={"name": "T1", "rounds": 1}).json()
+    second = client.post("/tournaments", json={"name": "T2", "rounds": 1}).json()
+
+    client.post(f"/tournaments/{first['code']}/join", json={"name": "A1"})
+    client.post(f"/tournaments/{first['code']}/join", json={"name": "A2"})
+    client.post(f"/tournaments/{first['code']}/pairings")
+
+    client.post(f"/tournaments/{second['code']}/join", json={"name": "B1"})
+    client.post(f"/tournaments/{second['code']}/join", json={"name": "B2"})
+    client.post(f"/tournaments/{second['code']}/pairings")
+
+    foreign_match = client.get(f"/tournaments/{second['code']}/matches").json()[0]
+    resp = client.post(
+        f"/tournaments/{first['code']}/matches/{foreign_match['id']}/report",
+        json={"player1_score": 2, "player2_score": 0, "is_admin": True},
+    )
+
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "Match not found in this tournament"

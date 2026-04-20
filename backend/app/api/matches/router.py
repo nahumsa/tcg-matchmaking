@@ -32,38 +32,13 @@ def get_matches(code: str, db: Session = Depends(get_db)):
 async def report_match_v2(
     code: str, match_id: int, update: schemas.MatchUpdate, db: Session = Depends(get_db)
 ):
-    # Check if tournament exists
-    db_tournament = get_tournament_by_code(db, code)
-    if not db_tournament:
-        raise HTTPException(status_code=404, detail="Tournament not found")
-
-    if db_tournament.status == "COMPLETED":
-        raise HTTPException(status_code=400, detail="Tournament is already completed")
-
-    # Check if match exists and belongs to this tournament
-    from .models import Match
-
-    db_match = (
-        db.query(Match)
-        .filter(Match.id == match_id, Match.tournament_id == db_tournament.id)
-        .first()
-    )
+    db_match = await services.report_match_in_tournament(db, code, match_id, update)
     if not db_match:
+        if not get_tournament_by_code(db, code):
+            raise HTTPException(status_code=404, detail="Tournament not found")
         raise HTTPException(
             status_code=404, detail="Match not found in this tournament"
         )
-
-    # Permission check
-    if not update.is_admin:
-        if update.reported_by_id is None or update.reported_by_id not in [
-            db_match.player1_id,
-            db_match.player2_id,
-        ]:
-            raise HTTPException(
-                status_code=403, detail="Not authorized to report this match"
-            )
-
-    db_match = await services.report_match(db, match_id, update)
     return db_match
 
 
@@ -71,29 +46,7 @@ async def report_match_v2(
 async def report_match(
     match_id: int, update: schemas.MatchUpdate, db: Session = Depends(get_db)
 ):
-    # Check if match exists
-    from .models import Match
-    from backend.app.api.tournaments.models import Tournament
-
-    db_match = db.query(Match).filter(Match.id == match_id).first()
+    db_match = await services.report_match_legacy(db, match_id, update)
     if not db_match:
         raise HTTPException(status_code=404, detail="Match not found")
-
-    db_tournament = (
-        db.query(Tournament).filter(Tournament.id == db_match.tournament_id).first()
-    )
-    if db_tournament.status == "COMPLETED":
-        raise HTTPException(status_code=400, detail="Tournament is already completed")
-
-    # Legacy endpoint permission check
-    if not update.is_admin:
-        if update.reported_by_id is None or update.reported_by_id not in [
-            db_match.player1_id,
-            db_match.player2_id,
-        ]:
-            raise HTTPException(
-                status_code=403, detail="Not authorized to report this match"
-            )
-
-    db_match = await services.report_match(db, match_id, update)
     return db_match

@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from backend.app.adapters.sqlalchemy_repositories import SqlAlchemyTournamentRepository
+from backend.app.core.manager import manager
 
 from . import schemas, use_cases
 
@@ -22,3 +23,22 @@ def create_tournament(db: Session, tournament: schemas.TournamentCreate):
 def get_tournament_by_code(db: Session, code: str):
     tournaments = SqlAlchemyTournamentRepository(db)
     return tournaments.get_by_code(code)
+
+
+async def complete_tournament(db: Session, code: str):
+    tournaments = SqlAlchemyTournamentRepository(db)
+    tournament = tournaments.get_by_code(code)
+    if not tournament:
+        return None
+
+    completed = use_cases.complete_tournament(
+        tournaments=tournaments, tournament=tournament
+    )
+    await manager.broadcast(
+        code,
+        {
+            "event": "tournament_completed",
+            "tournament_status": completed.status,
+        },
+    )
+    return completed
