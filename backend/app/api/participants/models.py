@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from backend.app.core.database import Base
 
@@ -10,6 +10,8 @@ class Participant(Base):
     tournament_id = Column(Integer, ForeignKey("tournaments.id"), nullable=False)
     name = Column(String, index=True, nullable=False)
     points = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True, nullable=False)
+    dropped_round = Column(Integer, nullable=True)
     pokemon_1 = Column(String, nullable=True)
     pokemon_2 = Column(String, nullable=True)
 

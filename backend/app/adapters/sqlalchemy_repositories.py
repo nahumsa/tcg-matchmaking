@@ -42,7 +42,10 @@ class SqlAlchemyParticipantRepository:
     def get_by_tournament(self, tournament_id: int) -> List[Participant]:
         return (
             self.db.query(Participant)
-            .filter(Participant.tournament_id == tournament_id)
+            .filter(
+                Participant.tournament_id == tournament_id,
+                Participant.is_active.is_(True),
+            )
             .all()
         )
 
@@ -51,11 +54,22 @@ class SqlAlchemyParticipantRepository:
             self.db.query(Participant).filter(Participant.id == participant_id).first()
         )
 
-    def exists_with_name(self, tournament_id: int, name: str) -> bool:
+    def get_by_name(self, tournament_id: int, name: str) -> Optional[Participant]:
         return (
             self.db.query(Participant)
             .filter(
                 Participant.tournament_id == tournament_id, Participant.name == name
+            )
+            .first()
+        )
+
+    def exists_with_name(self, tournament_id: int, name: str) -> bool:
+        return (
+            self.db.query(Participant)
+            .filter(
+                Participant.tournament_id == tournament_id,
+                Participant.name == name,
+                Participant.is_active.is_(True),
             )
             .first()
             is not None
@@ -80,7 +94,7 @@ class SqlAlchemyParticipantRepository:
         return participant
 
     def delete(self, participant: Participant) -> None:
-        self.db.delete(participant)
+        participant.is_active = False
         self.db.commit()
 
     def save(self, participant: Participant) -> None:

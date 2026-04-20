@@ -12,6 +12,7 @@ from backend.app.application.ports import MatchRepositoryPort, ParticipantReposi
 
 def join_tournament(
     participants: ParticipantRepositoryPort,
+    matches: MatchRepositoryPort,
     tournament: Tournament,
     participant_name: str,
     pokemon_1: str | None = None,
@@ -23,6 +24,23 @@ def join_tournament(
             status_code=400,
             detail="Participant with this name already exists in this tournament",
         )
+
+    dropped_participant = participants.get_by_name(tournament.id, participant_name)
+    if dropped_participant and not dropped_participant.is_active:
+        current_round = _get_current_round(matches, tournament.id)
+        dropped_round = dropped_participant.dropped_round or 0
+        if current_round <= dropped_round:
+            raise HTTPException(
+                status_code=400,
+                detail="Dropped participants can only be reassigned in a later round",
+            )
+        dropped_participant.is_active = True
+        dropped_participant.dropped_round = None
+        dropped_participant.pokemon_1 = pokemon_1
+        dropped_participant.pokemon_2 = pokemon_2
+        participants.save(dropped_participant)
+        return dropped_participant
+
     return participants.add(
         tournament.id,
         participant_name,
@@ -33,6 +51,7 @@ def join_tournament(
 
 def remove_participant(
     participants: ParticipantRepositoryPort,
+    matches: MatchRepositoryPort,
     tournament: Tournament,
     participant_id: int,
 ) -> None:
@@ -40,7 +59,34 @@ def remove_participant(
     participant = participants.get_by_id(participant_id)
     if not participant or participant.tournament_id != tournament.id:
         raise HTTPException(status_code=404, detail="Participant not found")
+    current_round = _get_current_round(matches, tournament.id)
+    if current_round == 0 or not _is_round_complete(
+        matches, tournament.id, current_round
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Participants can only be dropped after a round ends",
+        )
+    participant.dropped_round = current_round
     participants.delete(participant)
+
+
+def _get_current_round(matches: MatchRepositoryPort, tournament_id: int) -> int:
+    tournament_matches = matches.get_by_tournament(tournament_id)
+    if not tournament_matches:
+        return 0
+    return max(m.round_number for m in tournament_matches)
+
+
+def _is_round_complete(
+    matches: MatchRepositoryPort, tournament_id: int, round_number: int
+) -> bool:
+    tournament_matches = matches.get_by_tournament(tournament_id)
+    return all(
+        match.is_completed
+        for match in tournament_matches
+        if match.round_number == round_number
+    )
 
 
 def get_potential_pairings(
