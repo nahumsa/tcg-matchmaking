@@ -63,6 +63,7 @@ export default function ReportMatchModal({
               <button
                 key={outcome}
                 onClick={() => {
+                  if (selectedOutcome === outcome) return;
                   const nextPreset = presets.find((preset) => getOutcome(preset) === outcome);
                   if (nextPreset) onSelectPreset(nextPreset);
                 }}
