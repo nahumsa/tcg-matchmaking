@@ -51,6 +51,12 @@ def generate_pairings(
     all_matches = matches.get_by_tournament(tournament.id)
     active_participants = participants.get_by_tournament(tournament.id)
     if not active_participants:
+        active_participants = [
+            participant
+            for participant in tournament.participants
+            if getattr(participant, "is_active", True) is not False
+        ]
+    if not active_participants:
         raise HTTPException(status_code=400, detail="No participants in tournament")
     round_number = assert_can_generate_pairings(tournament, all_matches)
 
