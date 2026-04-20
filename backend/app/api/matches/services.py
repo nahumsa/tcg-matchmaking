@@ -85,6 +85,36 @@ async def report_match(
     return db_match
 
 
+async def report_match_in_tournament(
+    db: Session, code: str, match_id: int, update: schemas.MatchUpdate
+) -> models.Match:
+    tournament_repo = SqlAlchemyTournamentRepository(db)
+    match_repo = SqlAlchemyMatchRepository(db)
+    tournament = tournament_repo.get_by_code(code)
+    if not tournament:
+        return None
+
+    match = match_repo.get_by_id(match_id)
+    if not match:
+        return None
+
+    use_cases.assert_match_belongs_to_tournament(match=match, tournament=tournament)
+    use_cases.assert_report_permission(match=match, update=update)
+    return await report_match(db=db, match_id=match_id, update=update)
+
+
+async def report_match_legacy(
+    db: Session, match_id: int, update: schemas.MatchUpdate
+) -> models.Match:
+    match_repo = SqlAlchemyMatchRepository(db)
+    match = match_repo.get_by_id(match_id)
+    if not match:
+        return None
+
+    use_cases.assert_report_permission(match=match, update=update)
+    return await report_match(db=db, match_id=match_id, update=update)
+
+
 def get_tournament_matches(db: Session, tournament_id: int) -> List[models.Match]:
     match_repo = SqlAlchemyMatchRepository(db)
     return match_repo.get_by_tournament(tournament_id)

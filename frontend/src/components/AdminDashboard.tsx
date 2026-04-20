@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { config } from '../config';
 import ParticipantList from './ParticipantList';
@@ -7,6 +7,7 @@ import { useLanguage } from '../i18n';
 import PokemonSprite from './PokemonSprite';
 import ReportMatchModal from './ReportMatchModal';
 import { usePokemonList } from '../hooks/usePokemonList';
+import { useTournamentSocket } from '../hooks/useTournamentSocket';
 
 interface Tournament {
   id: number;
@@ -83,16 +84,72 @@ export default function AdminDashboard() {
     }
   }, [tournament]);
 
+  const fetchMatches = useCallback(async () => {
+    if (!tournament) return;
+    try {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/matches`);
+      if (response.ok) {
+        const data = await response.json();
+        setMatches(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch matches', err);
+    }
+  }, [tournament]);
+
+  const fetchParticipants = useCallback(async () => {
+    if (!tournament) return;
+    try {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/participants`);
+      if (response.ok) {
+        const data = await response.json();
+        setParticipants(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch participants', err);
+    }
+  }, [tournament]);
+
+  const fetchStandings = useCallback(async () => {
+    if (!tournament) return;
+    try {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/standings`);
+      if (response.ok) {
+        const data = await response.json();
+        setStandings(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch standings', err);
+    }
+  }, [tournament]);
+
+  const fetchTournament = useCallback(async () => {
+    if (!tournament) return;
+    try {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}`);
+      if (response.ok) {
+        const data = await response.json();
+        setTournament(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch tournament', err);
+    }
+  }, [tournament]);
+
   useEffect(() => {
     if (!tournament) return;
-
     fetchMatches();
     fetchParticipants();
     fetchStandings();
+  }, [fetchMatches, fetchParticipants, fetchStandings, tournament]);
 
-    const ws = new WebSocket(`${config.wsUrl}/ws/${tournament.code}`);
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
+  useTournamentSocket({
+    code: tournament?.code,
+    onMessage: (payload) => {
+      const message = payload as {
+        event?: string;
+        data?: { name?: string; timestamp?: string };
+      };
 
       if (
         message.event === 'participant_joined'
@@ -109,77 +166,23 @@ export default function AdminDashboard() {
 
       if (message.event === 'participant_joined') {
         const newEvent: ActivityEvent = {
-          id: Math.random().toString(36).substr(2, 9),
+          id: Math.random().toString(36).substring(2, 11),
           type: message.event,
-          message: t('adminJoinedTournament', { name: message.data.name }),
-          timestamp: message.data.timestamp || new Date().toISOString(),
+          message: t('adminJoinedTournament', { name: message.data?.name ?? '' }),
+          timestamp: message.data?.timestamp || new Date().toISOString(),
         };
         setEvents((prev) => [...prev, newEvent]);
       } else if (message.event === 'match_reported') {
         const newEvent: ActivityEvent = {
-          id: Math.random().toString(36).substr(2, 9),
+          id: Math.random().toString(36).substring(2, 11),
           type: message.event,
           message: t('adminMatchReported'),
           timestamp: new Date().toISOString(),
         };
         setEvents((prev) => [...prev, newEvent]);
       }
-    };
-
-    return () => ws.close();
-  }, [tournament, t]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fetchMatches = async () => {
-    if (!tournament) return;
-    try {
-      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/matches`);
-      if (response.ok) {
-        const data = await response.json();
-        setMatches(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch matches', err);
-    }
-  };
-
-  const fetchParticipants = async () => {
-    if (!tournament) return;
-    try {
-      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/participants`);
-      if (response.ok) {
-        const data = await response.json();
-        setParticipants(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch participants', err);
-    }
-  };
-
-  const fetchStandings = async () => {
-    if (!tournament) return;
-    try {
-      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/standings`);
-      if (response.ok) {
-        const data = await response.json();
-        setStandings(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch standings', err);
-    }
-  };
-
-  const fetchTournament = async () => {
-    if (!tournament) return;
-    try {
-      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}`);
-      if (response.ok) {
-        const data = await response.json();
-        setTournament(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch tournament', err);
-    }
-  };
+    },
+  });
 
   const handleCreateTournament = async (e: React.FormEvent) => {
     e.preventDefault();

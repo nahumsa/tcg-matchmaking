@@ -14,9 +14,9 @@ from backend.app.core.database import Base
 from backend.app.core.config import settings
 
 # Import models to ensure they are registered with Base.metadata
-from backend.app.api.tournaments.models import Tournament
-from backend.app.api.participants.models import Participant
-from backend.app.api.matches.models import Match
+from backend.app.api.tournaments import models as tournament_models  # noqa: F401
+from backend.app.api.participants import models as participant_models  # noqa: F401
+from backend.app.api.matches import models as match_models  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

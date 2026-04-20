@@ -35,3 +35,12 @@ def _generate_room_code(tournaments: TournamentRepositoryPort, length: int = 6) 
 def assert_tournament_can_accept_changes(tournament: Tournament) -> None:
     if tournament.status == "COMPLETED":
         raise HTTPException(status_code=400, detail="Tournament is already completed")
+
+
+def complete_tournament(
+    tournaments: TournamentRepositoryPort, tournament: Tournament
+) -> Tournament:
+    assert_tournament_can_accept_changes(tournament)
+    tournament.status = "COMPLETED"
+    tournaments.save(tournament)
+    return tournament
