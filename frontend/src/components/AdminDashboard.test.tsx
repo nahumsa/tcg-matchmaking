@@ -355,6 +355,7 @@ describe('AdminDashboard', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Report/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Win/i }));
     fireEvent.click(screen.getByRole('button', { name: /2 - 0/i }));
 
     const submitButton = screen.getByRole('button', { name: /Submit Result/i });

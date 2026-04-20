@@ -12,6 +12,14 @@ interface ReportMatchModalProps {
   onSubmit: () => void;
 }
 
+type MatchOutcome = 'win' | 'loss' | 'tie';
+
+const getOutcome = ([playerScore, opponentScore]: [number, number]): MatchOutcome => {
+  if (playerScore > opponentScore) return 'win';
+  if (playerScore < opponentScore) return 'loss';
+  return 'tie';
+};
+
 export default function ReportMatchModal({
   isOpen,
   playerLabel,
@@ -26,6 +34,11 @@ export default function ReportMatchModal({
   const { t } = useLanguage();
 
   if (!isOpen) return null;
+
+  const selectedOutcome = selectedPreset ? getOutcome(selectedPreset) : null;
+  const presetOptions = selectedOutcome
+    ? presets.filter((preset) => getOutcome(preset) === selectedOutcome)
+    : [];
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -42,26 +55,47 @@ export default function ReportMatchModal({
           </div>
         </div>
 
+        <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-gray-400">{t('tournamentReportOutcomeLabel')}</p>
+        <div className="grid grid-cols-3 gap-2 mb-6">
+          {(['win', 'loss', 'tie'] as MatchOutcome[]).map((outcome) => {
+            const isSelected = selectedOutcome === outcome;
+            return (
+              <button
+                key={outcome}
+                onClick={() => {
+                  const nextPreset = presets.find((preset) => getOutcome(preset) === outcome);
+                  if (nextPreset) onSelectPreset(nextPreset);
+                }}
+                className={`py-3 rounded-xl border-2 text-sm font-black uppercase transition-all ${isSelected
+                  ? 'bg-blue-600 border-blue-600 text-white'
+                  : 'bg-white border-gray-100 text-gray-800 hover:border-blue-200'
+                  }`}
+              >
+                {outcome === 'win' ? t('tournamentResultWin') : outcome === 'loss' ? t('tournamentResultLoss') : t('tournamentResultTie')}
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-gray-400">{t('tournamentReportMatchCountLabel')}</p>
         <div className="grid gap-3 mb-8">
-          {presets.map(([s1, s2]) => (
-            (() => {
-              const isSelected = selectedPreset?.[0] === s1 && selectedPreset?.[1] === s2;
-              return (
-            <button
-              key={`${s1}-${s2}`}
-              onClick={() => onSelectPreset([s1, s2])}
-              className={`py-5 rounded-2xl border-2 font-black transition-all ${isSelected
-                ? 'bg-blue-600 border-blue-600 text-white scale-[1.04] shadow-lg shadow-blue-200'
-                : 'bg-white border-gray-100 text-gray-800 hover:border-blue-200'
-                }`}
-            >
-              <div className="text-2xl">
-                {s1} - {s2}
-              </div>
-            </button>
-              );
-            })()
-          ))}
+          {presetOptions.map(([s1, s2]) => {
+            const isSelected = selectedPreset?.[0] === s1 && selectedPreset?.[1] === s2;
+            return (
+              <button
+                key={`${s1}-${s2}`}
+                onClick={() => onSelectPreset([s1, s2])}
+                className={`py-5 rounded-2xl border-2 font-black transition-all ${isSelected
+                  ? 'bg-blue-600 border-blue-600 text-white scale-[1.04] shadow-lg shadow-blue-200'
+                  : 'bg-white border-gray-100 text-gray-800 hover:border-blue-200'
+                  }`}
+              >
+                <div className="text-2xl">
+                  {s1} - {s2}
+                </div>
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex gap-3">

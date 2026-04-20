@@ -124,14 +124,16 @@ describe('ReportScore', () => {
       fireEvent.click(screen.getByText(/Report Score/i));
     });
 
-    // Check if modal options are present
+    // Select result first, then pick a score option
+    fireEvent.click(screen.getByRole('button', { name: /Win/i }));
+
     expect(screen.getByText('2 - 0')).toBeInTheDocument();
     expect(screen.getByText('2 - 1')).toBeInTheDocument();
-    expect(screen.getByText('1 - 2')).toBeInTheDocument();
-    expect(screen.getByText('0 - 2')).toBeInTheDocument();
+    expect(screen.getByText('1 - 0')).toBeInTheDocument();
+    expect(screen.queryByText('1 - 2')).not.toBeInTheDocument();
 
     // Select 2 - 1
-    fireEvent.click(screen.getByText('2 - 1'));
+    fireEvent.click(screen.getByRole('button', { name: /2 - 1/i }));
 
     // Submit
     fireEvent.click(screen.getByText(/Submit Result/i));
