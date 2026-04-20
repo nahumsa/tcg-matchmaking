@@ -17,8 +17,10 @@ async def join_tournament(
     db: Session, tournament: Tournament, code: str, participant: schemas.ParticipantJoin
 ) -> models.Participant:
     participant_repo = SqlAlchemyParticipantRepository(db)
+    match_repo = SqlAlchemyMatchRepository(db)
     db_participant = use_cases.join_tournament(
         participants=participant_repo,
+        matches=match_repo,
         tournament=tournament,
         participant_name=participant.name,
         pokemon_1=participant.pokemon_1,
@@ -42,8 +44,10 @@ async def remove_participant(
     db: Session, tournament: Tournament, code: str, participant_id: int
 ):
     participant_repo = SqlAlchemyParticipantRepository(db)
+    match_repo = SqlAlchemyMatchRepository(db)
     use_cases.remove_participant(
         participants=participant_repo,
+        matches=match_repo,
         tournament=tournament,
         participant_id=participant_id,
     )

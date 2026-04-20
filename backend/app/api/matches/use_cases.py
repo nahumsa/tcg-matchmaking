@@ -49,9 +49,18 @@ def generate_pairings(
     tournament: Tournament,
 ) -> List[Match]:
     all_matches = matches.get_by_tournament(tournament.id)
+    active_participants = participants.get_by_tournament(tournament.id)
+    if not active_participants:
+        active_participants = [
+            participant
+            for participant in tournament.participants
+            if getattr(participant, "is_active", True) is not False
+        ]
+    if not active_participants:
+        raise HTTPException(status_code=400, detail="No participants in tournament")
     round_number = assert_can_generate_pairings(tournament, all_matches)
 
-    new_pairings = pairing.get_pairings(tournament.participants, all_matches)
+    new_pairings = pairing.get_pairings(active_participants, all_matches)
 
     def combined_points(pairing_item):
         p1, p2 = pairing_item

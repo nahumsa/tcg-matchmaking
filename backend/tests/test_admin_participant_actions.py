@@ -60,14 +60,45 @@ def test_admin_remove_participant(setup_db):
     join_resp = client.post(f"/tournaments/{code}/join", json={"name": "RemoveMe"})
     participant_id = join_resp.json()["id"]
 
-    # Admin removes the participant
-    # We'll use a new endpoint: DELETE /tournaments/{code}/participants/{id}
+    # Removing before any round has ended is blocked.
     del_resp = client.delete(f"/tournaments/{code}/participants/{participant_id}")
+    assert del_resp.status_code == 400
 
+    # Start and complete round 1.
+    client.post(f"/tournaments/{code}/join", json={"name": "Round Opponent"})
+    client.post(f"/tournaments/{code}/join", json={"name": "Round Third"})
+    client.post(f"/tournaments/{code}/join", json={"name": "Round Fourth"})
+    pairings_resp = client.post(f"/tournaments/{code}/pairings")
+    assert pairings_resp.status_code == 200
+    matches = client.get(f"/tournaments/{code}/matches").json()
+    round_1_matches = [match for match in matches if match["round_number"] == 1]
+    for match in round_1_matches:
+        report_resp = client.post(
+            f"/matches/{match['id']}/report",
+            json={"player1_score": 2, "player2_score": 0, "is_admin": True},
+        )
+        assert report_resp.status_code == 200
+
+    # Admin can drop the participant now that a round ended.
+    del_resp = client.delete(f"/tournaments/{code}/participants/{participant_id}")
     assert del_resp.status_code == 204
 
-    # Verify player is gone
-    # We can check by trying to join with same name (it should succeed if previous was deleted)
+    # Reassigning in the same round boundary is blocked.
+    join_again_resp = client.post(
+        f"/tournaments/{code}/join", json={"name": "RemoveMe"}
+    )
+    assert join_again_resp.status_code == 400
+
+    # Once the next round starts, reassignment is allowed.
+    pairings_resp = client.post(f"/tournaments/{code}/pairings")
+    assert pairings_resp.status_code == 200
+
+    # Repeated drop requests should be idempotent and not shift reassign eligibility.
+    repeated_del_resp = client.delete(
+        f"/tournaments/{code}/participants/{participant_id}"
+    )
+    assert repeated_del_resp.status_code == 204
+
     join_again_resp = client.post(
         f"/tournaments/{code}/join", json={"name": "RemoveMe"}
     )
