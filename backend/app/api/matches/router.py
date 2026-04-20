@@ -36,7 +36,9 @@ async def report_match_v2(
     if not db_match:
         if not get_tournament_by_code(db, code):
             raise HTTPException(status_code=404, detail="Tournament not found")
-        raise HTTPException(status_code=404, detail="Match not found in this tournament")
+        raise HTTPException(
+            status_code=404, detail="Match not found in this tournament"
+        )
     return db_match
 
 
