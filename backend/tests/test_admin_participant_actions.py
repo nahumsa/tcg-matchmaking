@@ -134,7 +134,9 @@ def test_admin_can_undrop_only_in_drop_round(setup_db):
     assert dropped_participant["is_active"] is False
     assert dropped_participant["dropped_round"] == 1
 
-    undrop_resp = client.post(f"/tournaments/{code}/participants/{participant_id}/undrop")
+    undrop_resp = client.post(
+        f"/tournaments/{code}/participants/{participant_id}/undrop"
+    )
     assert undrop_resp.status_code == 200
     assert undrop_resp.json()["is_active"] is True
     assert undrop_resp.json()["dropped_round"] is None

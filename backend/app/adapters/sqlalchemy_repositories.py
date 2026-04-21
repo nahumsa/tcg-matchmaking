@@ -42,7 +42,9 @@ class SqlAlchemyParticipantRepository:
     def get_by_tournament(
         self, tournament_id: int, include_inactive: bool = False
     ) -> List[Participant]:
-        query = self.db.query(Participant).filter(Participant.tournament_id == tournament_id)
+        query = self.db.query(Participant).filter(
+            Participant.tournament_id == tournament_id
+        )
         if not include_inactive:
             query = query.filter(Participant.is_active.is_(True))
         return query.all()
