@@ -35,6 +35,7 @@ describe('ParticipantList', () => {
       <ParticipantList
         tournamentCode={mockTournamentCode}
         participants={mockParticipants}
+        currentRound={0}
         onUpdate={mockOnUpdate}
       />
     );
@@ -69,6 +70,7 @@ describe('ParticipantList', () => {
       <ParticipantList
         tournamentCode={mockTournamentCode}
         participants={[]}
+        currentRound={0}
         onUpdate={mockOnUpdate}
       />
     );
@@ -113,6 +115,7 @@ describe('ParticipantList', () => {
       <ParticipantList
         tournamentCode={mockTournamentCode}
         participants={mockParticipants}
+        currentRound={2}
         onUpdate={mockOnUpdate}
       />
     );
@@ -131,7 +134,7 @@ describe('ParticipantList', () => {
     });
   });
 
-  it('allows undropping a participant from recently dropped list', async () => {
+  it('only allows undropping a participant in a later round', async () => {
     (fetch as any).mockImplementation((url: string, options?: { method?: string }) => {
       if (url.includes('pokeapi.co')) {
         return Promise.resolve({
@@ -151,10 +154,11 @@ describe('ParticipantList', () => {
       return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
     });
 
-    render(
+    const { rerender } = render(
       <ParticipantList
         tournamentCode={mockTournamentCode}
         participants={mockParticipants}
+        currentRound={2}
         onUpdate={mockOnUpdate}
       />
     );
@@ -162,6 +166,19 @@ describe('ParticipantList', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /Remove/i })[0]);
 
     await screen.findByText(/Recently dropped/i);
+    expect(screen.getByText(/can be undropped next round/i)).toBeInTheDocument();
+    const undropButton = screen.getByRole('button', { name: /Undrop/i });
+    expect(undropButton).toBeDisabled();
+
+    rerender(
+      <ParticipantList
+        tournamentCode={mockTournamentCode}
+        participants={mockParticipants}
+        currentRound={3}
+        onUpdate={mockOnUpdate}
+      />
+    );
+
     fireEvent.click(screen.getByRole('button', { name: /Undrop/i }));
 
     await waitFor(() => {

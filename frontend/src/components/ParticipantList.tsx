@@ -15,14 +15,19 @@ interface Participant {
 interface ParticipantListProps {
   tournamentCode: string;
   participants: Participant[];
+  currentRound: number;
   onUpdate: () => void;
 }
 
-export default function ParticipantList({ tournamentCode, participants, onUpdate }: ParticipantListProps) {
+interface DroppedParticipant extends Participant {
+  droppedInRound: number;
+}
+
+export default function ParticipantList({ tournamentCode, participants, currentRound, onUpdate }: ParticipantListProps) {
   const [newName, setNewName] = useState('');
   const [pokemon1, setPokemon1] = useState<string | null>(null);
   const [pokemon2, setPokemon2] = useState<string | null>(null);
-  const [droppedParticipants, setDroppedParticipants] = useState<Participant[]>([]);
+  const [droppedParticipants, setDroppedParticipants] = useState<DroppedParticipant[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { t } = useLanguage();
@@ -73,7 +78,7 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
       if (!response.ok) throw new Error(t('participantsRemoveFailed'));
       if (participantToDrop) {
         setDroppedParticipants((prev) => [
-          participantToDrop,
+          { ...participantToDrop, droppedInRound: currentRound },
           ...prev.filter((participant) => participant.id !== participantToDrop.id),
         ]);
       }
@@ -163,11 +168,17 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
             <div className="space-y-1">
               {droppedParticipants.map((participant) => (
                 <div key={participant.id} className="flex items-center justify-between gap-2 text-sm">
-                  <span className="font-medium text-amber-900">{participant.name}</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-amber-900">{participant.name}</span>
+                    {currentRound <= participant.droppedInRound && (
+                      <span className="text-xs text-amber-700">{t('participantsUndropNextRound')}</span>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => handleUndropParticipant(participant)}
-                    className="rounded bg-amber-700 px-2 py-1 text-xs font-bold text-white transition hover:bg-amber-800"
+                    disabled={currentRound <= participant.droppedInRound}
+                    className="rounded bg-amber-700 px-2 py-1 text-xs font-bold text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:bg-amber-300"
                   >
                     {t('participantsUndrop')}
                   </button>

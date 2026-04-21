@@ -641,6 +641,7 @@ export default function AdminDashboard() {
             <ParticipantList
               tournamentCode={tournament.code}
               participants={participants}
+              currentRound={currentRound}
               onUpdate={fetchParticipants}
             />
             <ActivityLog events={events} />
