@@ -74,6 +74,33 @@ def remove_participant(
     participants.delete(participant)
 
 
+def undrop_participant(
+    participants: ParticipantRepositoryPort,
+    matches: MatchRepositoryPort,
+    tournament: Tournament,
+    participant_id: int,
+) -> Participant:
+    assert_tournament_can_accept_changes(tournament)
+    participant = participants.get_by_id(participant_id)
+    if not participant or participant.tournament_id != tournament.id:
+        raise HTTPException(status_code=404, detail="Participant not found")
+    if participant.is_active:
+        raise HTTPException(status_code=400, detail="Participant is already active")
+
+    current_round = _get_current_round(matches, tournament.id)
+    dropped_round = participant.dropped_round
+    if dropped_round is None or current_round != dropped_round:
+        raise HTTPException(
+            status_code=400,
+            detail="Participants can only be undropped in the round they were dropped",
+        )
+
+    participant.is_active = True
+    participant.dropped_round = None
+    participants.save(participant)
+    return participant
+
+
 def _get_current_round(matches: MatchRepositoryPort, tournament_id: int) -> int:
     tournament_matches = matches.get_by_tournament(tournament_id)
     if not tournament_matches:

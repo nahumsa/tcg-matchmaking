@@ -105,6 +105,73 @@ def test_admin_remove_participant(setup_db):
     assert join_again_resp.status_code == 200
 
 
+def test_admin_can_undrop_only_in_drop_round(setup_db):
+    create_resp = client.post("/tournaments", json={"name": "Undrop Tournament"})
+    code = create_resp.json()["code"]
+
+    join_resp = client.post(f"/tournaments/{code}/join", json={"name": "UndoMe"})
+    participant_id = join_resp.json()["id"]
+    client.post(f"/tournaments/{code}/join", json={"name": "P2"})
+    client.post(f"/tournaments/{code}/join", json={"name": "P3"})
+    client.post(f"/tournaments/{code}/join", json={"name": "P4"})
+
+    pairings_resp = client.post(f"/tournaments/{code}/pairings")
+    assert pairings_resp.status_code == 200
+    matches = client.get(f"/tournaments/{code}/matches").json()
+    round_1_matches = [match for match in matches if match["round_number"] == 1]
+    for match in round_1_matches:
+        report_resp = client.post(
+            f"/matches/{match['id']}/report",
+            json={"player1_score": 2, "player2_score": 0, "is_admin": True},
+        )
+        assert report_resp.status_code == 200
+
+    del_resp = client.delete(f"/tournaments/{code}/participants/{participant_id}")
+    assert del_resp.status_code == 204
+
+    list_default_resp = client.get(f"/tournaments/{code}/participants")
+    default_ids = {participant["id"] for participant in list_default_resp.json()}
+    assert participant_id not in default_ids
+
+    list_resp = client.get(f"/tournaments/{code}/participants?include_dropped=true")
+    dropped_participant = next(p for p in list_resp.json() if p["id"] == participant_id)
+    assert dropped_participant["is_active"] is False
+    assert dropped_participant["dropped_round"] == 1
+
+    undrop_resp = client.post(
+        f"/tournaments/{code}/participants/{participant_id}/undrop"
+    )
+    assert undrop_resp.status_code == 200
+    assert undrop_resp.json()["is_active"] is True
+    assert undrop_resp.json()["dropped_round"] is None
+
+    del_resp = client.delete(f"/tournaments/{code}/participants/{participant_id}")
+    assert del_resp.status_code == 204
+    pairings_resp = client.post(f"/tournaments/{code}/pairings")
+    assert pairings_resp.status_code == 200
+
+    late_undrop_resp = client.post(
+        f"/tournaments/{code}/participants/{participant_id}/undrop"
+    )
+    assert late_undrop_resp.status_code == 400
+
+
+def test_admin_cannot_undrop_already_active_participant(setup_db):
+    create_resp = client.post(
+        "/tournaments", json={"name": "Undrop Active Participant Tournament"}
+    )
+    code = create_resp.json()["code"]
+
+    join_resp = client.post(f"/tournaments/{code}/join", json={"name": "StillActive"})
+    participant_id = join_resp.json()["id"]
+
+    undrop_resp = client.post(
+        f"/tournaments/{code}/participants/{participant_id}/undrop"
+    )
+    assert undrop_resp.status_code == 400
+    assert undrop_resp.json()["detail"] == "Participant is already active"
+
+
 def test_removing_participants_mid_event_does_not_shrink_rounds(setup_db):
     create_resp = client.post("/tournaments", json={"name": "Stable Rounds Tournament"})
     code = create_resp.json()["code"]

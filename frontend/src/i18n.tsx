@@ -57,6 +57,8 @@ const MESSAGES = {
     participantsRemoveConfirm: 'Are you sure you want to remove this participant?',
     participantsAddFailed: 'Failed to add participant',
     participantsRemoveFailed: 'Failed to remove participant',
+    participantsUndrop: 'Undrop',
+    participantsUndropFailed: 'Failed to undrop participant',
 
     commonUnexpectedError: 'An unexpected error occurred',
     commonNone: 'None',
@@ -206,6 +208,8 @@ const MESSAGES = {
     participantsRemoveConfirm: 'Tem certeza que deseja remover este participante?',
     participantsAddFailed: 'Falha ao adicionar participante',
     participantsRemoveFailed: 'Falha ao remover participante',
+    participantsUndrop: 'Reativar',
+    participantsUndropFailed: 'Falha ao reativar participante',
 
     commonUnexpectedError: 'Ocorreu um erro inesperado',
     commonNone: 'Nenhum',

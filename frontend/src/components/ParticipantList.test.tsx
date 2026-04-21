@@ -35,6 +35,7 @@ describe('ParticipantList', () => {
       <ParticipantList
         tournamentCode={mockTournamentCode}
         participants={mockParticipants}
+        currentRound={1}
         onUpdate={mockOnUpdate}
       />
     );
@@ -69,6 +70,7 @@ describe('ParticipantList', () => {
       <ParticipantList
         tournamentCode={mockTournamentCode}
         participants={[]}
+        currentRound={1}
         onUpdate={mockOnUpdate}
       />
     );
@@ -113,6 +115,7 @@ describe('ParticipantList', () => {
       <ParticipantList
         tournamentCode={mockTournamentCode}
         participants={mockParticipants}
+        currentRound={1}
         onUpdate={mockOnUpdate}
       />
     );
@@ -129,5 +132,67 @@ describe('ParticipantList', () => {
       );
       expect(mockOnUpdate).toHaveBeenCalled();
     });
+  });
+
+  it('handles participant undrop in the dropped round', async () => {
+    const droppedParticipant = [{ id: 3, name: 'Dropped', points: 3, is_active: false, dropped_round: 1 }];
+
+    (fetch as any).mockImplementation((url: string, options?: { method?: string }) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: [] })
+        });
+      }
+      if (options?.method === 'POST' && url.includes('/undrop')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ id: 3, is_active: true }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+    });
+
+    render(
+      <ParticipantList
+        tournamentCode={mockTournamentCode}
+        participants={droppedParticipant}
+        currentRound={1}
+        onUpdate={mockOnUpdate}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Undrop Dropped/i }));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(`/tournaments/${mockTournamentCode}/participants/3/undrop`),
+        expect.objectContaining({ method: 'POST' })
+      );
+      expect(mockOnUpdate).toHaveBeenCalled();
+    });
+  });
+
+  it('disables undrop when participant was dropped in a different round', async () => {
+    const droppedParticipant = [{ id: 4, name: 'DroppedEarlier', points: 1, is_active: false, dropped_round: 1 }];
+    const fetchSpy = vi.spyOn(global, 'fetch');
+
+    render(
+      <ParticipantList
+        tournamentCode={mockTournamentCode}
+        participants={droppedParticipant}
+        currentRound={2}
+        onUpdate={mockOnUpdate}
+      />
+    );
+
+    const undropButton = screen.getByRole('button', { name: /Undrop DroppedEarlier/i });
+    await waitFor(() => {
+      expect(undropButton).toBeDisabled();
+    });
+    fireEvent.click(undropButton);
+
+    expect(fetchSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining(`/tournaments/${mockTournamentCode}/participants/4/undrop`),
+      expect.objectContaining({ method: 'POST' })
+    );
+    expect(mockOnUpdate).not.toHaveBeenCalled();
   });
 });

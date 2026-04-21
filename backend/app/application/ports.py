@@ -27,7 +27,9 @@ class TournamentRepositoryPort(Protocol):
 
 
 class ParticipantRepositoryPort(Protocol):
-    def get_by_tournament(self, tournament_id: int) -> List[Participant]: ...
+    def get_by_tournament(
+        self, tournament_id: int, include_inactive: bool = False
+    ) -> List[Participant]: ...
 
     def get_by_id(self, participant_id: int) -> Optional[Participant]: ...
 
