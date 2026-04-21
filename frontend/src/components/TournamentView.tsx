@@ -206,6 +206,16 @@ export default function TournamentView() {
       ? t('tournamentReconnecting')
       : t('tournamentConnecting');
 
+  const isReporterPlayer1 = reportingMatch ? reportingMatch.player1_id === participantId : true;
+  const toReporterPerspective = (preset: [number, number]): [number, number] => (
+    isReporterPlayer1 ? preset : [preset[1], preset[0]]
+  );
+  const toMatchPerspective = (preset: [number, number]): [number, number] => (
+    isReporterPlayer1 ? preset : [preset[1], preset[0]]
+  );
+  const reportPresets = presets.map(toReporterPerspective);
+  const reportSelectedPreset = selectedPreset ? toReporterPerspective(selectedPreset) : null;
+
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-8">
       <ReportMatchModal
@@ -214,10 +224,10 @@ export default function TournamentView() {
         opponentLabel={reportingMatch
           ? getPlayerName(reportingMatch.player1_id === participantId ? reportingMatch.player2_id : reportingMatch.player1_id)
           : t('commonPlayerWithId', { id: '?' })}
-        presets={presets}
-        selectedPreset={selectedPreset}
+        presets={reportPresets}
+        selectedPreset={reportSelectedPreset}
         isSubmitting={isSubmitting}
-        onSelectPreset={setSelectedPreset}
+        onSelectPreset={(preset) => setSelectedPreset(toMatchPerspective(preset))}
         onClose={() => {
           setReportingMatch(null);
           setSelectedPreset(null);
