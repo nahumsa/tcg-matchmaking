@@ -134,7 +134,7 @@ describe('ParticipantList', () => {
     });
   });
 
-  it('only allows undropping a participant in the same round as the drop', async () => {
+  it('only allows undropping a participant in a later round', async () => {
     (fetch as any).mockImplementation((url: string, options?: { method?: string }) => {
       if (url.includes('pokeapi.co')) {
         return Promise.resolve({
@@ -167,25 +167,14 @@ describe('ParticipantList', () => {
 
     await screen.findByText(/Recently dropped/i);
     const undropButton = screen.getByRole('button', { name: /Undrop/i });
-    expect(undropButton).toBeEnabled();
+    expect(screen.getByText(/can be undropped in a later round/i)).toBeInTheDocument();
+    expect(undropButton).toBeDisabled();
 
     rerender(
       <ParticipantList
         tournamentCode={mockTournamentCode}
         participants={mockParticipants}
         currentRound={3}
-        onUpdate={mockOnUpdate}
-      />
-    );
-
-    expect(screen.getByText(/can only be undropped in the round it was dropped/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Undrop/i })).toBeDisabled();
-
-    rerender(
-      <ParticipantList
-        tournamentCode={mockTournamentCode}
-        participants={mockParticipants}
-        currentRound={2}
         onUpdate={mockOnUpdate}
       />
     );
