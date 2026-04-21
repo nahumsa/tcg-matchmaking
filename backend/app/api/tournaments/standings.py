@@ -30,6 +30,8 @@ def calculate_standings(db: Session, tournament_id: int) -> List[ParticipantResp
             "id": p.id,
             "name": p.name,
             "tournament_id": p.tournament_id,
+            "is_active": p.is_active,
+            "dropped_round": p.dropped_round,
             "pokemon_1": p.pokemon_1,
             "pokemon_2": p.pokemon_2,
             "points": 0,
