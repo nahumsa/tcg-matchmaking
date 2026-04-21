@@ -33,6 +33,8 @@ interface Participant {
   id: number;
   name: string;
   points: number;
+  is_active?: boolean;
+  dropped_round?: number | null;
   pokemon_1?: string | null;
   pokemon_2?: string | null;
   rank?: number;
@@ -100,7 +102,7 @@ export default function AdminDashboard() {
   const fetchParticipants = useCallback(async () => {
     if (!tournament) return;
     try {
-      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/participants`);
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournament.code}/participants?include_dropped=true`);
       if (response.ok) {
         const data = await response.json();
         setParticipants(data);
@@ -154,6 +156,7 @@ export default function AdminDashboard() {
       if (
         message.event === 'participant_joined'
         || message.event === 'participant_removed'
+        || message.event === 'participant_undropped'
         || message.event === 'match_reported'
         || message.event === 'pairings_generated'
         || message.event === 'tournament_completed'
@@ -641,6 +644,7 @@ export default function AdminDashboard() {
             <ParticipantList
               tournamentCode={tournament.code}
               participants={participants}
+              currentRound={currentRound}
               onUpdate={fetchParticipants}
             />
             <ActivityLog events={events} />

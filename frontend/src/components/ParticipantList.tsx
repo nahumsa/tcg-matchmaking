@@ -8,6 +8,8 @@ interface Participant {
   id: number;
   name: string;
   points: number;
+  is_active?: boolean;
+  dropped_round?: number | null;
   pokemon_1?: string | null;
   pokemon_2?: string | null;
 }
@@ -15,10 +17,11 @@ interface Participant {
 interface ParticipantListProps {
   tournamentCode: string;
   participants: Participant[];
+  currentRound: number;
   onUpdate: () => void;
 }
 
-export default function ParticipantList({ tournamentCode, participants, onUpdate }: ParticipantListProps) {
+export default function ParticipantList({ tournamentCode, participants, currentRound, onUpdate }: ParticipantListProps) {
   // ... rest of state
   const [newName, setNewName] = useState('');
   const [pokemon1, setPokemon1] = useState<string | null>(null);
@@ -70,6 +73,22 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
       });
 
       if (!response.ok) throw new Error(t('participantsRemoveFailed'));
+      onUpdate();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
+    }
+  };
+
+  const handleUndropParticipant = async (id: number) => {
+    try {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournamentCode}/participants/${id}/undrop`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || t('participantsUndropFailed'));
+      }
       onUpdate();
     } catch (err) {
       setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
@@ -137,13 +156,24 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
                     <div className="text-xs text-gray-500">{p.points} {t('participantsPoints')}</div>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleRemoveParticipant(p.id)}
-                  className="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition opacity-100 md:opacity-80 md:group-hover:opacity-100"
-                  aria-label={`Remove ${p.name}`}
-                >
-                  &times;
-                </button>
+                {p.is_active === false ? (
+                  <button
+                    onClick={() => handleUndropParticipant(p.id)}
+                    disabled={p.dropped_round !== currentRound}
+                    className="px-2 py-1 text-xs font-semibold rounded-md border border-green-200 text-green-600 hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label={`Undrop ${p.name}`}
+                  >
+                    {t('participantsUndrop')}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleRemoveParticipant(p.id)}
+                    className="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition opacity-100 md:opacity-80 md:group-hover:opacity-100"
+                    aria-label={`Remove ${p.name}`}
+                  >
+                    &times;
+                  </button>
+                )}
               </div>
             ))
           )}

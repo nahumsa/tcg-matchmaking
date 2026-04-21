@@ -22,6 +22,8 @@ class ParticipantResponse(ParticipantBase):
     id: int
     tournament_id: int
     points: int
+    is_active: bool = True
+    dropped_round: int | None = None
     pokemon_1: str | None = None
     pokemon_2: str | None = None
     rank: int = 0

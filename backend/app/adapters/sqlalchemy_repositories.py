@@ -39,15 +39,13 @@ class SqlAlchemyParticipantRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_by_tournament(self, tournament_id: int) -> List[Participant]:
-        return (
-            self.db.query(Participant)
-            .filter(
-                Participant.tournament_id == tournament_id,
-                Participant.is_active.is_(True),
-            )
-            .all()
-        )
+    def get_by_tournament(
+        self, tournament_id: int, include_inactive: bool = False
+    ) -> List[Participant]:
+        query = self.db.query(Participant).filter(Participant.tournament_id == tournament_id)
+        if not include_inactive:
+            query = query.filter(Participant.is_active.is_(True))
+        return query.all()
 
     def get_by_id(self, participant_id: int) -> Optional[Participant]:
         return (

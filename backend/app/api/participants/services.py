@@ -57,9 +57,37 @@ async def remove_participant(
     )
 
 
-def get_participants(db: Session, tournament_id: int) -> List[models.Participant]:
+async def undrop_participant(
+    db: Session, tournament: Tournament, code: str, participant_id: int
+) -> models.Participant:
     participant_repo = SqlAlchemyParticipantRepository(db)
-    return participant_repo.get_by_tournament(tournament_id)
+    match_repo = SqlAlchemyMatchRepository(db)
+    participant = use_cases.undrop_participant(
+        participants=participant_repo,
+        matches=match_repo,
+        tournament=tournament,
+        participant_id=participant_id,
+    )
+    await manager.broadcast(
+        code,
+        {
+            "event": "participant_undropped",
+            "data": {
+                "id": participant.id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+        },
+    )
+    return participant
+
+
+def get_participants(
+    db: Session, tournament_id: int, include_dropped: bool = False
+) -> List[models.Participant]:
+    participant_repo = SqlAlchemyParticipantRepository(db)
+    return participant_repo.get_by_tournament(
+        tournament_id, include_inactive=include_dropped
+    )
 
 
 def get_potential_pairings(
