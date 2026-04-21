@@ -170,14 +170,14 @@ export default function ParticipantList({ tournamentCode, participants, currentR
                 <div key={participant.id} className="flex items-center justify-between gap-2 text-sm">
                   <div className="flex flex-col">
                     <span className="font-medium text-amber-900">{participant.name}</span>
-                    {currentRound <= participant.droppedInRound && (
-                      <span className="text-xs text-amber-700">{t('participantsUndropNextRound')}</span>
+                    {currentRound !== participant.droppedInRound && (
+                      <span className="text-xs text-amber-700">{t('participantsUndropSameRound')}</span>
                     )}
                   </div>
                   <button
                     type="button"
                     onClick={() => handleUndropParticipant(participant)}
-                    disabled={currentRound <= participant.droppedInRound}
+                    disabled={currentRound !== participant.droppedInRound}
                     className="rounded bg-amber-700 px-2 py-1 text-xs font-bold text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:bg-amber-300"
                   >
                     {t('participantsUndrop')}

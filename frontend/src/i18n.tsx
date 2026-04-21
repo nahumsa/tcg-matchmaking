@@ -60,7 +60,7 @@ const MESSAGES = {
     participantsRecentlyDropped: 'Recently dropped',
     participantsUndrop: 'Undrop',
     participantsUndropFailed: 'Failed to undrop participant',
-    participantsUndropNextRound: 'Can be undropped next round',
+    participantsUndropSameRound: 'Can only be undropped in the round it was dropped',
 
     commonUnexpectedError: 'An unexpected error occurred',
     commonNone: 'None',
@@ -213,7 +213,7 @@ const MESSAGES = {
     participantsRecentlyDropped: 'Removidos recentemente',
     participantsUndrop: 'Desfazer remoção',
     participantsUndropFailed: 'Falha ao desfazer remoção do participante',
-    participantsUndropNextRound: 'Só pode ser restaurado na próxima rodada',
+    participantsUndropSameRound: 'Só pode ser restaurado na rodada em que foi removido',
 
     commonUnexpectedError: 'Ocorreu um erro inesperado',
     commonNone: 'Nenhum',
