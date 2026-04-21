@@ -19,10 +19,10 @@ interface ParticipantListProps {
 }
 
 export default function ParticipantList({ tournamentCode, participants, onUpdate }: ParticipantListProps) {
-  // ... rest of state
   const [newName, setNewName] = useState('');
   const [pokemon1, setPokemon1] = useState<string | null>(null);
   const [pokemon2, setPokemon2] = useState<string | null>(null);
+  const [droppedParticipants, setDroppedParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { t } = useLanguage();
@@ -64,12 +64,44 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
   const handleRemoveParticipant = async (id: number) => {
     if (!confirm(t('participantsRemoveConfirm'))) return;
 
+    const participantToDrop = participants.find((participant) => participant.id === id);
     try {
       const response = await fetch(`${config.apiUrl}/tournaments/${tournamentCode}/participants/${id}`, {
         method: 'DELETE',
       });
 
       if (!response.ok) throw new Error(t('participantsRemoveFailed'));
+      if (participantToDrop) {
+        setDroppedParticipants((prev) => [
+          participantToDrop,
+          ...prev.filter((participant) => participant.id !== participantToDrop.id),
+        ]);
+      }
+      onUpdate();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
+    }
+  };
+
+  const handleUndropParticipant = async (participant: Participant) => {
+    setError(null);
+    try {
+      const response = await fetch(`${config.apiUrl}/tournaments/${tournamentCode}/participants`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: participant.name,
+          pokemon_1: participant.pokemon_1 ?? null,
+          pokemon_2: participant.pokemon_2 ?? null,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || t('participantsUndropFailed'));
+      }
+
+      setDroppedParticipants((prev) => prev.filter((droppedParticipant) => droppedParticipant.id !== participant.id));
       onUpdate();
     } catch (err) {
       setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
@@ -122,6 +154,28 @@ export default function ParticipantList({ tournamentCode, participants, onUpdate
         </div>
 
         {error && <div className="text-xs text-red-500 font-medium" role="alert">{error}</div>}
+
+        {droppedParticipants.length > 0 && (
+          <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
+              {t('participantsRecentlyDropped')}
+            </p>
+            <div className="space-y-1">
+              {droppedParticipants.map((participant) => (
+                <div key={participant.id} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="font-medium text-amber-900">{participant.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleUndropParticipant(participant)}
+                    className="rounded bg-amber-700 px-2 py-1 text-xs font-bold text-white transition hover:bg-amber-800"
+                  >
+                    {t('participantsUndrop')}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 pb-6">

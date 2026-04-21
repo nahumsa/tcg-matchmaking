@@ -130,4 +130,49 @@ describe('ParticipantList', () => {
       expect(mockOnUpdate).toHaveBeenCalled();
     });
   });
+
+  it('allows undropping a participant from recently dropped list', async () => {
+    (fetch as any).mockImplementation((url: string, options?: { method?: string }) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: [] })
+        });
+      }
+      if (options?.method === 'DELETE') {
+        return Promise.resolve({ ok: true });
+      }
+      if (options?.method === 'POST') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 1, name: 'Alice', points: 3 })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+    });
+
+    render(
+      <ParticipantList
+        tournamentCode={mockTournamentCode}
+        participants={mockParticipants}
+        onUpdate={mockOnUpdate}
+      />
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: /Remove/i })[0]);
+
+    await screen.findByText(/Recently dropped/i);
+    fireEvent.click(screen.getByRole('button', { name: /Undrop/i }));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(`/tournaments/${mockTournamentCode}/participants`),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ name: 'Alice', pokemon_1: null, pokemon_2: null })
+        })
+      );
+      expect(mockOnUpdate).toHaveBeenCalledTimes(2);
+    });
+  });
 });
