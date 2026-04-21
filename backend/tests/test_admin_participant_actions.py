@@ -129,6 +129,10 @@ def test_admin_can_undrop_only_in_drop_round(setup_db):
     del_resp = client.delete(f"/tournaments/{code}/participants/{participant_id}")
     assert del_resp.status_code == 204
 
+    list_default_resp = client.get(f"/tournaments/{code}/participants")
+    default_ids = {participant["id"] for participant in list_default_resp.json()}
+    assert participant_id not in default_ids
+
     list_resp = client.get(f"/tournaments/{code}/participants?include_dropped=true")
     dropped_participant = next(p for p in list_resp.json() if p["id"] == participant_id)
     assert dropped_participant["is_active"] is False

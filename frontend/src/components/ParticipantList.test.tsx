@@ -169,4 +169,30 @@ describe('ParticipantList', () => {
       expect(mockOnUpdate).toHaveBeenCalled();
     });
   });
+
+  it('disables undrop when participant was dropped in a different round', async () => {
+    const droppedParticipant = [{ id: 4, name: 'DroppedEarlier', points: 1, is_active: false, dropped_round: 1 }];
+    const fetchSpy = vi.spyOn(global, 'fetch');
+
+    render(
+      <ParticipantList
+        tournamentCode={mockTournamentCode}
+        participants={droppedParticipant}
+        currentRound={2}
+        onUpdate={mockOnUpdate}
+      />
+    );
+
+    const undropButton = screen.getByRole('button', { name: /Undrop DroppedEarlier/i });
+    await waitFor(() => {
+      expect(undropButton).toBeDisabled();
+    });
+    fireEvent.click(undropButton);
+
+    expect(fetchSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining(`/tournaments/${mockTournamentCode}/participants/4/undrop`),
+      expect.objectContaining({ method: 'POST' })
+    );
+    expect(mockOnUpdate).not.toHaveBeenCalled();
+  });
 });
