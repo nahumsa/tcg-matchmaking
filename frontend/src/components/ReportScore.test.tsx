@@ -124,14 +124,16 @@ describe('ReportScore', () => {
       fireEvent.click(screen.getByText(/Report Score/i));
     });
 
-    // Check if modal options are present
+    // Select result first, then pick a score option
+    fireEvent.click(screen.getByRole('button', { name: /Win/i }));
+
     expect(screen.getByText('2 - 0')).toBeInTheDocument();
     expect(screen.getByText('2 - 1')).toBeInTheDocument();
-    expect(screen.getByText('1 - 2')).toBeInTheDocument();
-    expect(screen.getByText('0 - 2')).toBeInTheDocument();
+    expect(screen.getByText('1 - 0')).toBeInTheDocument();
+    expect(screen.queryByText('1 - 2')).not.toBeInTheDocument();
 
     // Select 2 - 1
-    fireEvent.click(screen.getByText('2 - 1'));
+    fireEvent.click(screen.getByRole('button', { name: /2 - 1/i }));
 
     // Submit
     fireEvent.click(screen.getByText(/Submit Result/i));
@@ -146,4 +148,46 @@ describe('ReportScore', () => {
       expect(body.reported_by_id).toBe(1);
     });
   });
+
+  it('submits scores in player1/player2 order when reporter is player2', async () => {
+    const mockCode = 'ABCDEF';
+    const mockMatch = { id: 101, round_number: 1, player1_id: 1, player2_id: 2, player1_score: 0, player2_score: 0, is_bye: 0, is_completed: 0, table_number: 1 };
+
+    // Bob (player2) is logged in
+    localStorage.setItem(`participant_id_${mockCode}`, '2');
+
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/matches')) return Promise.resolve({ ok: true, json: () => Promise.resolve([mockMatch]) });
+      if (url.includes('/standings')) return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      if (url.includes('/potential-pairings')) return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      if (url.includes('/report')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ ...mockMatch, is_completed: 1, player1_score: 1, player2_score: 2 }) });
+      if (url.includes(`/tournaments/${mockCode}`)) return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'ACTIVE' }) });
+      return Promise.resolve({ ok: false });
+    });
+
+    renderWithProviders(
+      <MemoryRouter initialEntries={[`/${mockCode}`]}>
+        <Routes>
+          <Route path='/:code' element={<TournamentView />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      fireEvent.click(screen.getByText(/Report Score/i));
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Win/i }));
+    fireEvent.click(screen.getByText(/Submit Result/i));
+
+    await waitFor(() => {
+      const reportCall = (fetch as any).mock.calls.find((call: any) => call[0].includes('/report'));
+      expect(reportCall).toBeDefined();
+      const body = JSON.parse(reportCall[1].body);
+      expect(body.player1_score).toBe(1);
+      expect(body.player2_score).toBe(2);
+      expect(body.reported_by_id).toBe(2);
+    });
+  });
+
 });
