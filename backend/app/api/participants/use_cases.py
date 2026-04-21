@@ -85,7 +85,7 @@ def undrop_participant(
     if not participant or participant.tournament_id != tournament.id:
         raise HTTPException(status_code=404, detail="Participant not found")
     if participant.is_active:
-        return participant
+        raise HTTPException(status_code=400, detail="Participant is already active")
 
     current_round = _get_current_round(matches, tournament.id)
     dropped_round = participant.dropped_round

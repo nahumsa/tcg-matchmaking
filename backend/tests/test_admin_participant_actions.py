@@ -152,6 +152,22 @@ def test_admin_can_undrop_only_in_drop_round(setup_db):
     assert late_undrop_resp.status_code == 400
 
 
+def test_admin_cannot_undrop_already_active_participant(setup_db):
+    create_resp = client.post(
+        "/tournaments", json={"name": "Undrop Active Participant Tournament"}
+    )
+    code = create_resp.json()["code"]
+
+    join_resp = client.post(f"/tournaments/{code}/join", json={"name": "StillActive"})
+    participant_id = join_resp.json()["id"]
+
+    undrop_resp = client.post(
+        f"/tournaments/{code}/participants/{participant_id}/undrop"
+    )
+    assert undrop_resp.status_code == 400
+    assert undrop_resp.json()["detail"] == "Participant is already active"
+
+
 def test_removing_participants_mid_event_does_not_shrink_rounds(setup_db):
     create_resp = client.post("/tournaments", json={"name": "Stable Rounds Tournament"})
     code = create_resp.json()["code"]
