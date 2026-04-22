@@ -6,6 +6,8 @@ import TournamentView from './TournamentView';
 
 describe('TournamentView', () => {
   beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem('app_language', 'en');
     vi.stubGlobal('fetch', vi.fn());
     vi.stubGlobal('WebSocket', vi.fn().mockImplementation(function(this: any) {
       this.send = vi.fn();
@@ -139,6 +141,50 @@ describe('TournamentView', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/No matches yet/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows report action when participant identity is restored in localStorage', async () => {
+    const code = 'RESTOR1';
+    localStorage.setItem(`participant_id_${code}`, '1');
+
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/matches')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([
+            { id: 10, round_number: 1, player1_id: 1, player2_id: 2, player1_score: 0, player2_score: 0, is_bye: 0, is_completed: 0, table_number: 1 }
+          ])
+        });
+      }
+      if (url.includes('/standings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([
+            { id: 1, name: 'Alice', rank: 1, points: 0, wins: 0, losses: 0, draws: 0, omw_percentage: 0 },
+            { id: 2, name: 'Bob', rank: 2, points: 0, wins: 0, losses: 0, draws: 0, omw_percentage: 0 }
+          ])
+        });
+      }
+      if (url.includes('/potential-pairings')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.includes(`/tournaments/${code}`)) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'ACTIVE' }) });
+      }
+      return Promise.resolve({ ok: false });
+    });
+
+    render(
+      <MemoryRouter initialEntries={[`/${code}`]}>
+        <Routes>
+          <Route path="/:code" element={<TournamentView />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Report Score/i })).toBeInTheDocument();
     });
   });
 });

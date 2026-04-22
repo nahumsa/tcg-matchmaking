@@ -1,14 +1,30 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from backend.app.core.database import get_db
 from typing import List
 from . import schemas, services
 from backend.app.api.tournaments.services import get_tournament_by_code
+from backend.app.core.config import settings
+from backend.app.core.rate_limiter import InMemoryRateLimiter, SlidingWindowLimit
 
 router = APIRouter(prefix="/tournaments", tags=["participants"])
+relogin_rate_limiter = InMemoryRateLimiter(
+    SlidingWindowLimit(
+        max_attempts=settings.RELOGIN_RATE_LIMIT_ATTEMPTS,
+        window_seconds=settings.RELOGIN_RATE_LIMIT_WINDOW_SECONDS,
+    )
+)
 
 
-@router.post("/{code}/join", response_model=schemas.ParticipantResponse)
+def _join_response(
+    participant: schemas.ParticipantResponse, reconnect_code: str
+) -> schemas.ParticipantJoinResponse:
+    return schemas.ParticipantJoinResponse.model_validate(
+        {**participant.model_dump(), "reconnect_code": reconnect_code}
+    )
+
+
+@router.post("/{code}/join", response_model=schemas.ParticipantJoinResponse)
 async def join_tournament(
     code: str, participant: schemas.ParticipantJoin, db: Session = Depends(get_db)
 ):
@@ -20,11 +36,17 @@ async def join_tournament(
     if db_tournament.status == "COMPLETED":
         raise HTTPException(status_code=400, detail="Tournament is already completed")
 
-    return await services.join_tournament(db, db_tournament, code, participant)
+    db_participant, reconnect_code = await services.join_tournament(
+        db, db_tournament, code, participant
+    )
+    participant_response = schemas.ParticipantResponse.model_validate(db_participant)
+    return _join_response(participant_response, reconnect_code)
 
 
 @router.post(
-    "/{code}/participants", response_model=schemas.ParticipantResponse, status_code=201
+    "/{code}/participants",
+    response_model=schemas.ParticipantResponse,
+    status_code=201,
 )
 async def admin_add_participant(
     code: str, participant: schemas.ParticipantJoin, db: Session = Depends(get_db)
@@ -36,7 +58,8 @@ async def admin_add_participant(
     if db_tournament.status == "COMPLETED":
         raise HTTPException(status_code=400, detail="Tournament is already completed")
 
-    return await services.join_tournament(db, db_tournament, code, participant)
+    db_participant, _ = await services.join_tournament(db, db_tournament, code, participant)
+    return db_participant
 
 
 @router.get("/{code}/participants", response_model=List[schemas.ParticipantResponse])
@@ -52,6 +75,42 @@ async def list_participants(
     return services.get_participants(
         db, db_tournament.id, include_dropped=include_dropped
     )
+
+
+@router.post(
+    "/{code}/participants/relogin",
+    response_model=schemas.ParticipantResponse,
+)
+def relogin_participant(
+    code: str,
+    payload: schemas.ParticipantReloginRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ip_address = request.client.host if request.client else "unknown"
+    limiter_key = f"{ip_address}:{code.upper()}"
+    if relogin_rate_limiter.is_limited(limiter_key):
+        raise HTTPException(
+            status_code=429, detail="Too many relogin attempts. Please try again later."
+        )
+
+    db_tournament = get_tournament_by_code(db, code)
+    if not db_tournament:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+
+    try:
+        participant = services.relogin_with_reconnect_code(
+            db=db,
+            tournament=db_tournament,
+            reconnect_code=payload.reconnect_code,
+        )
+    except HTTPException as exc:
+        if exc.status_code == 401:
+            relogin_rate_limiter.register_failure(limiter_key)
+        raise
+
+    relogin_rate_limiter.reset(limiter_key)
+    return participant
 
 
 @router.delete("/{code}/participants/{participant_id}", status_code=204)

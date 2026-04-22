@@ -15,10 +15,10 @@ from . import models, schemas, use_cases
 
 async def join_tournament(
     db: Session, tournament: Tournament, code: str, participant: schemas.ParticipantJoin
-) -> models.Participant:
+) -> tuple[models.Participant, str]:
     participant_repo = SqlAlchemyParticipantRepository(db)
     match_repo = SqlAlchemyMatchRepository(db)
-    db_participant = use_cases.join_tournament(
+    db_participant, reconnect_code = use_cases.join_tournament(
         participants=participant_repo,
         matches=match_repo,
         tournament=tournament,
@@ -37,7 +37,7 @@ async def join_tournament(
             },
         },
     )
-    return db_participant
+    return db_participant, reconnect_code
 
 
 async def remove_participant(
@@ -100,4 +100,15 @@ def get_potential_pairings(
         matches=match_repo,
         tournament_id=tournament_id,
         participant_id=participant_id,
+    )
+
+
+def relogin_with_reconnect_code(
+    db: Session, tournament: Tournament, reconnect_code: str
+) -> models.Participant:
+    participant_repo = SqlAlchemyParticipantRepository(db)
+    return use_cases.relogin_with_reconnect_code(
+        participants=participant_repo,
+        tournament=tournament,
+        reconnect_code=reconnect_code,
     )

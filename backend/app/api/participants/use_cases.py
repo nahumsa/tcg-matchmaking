@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import List
+import secrets
+from typing import List, Tuple
 
 from fastapi import HTTPException
 
@@ -8,6 +9,8 @@ from backend.app.api.participants.models import Participant
 from backend.app.api.tournaments.models import Tournament
 from backend.app.api.tournaments.use_cases import assert_tournament_can_accept_changes
 from backend.app.application.ports import MatchRepositoryPort, ParticipantRepositoryPort
+from backend.app.core.config import settings
+from backend.app.core.security import hash_reconnect_code
 
 
 def join_tournament(
@@ -17,7 +20,7 @@ def join_tournament(
     participant_name: str,
     pokemon_1: str | None = None,
     pokemon_2: str | None = None,
-) -> Participant:
+) -> Tuple[Participant, str]:
     assert_tournament_can_accept_changes(tournament)
     if participants.exists_with_name(tournament.id, participant_name):
         raise HTTPException(
@@ -38,15 +41,34 @@ def join_tournament(
         dropped_participant.dropped_round = None
         dropped_participant.pokemon_1 = pokemon_1
         dropped_participant.pokemon_2 = pokemon_2
+        reconnect_code = _generate_reconnect_code(participants)
+        dropped_participant.reconnect_code_hash = _reconnect_code_hash(reconnect_code)
+        dropped_participant.reconnect_required = False
         participants.save(dropped_participant)
-        return dropped_participant
+        return dropped_participant, reconnect_code
 
-    return participants.add(
+    reconnect_code = _generate_reconnect_code(participants)
+    reconnect_code_hash = _reconnect_code_hash(reconnect_code)
+    participant = participants.add(
         tournament.id,
         participant_name,
+        reconnect_code_hash,
         pokemon_1=pokemon_1,
         pokemon_2=pokemon_2,
     )
+    return participant, reconnect_code
+
+
+def _generate_reconnect_code(participants: ParticipantRepositoryPort) -> str:
+    while True:
+        reconnect_code = secrets.token_urlsafe(24)
+        reconnect_code_hash = _reconnect_code_hash(reconnect_code)
+        if not participants.get_by_reconnect_code_hash(reconnect_code_hash):
+            return reconnect_code
+
+
+def _reconnect_code_hash(reconnect_code: str) -> str:
+    return hash_reconnect_code(reconnect_code, settings.RECONNECT_CODE_PEPPER)
 
 
 def remove_participant(
@@ -151,3 +173,20 @@ def get_potential_pairings(
         and p.id not in played_opponent_ids
         and abs(p.points - current_player.points) <= 3
     ]
+
+
+def relogin_with_reconnect_code(
+    participants: ParticipantRepositoryPort,
+    tournament: Tournament,
+    reconnect_code: str,
+) -> Participant:
+    reconnect_code_hash = _reconnect_code_hash(reconnect_code)
+    participant = participants.get_by_reconnect_code_hash(reconnect_code_hash)
+    if (
+        not participant
+        or participant.tournament_id != tournament.id
+        or not participant.is_active
+        or participant.reconnect_required
+    ):
+        raise HTTPException(status_code=401, detail="Invalid reconnect credentials")
+    return participant
