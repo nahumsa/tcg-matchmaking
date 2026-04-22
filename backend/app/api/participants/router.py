@@ -58,7 +58,9 @@ async def admin_add_participant(
     if db_tournament.status == "COMPLETED":
         raise HTTPException(status_code=400, detail="Tournament is already completed")
 
-    db_participant, _ = await services.join_tournament(db, db_tournament, code, participant)
+    db_participant, _ = await services.join_tournament(
+        db, db_tournament, code, participant
+    )
     return db_participant
 
 
