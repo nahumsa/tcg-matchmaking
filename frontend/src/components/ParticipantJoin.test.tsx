@@ -24,6 +24,11 @@ describe('ParticipantJoin', () => {
   beforeEach(() => {
     localStorage.clear();
     localStorage.setItem('app_language', 'en');
+    vi.stubGlobal('navigator', {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    });
     vi.stubGlobal('fetch', vi.fn((url) => {
       if (url.includes('pokeapi.co')) {
         return Promise.resolve({
@@ -107,6 +112,11 @@ describe('ParticipantJoin', () => {
 
     expect(screen.getByText(/Your reconnect code/i)).toBeInTheDocument();
     expect(screen.getByText('reconnect-secret-1')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Copy/i }));
+    await waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('reconnect-secret-1');
+    });
+    expect(screen.getByRole('button', { name: /Copied/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Go to tournament/i }));
     expect(mockNavigate).toHaveBeenCalledWith('/tournament/ABCDEF');
   });

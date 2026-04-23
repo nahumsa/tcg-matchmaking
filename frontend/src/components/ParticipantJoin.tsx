@@ -22,6 +22,7 @@ export default function ParticipantJoin() {
   const [reloginError, setReloginError] = useState<string | null>(null);
   const [joinedTournamentCode, setJoinedTournamentCode] = useState<string | null>(null);
   const [joinedReconnectCode, setJoinedReconnectCode] = useState<string | null>(null);
+  const [reconnectCodeCopied, setReconnectCodeCopied] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { pokemonList, fetchingPokemon } = usePokemonList();
@@ -70,11 +71,18 @@ export default function ParticipantJoin() {
       localStorage.setItem('last_tournament_code', normalizedCode);
       setJoinedTournamentCode(normalizedCode);
       setJoinedReconnectCode(data.reconnect_code);
+      setReconnectCodeCopied(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('commonUnexpectedError'));
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCopyReconnectCode = async () => {
+    if (!joinedReconnectCode || !navigator.clipboard?.writeText) return;
+    await navigator.clipboard.writeText(joinedReconnectCode);
+    setReconnectCodeCopied(true);
   };
 
   const handleContinueAfterJoin = () => {
@@ -219,7 +227,16 @@ export default function ParticipantJoin() {
             {joinedTournamentCode && joinedReconnectCode && (
               <div className="mt-6 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-sm space-y-3">
                 <p className="font-semibold">{t('joinReconnectCodeSaved')}</p>
-                <code className="block font-mono break-all bg-white rounded p-2 border border-blue-200">{joinedReconnectCode}</code>
+                <div className="flex items-start gap-2">
+                  <code className="block flex-1 font-mono break-all bg-white rounded p-2 border border-blue-200">{joinedReconnectCode}</code>
+                  <button
+                    type="button"
+                    onClick={handleCopyReconnectCode}
+                    className="shrink-0 rounded border border-blue-300 bg-white px-3 py-2 font-semibold text-blue-700 transition hover:bg-blue-100"
+                  >
+                    {reconnectCodeCopied ? t('joinReconnectCodeCopied') : t('joinReconnectCodeCopy')}
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={handleContinueAfterJoin}
