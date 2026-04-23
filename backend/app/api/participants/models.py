@@ -9,6 +9,8 @@ class Participant(Base):
     id = Column(Integer, primary_key=True, index=True)
     tournament_id = Column(Integer, ForeignKey("tournaments.id"), nullable=False)
     name = Column(String, index=True, nullable=False)
+    reconnect_code_hash = Column(String, unique=True, index=True, nullable=True)
+    reconnect_required = Column(Boolean, default=False, nullable=False)
     points = Column(Integer, default=0)
     is_active = Column(Boolean, default=True, nullable=False)
     dropped_round = Column(Integer, nullable=True)

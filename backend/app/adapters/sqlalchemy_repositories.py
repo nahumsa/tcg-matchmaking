@@ -54,6 +54,15 @@ class SqlAlchemyParticipantRepository:
             self.db.query(Participant).filter(Participant.id == participant_id).first()
         )
 
+    def get_by_reconnect_code_hash(
+        self, reconnect_code_hash: str
+    ) -> Optional[Participant]:
+        return (
+            self.db.query(Participant)
+            .filter(Participant.reconnect_code_hash == reconnect_code_hash)
+            .first()
+        )
+
     def get_by_name(self, tournament_id: int, name: str) -> Optional[Participant]:
         return (
             self.db.query(Participant)
@@ -79,12 +88,16 @@ class SqlAlchemyParticipantRepository:
         self,
         tournament_id: int,
         name: str,
+        reconnect_code_hash: str,
+        reconnect_required: bool = False,
         pokemon_1: str | None = None,
         pokemon_2: str | None = None,
     ) -> Participant:
         participant = Participant(
             name=name,
             tournament_id=tournament_id,
+            reconnect_code_hash=reconnect_code_hash,
+            reconnect_required=reconnect_required,
             pokemon_1=pokemon_1,
             pokemon_2=pokemon_2,
         )

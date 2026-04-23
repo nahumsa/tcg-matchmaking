@@ -22,6 +22,13 @@ describe('ParticipantJoin', () => {
   ];
 
   beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem('app_language', 'en');
+    vi.stubGlobal('navigator', {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    });
     vi.stubGlobal('fetch', vi.fn((url) => {
       if (url.includes('pokeapi.co')) {
         return Promise.resolve({
@@ -47,8 +54,10 @@ describe('ParticipantJoin', () => {
       expect(screen.getByRole('heading', { name: /Join Tournament/i })).toBeInTheDocument();
     });
     expect(screen.getByPlaceholderText(/e.g. Ash Ketchum/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/e.g. ABCDEF/i)).toBeInTheDocument();
+    expect(screen.getAllByLabelText('Tournament Code')[0]).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Join Tournament/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /New Player/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: /Reconnect/i })).toBeInTheDocument();
     expect(screen.getByText(/Deck Pokémon/i)).toBeInTheDocument();
   });
 
@@ -57,6 +66,7 @@ describe('ParticipantJoin', () => {
       id: 1,
       name: 'Ash Ketchum',
       tournament_id: 1,
+      reconnect_code: 'reconnect-secret-1',
       points: 0,
       pokemon_1: null,
       pokemon_2: null,
@@ -85,7 +95,7 @@ describe('ParticipantJoin', () => {
     await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
 
     fireEvent.change(screen.getByPlaceholderText(/e.g. Ash Ketchum/i), { target: { value: 'Ash Ketchum' } });
-    fireEvent.change(screen.getByPlaceholderText(/e.g. ABCDEF/i), { target: { value: 'ABCDEF' } });
+    fireEvent.change(screen.getAllByLabelText('Tournament Code')[0], { target: { value: 'ABCDEF' } });
 
     const submitBtn = screen.getByRole('button', { name: /Join Tournament/i });
     await waitFor(() => expect(submitBtn).not.toBeDisabled());
@@ -94,12 +104,21 @@ describe('ParticipantJoin', () => {
     expect(screen.getByText(/Joining.../i)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/tournament/ABCDEF');
       expect(fetch).toHaveBeenCalledWith(`${config.apiUrl}/tournaments/ABCDEF/join`, expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ name: 'Ash Ketchum', pokemon_1: null, pokemon_2: null })
       }));
     });
+
+    expect(screen.getByText(/Your reconnect code/i)).toBeInTheDocument();
+    expect(screen.getByText('reconnect-secret-1')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Copy/i }));
+    await waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('reconnect-secret-1');
+    });
+    expect(screen.getByRole('button', { name: /Copied/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Go to tournament/i }));
+    expect(mockNavigate).toHaveBeenCalledWith('/tournament/ABCDEF');
   });
 
   it('submits selected pokemon choices', async () => {
@@ -112,7 +131,7 @@ describe('ParticipantJoin', () => {
       }
       return Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ id: 1, name: 'Ash', tournament_id: 1, points: 0, pokemon_1: '25', pokemon_2: '133' })
+        json: () => Promise.resolve({ id: 1, name: 'Ash', tournament_id: 1, reconnect_code: 'rc', points: 0, pokemon_1: '25', pokemon_2: '133' })
       });
     });
 
@@ -125,7 +144,7 @@ describe('ParticipantJoin', () => {
     await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
 
     fireEvent.change(screen.getByPlaceholderText(/e.g. Ash Ketchum/i), { target: { value: 'Ash' } });
-    fireEvent.change(screen.getByPlaceholderText(/e.g. ABCDEF/i), { target: { value: 'ABCDEF' } });
+    fireEvent.change(screen.getAllByLabelText('Tournament Code')[0], { target: { value: 'ABCDEF' } });
 
     const pokemonButtons = screen.getAllByRole('button', { name: /choose a pokémon/i });
 
@@ -174,7 +193,7 @@ describe('ParticipantJoin', () => {
     await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
 
     fireEvent.change(screen.getByPlaceholderText(/e.g. Ash Ketchum/i), { target: { value: 'Ash' } });
-    fireEvent.change(screen.getByPlaceholderText(/e.g. ABCDEF/i), { target: { value: 'WRONG1' } });
+    fireEvent.change(screen.getAllByLabelText('Tournament Code')[0], { target: { value: 'WRONG1' } });
 
     const submitBtn = screen.getByRole('button', { name: /Join Tournament/i });
     await waitFor(() => expect(submitBtn).not.toBeDisabled());
@@ -208,7 +227,7 @@ describe('ParticipantJoin', () => {
     await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
 
     fireEvent.change(screen.getByPlaceholderText(/e.g. Ash Ketchum/i), { target: { value: 'Alice' } });
-    fireEvent.change(screen.getByPlaceholderText(/e.g. ABCDEF/i), { target: { value: 'ABCDEF' } });
+    fireEvent.change(screen.getAllByLabelText('Tournament Code')[0], { target: { value: 'ABCDEF' } });
 
     const submitBtn = screen.getByRole('button', { name: /Join Tournament/i });
     await waitFor(() => expect(submitBtn).not.toBeDisabled());
@@ -216,6 +235,51 @@ describe('ParticipantJoin', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Participant with this name already exists/i)).toBeInTheDocument();
+    });
+  });
+
+  it('reconnects participant with reconnect code', async () => {
+    (fetch as any).mockImplementation((url: string) => {
+      if (url.includes('pokeapi.co')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: mockPokemonList })
+        });
+      }
+      if (url.includes('/participants/relogin')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 42, name: 'Ash', tournament_id: 1, points: 0, is_active: true, dropped_round: null })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter>
+        <ParticipantJoin />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('tab', { name: /Reconnect/i }));
+
+    fireEvent.change(screen.getByLabelText('Reconnect Code'), {
+      target: { value: 'my-secret' }
+    });
+    fireEvent.change(screen.getByLabelText('Tournament Code'), {
+      target: { value: 'ABCDEF' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Reconnect/i }));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(`${config.apiUrl}/tournaments/ABCDEF/participants/relogin`, expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ reconnect_code: 'my-secret' })
+      }));
+      expect(localStorage.getItem('participant_id_ABCDEF')).toBe('42');
+      expect(mockNavigate).toHaveBeenCalledWith('/tournament/ABCDEF');
     });
   });
 });

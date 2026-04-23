@@ -31,3 +31,11 @@ class ParticipantResponse(ParticipantBase):
     losses: int = 0
     draws: int = 0
     omw_percentage: float = 0.00
+
+
+class ParticipantJoinResponse(ParticipantResponse):
+    reconnect_code: str
+
+
+class ParticipantReloginRequest(BaseModel):
+    reconnect_code: str

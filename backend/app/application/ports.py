@@ -33,6 +33,10 @@ class ParticipantRepositoryPort(Protocol):
 
     def get_by_id(self, participant_id: int) -> Optional[Participant]: ...
 
+    def get_by_reconnect_code_hash(
+        self, reconnect_code_hash: str
+    ) -> Optional[Participant]: ...
+
     def get_by_name(self, tournament_id: int, name: str) -> Optional[Participant]: ...
 
     def exists_with_name(self, tournament_id: int, name: str) -> bool: ...
@@ -41,6 +45,8 @@ class ParticipantRepositoryPort(Protocol):
         self,
         tournament_id: int,
         name: str,
+        reconnect_code_hash: str,
+        reconnect_required: bool = False,
         pokemon_1: str | None = None,
         pokemon_2: str | None = None,
     ) -> Participant: ...
