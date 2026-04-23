@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from backend.app.core.database import get_db
 from typing import List
@@ -24,8 +24,8 @@ def _join_response(
     )
 
 
-def _relogin_limiter_key(code: str) -> str:
-    return code.upper()
+def _relogin_limiter_key(ip_address: str, code: str) -> str:
+    return f"{ip_address}:{code.upper()}"
 
 
 @router.post("/{code}/join", response_model=schemas.ParticipantJoinResponse)
@@ -90,6 +90,7 @@ async def list_participants(
 def relogin_participant(
     code: str,
     payload: schemas.ParticipantReloginRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ):
     db_tournament = get_tournament_by_code(db, code)
@@ -98,7 +99,8 @@ def relogin_participant(
 
     tournament_participants = services.get_participants(db, db_tournament.id)
     relogin_attempt_limit = max(1, len(tournament_participants) * 2)
-    limiter_key = _relogin_limiter_key(code)
+    ip_address = request.client.host if request.client else "unknown"
+    limiter_key = _relogin_limiter_key(ip_address, code)
     if relogin_rate_limiter.is_limited(limiter_key, relogin_attempt_limit):
         raise HTTPException(
             status_code=429, detail="Too many relogin attempts. Please try again later."

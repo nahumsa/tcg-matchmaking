@@ -28,6 +28,10 @@ app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 
+def _client_with_ip(ip_address: str) -> TestClient:
+    return TestClient(app, client=(ip_address, 50000))
+
+
 @pytest.fixture(scope="module")
 def setup_db():
     Base.metadata.create_all(bind=engine)
@@ -209,6 +213,39 @@ def test_relogin_rate_limit_scales_with_active_participants(setup_db):
         json={"reconnect_code": "invalid"},
     )
     assert limited_resp.status_code == 429
+
+
+def test_relogin_rate_limit_isolated_per_ip(setup_db):
+    create_resp = client.post("/tournaments", json={"name": "Relogin IP Isolation"})
+    code = create_resp.json()["code"]
+    join_resp = client.post(f"/tournaments/{code}/join", json={"name": "Reset User"})
+    reconnect_code = join_resp.json()["reconnect_code"]
+
+    first_ip_client = _client_with_ip("203.0.113.10")
+    second_ip_client = _client_with_ip("203.0.113.11")
+    try:
+        for _ in range(2):
+            failed = first_ip_client.post(
+                f"/tournaments/{code}/participants/relogin",
+                json={"reconnect_code": "invalid"},
+            )
+            assert failed.status_code == 401
+
+        limited_resp = first_ip_client.post(
+            f"/tournaments/{code}/participants/relogin",
+            json={"reconnect_code": reconnect_code},
+        )
+        assert limited_resp.status_code == 429
+
+        unaffected_resp = second_ip_client.post(
+            f"/tournaments/{code}/participants/relogin",
+            json={"reconnect_code": reconnect_code},
+        )
+        assert unaffected_resp.status_code == 200
+        assert unaffected_resp.json()["id"] == join_resp.json()["id"]
+    finally:
+        first_ip_client.close()
+        second_ip_client.close()
 
 
 def test_successful_relogin_does_not_reset_tournament_failure_budget(setup_db):
