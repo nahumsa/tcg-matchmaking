@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from backend.app.api.participants.router import relogin_rate_limiter
 from backend.app.main import app
 from backend.app.core.database import get_db, Base
 from backend.app.core.config import settings
@@ -32,6 +33,12 @@ def setup_db():
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(autouse=True)
+def reset_relogin_limiters():
+    relogin_rate_limiter._attempts.clear()
+    yield
 
 
 def test_create_tournament(setup_db):
@@ -161,6 +168,9 @@ def test_relogin_with_reconnect_code_not_found(setup_db):
 def test_relogin_rate_limited_after_repeated_failures(setup_db):
     create_resp = client.post("/tournaments", json={"name": "Relogin Rate Limit"})
     code = create_resp.json()["code"]
+    for idx in range(5):
+        join_resp = client.post(f"/tournaments/{code}/join", json={"name": f"P{idx}"})
+        assert join_resp.status_code == 200
 
     for _ in range(10):
         relogin_resp = client.post(
@@ -176,18 +186,42 @@ def test_relogin_rate_limited_after_repeated_failures(setup_db):
     assert limited_resp.status_code == 429
 
 
-def test_successful_relogin_resets_failure_budget(setup_db):
+def test_relogin_rate_limit_scales_with_active_participants(setup_db):
+    create_resp = client.post(
+        "/tournaments", json={"name": "Relogin Tournament Budget"}
+    )
+    code = create_resp.json()["code"]
+    for idx in range(3):
+        join_resp = client.post(
+            f"/tournaments/{code}/join", json={"name": f"Player {idx}"}
+        )
+        assert join_resp.status_code == 200
+
+    for _ in range(6):
+        relogin_resp = client.post(
+            f"/tournaments/{code}/participants/relogin",
+            json={"reconnect_code": "invalid"},
+        )
+        assert relogin_resp.status_code == 401
+
+    limited_resp = client.post(
+        f"/tournaments/{code}/participants/relogin",
+        json={"reconnect_code": "invalid"},
+    )
+    assert limited_resp.status_code == 429
+
+
+def test_successful_relogin_does_not_reset_tournament_failure_budget(setup_db):
     create_resp = client.post("/tournaments", json={"name": "Relogin Reset"})
     code = create_resp.json()["code"]
     join_resp = client.post(f"/tournaments/{code}/join", json={"name": "Reset User"})
     reconnect_code = join_resp.json()["reconnect_code"]
 
-    for _ in range(9):
-        failed = client.post(
-            f"/tournaments/{code}/participants/relogin",
-            json={"reconnect_code": "invalid"},
-        )
-        assert failed.status_code == 401
+    failed = client.post(
+        f"/tournaments/{code}/participants/relogin",
+        json={"reconnect_code": "invalid"},
+    )
+    assert failed.status_code == 401
 
     success = client.post(
         f"/tournaments/{code}/participants/relogin",
@@ -195,15 +229,14 @@ def test_successful_relogin_resets_failure_budget(setup_db):
     )
     assert success.status_code == 200
 
-    for _ in range(10):
-        failed = client.post(
-            f"/tournaments/{code}/participants/relogin",
-            json={"reconnect_code": "invalid"},
-        )
-        assert failed.status_code == 401
+    failed = client.post(
+        f"/tournaments/{code}/participants/relogin",
+        json={"reconnect_code": "invalid"},
+    )
+    assert failed.status_code == 401
 
     limited_resp = client.post(
         f"/tournaments/{code}/participants/relogin",
-        json={"reconnect_code": "invalid"},
+        json={"reconnect_code": reconnect_code},
     )
     assert limited_resp.status_code == 429

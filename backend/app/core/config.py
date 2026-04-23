@@ -6,7 +6,6 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/tcg_matchmaking"
     TEST_DATABASE_URL: str = "sqlite:///./test.db"
     RECONNECT_CODE_PEPPER: str = "dev-reconnect-pepper-change-me"
-    RELOGIN_RATE_LIMIT_ATTEMPTS: int = 10
     RELOGIN_RATE_LIMIT_WINDOW_SECONDS: int = 300
 
     model_config = SettingsConfigDict(env_file=".env")

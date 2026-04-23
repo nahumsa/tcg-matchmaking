@@ -27,11 +27,12 @@ class InMemoryRateLimiter:
             self._attempts.pop(key, None)
         return attempt_times
 
-    def is_limited(self, key: str) -> bool:
+    def is_limited(self, key: str, max_attempts: int | None = None) -> bool:
         now = monotonic()
         with self._lock:
             attempt_times = self._prune(key, now)
-            return len(attempt_times) >= self.limit.max_attempts
+            attempt_limit = max_attempts or self.limit.max_attempts
+            return len(attempt_times) >= attempt_limit
 
     def register_failure(self, key: str) -> None:
         now = monotonic()

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.app.core.database import get_db
 from typing import List
@@ -10,7 +10,7 @@ from backend.app.core.rate_limiter import InMemoryRateLimiter, SlidingWindowLimi
 router = APIRouter(prefix="/tournaments", tags=["participants"])
 relogin_rate_limiter = InMemoryRateLimiter(
     SlidingWindowLimit(
-        max_attempts=settings.RELOGIN_RATE_LIMIT_ATTEMPTS,
+        max_attempts=1,
         window_seconds=settings.RELOGIN_RATE_LIMIT_WINDOW_SECONDS,
     )
 )
@@ -22,6 +22,10 @@ def _join_response(
     return schemas.ParticipantJoinResponse.model_validate(
         {**participant.model_dump(), "reconnect_code": reconnect_code}
     )
+
+
+def _relogin_limiter_key(code: str) -> str:
+    return code.upper()
 
 
 @router.post("/{code}/join", response_model=schemas.ParticipantJoinResponse)
@@ -86,19 +90,19 @@ async def list_participants(
 def relogin_participant(
     code: str,
     payload: schemas.ParticipantReloginRequest,
-    request: Request,
     db: Session = Depends(get_db),
 ):
-    ip_address = request.client.host if request.client else "unknown"
-    limiter_key = f"{ip_address}:{code.upper()}"
-    if relogin_rate_limiter.is_limited(limiter_key):
-        raise HTTPException(
-            status_code=429, detail="Too many relogin attempts. Please try again later."
-        )
-
     db_tournament = get_tournament_by_code(db, code)
     if not db_tournament:
         raise HTTPException(status_code=404, detail="Tournament not found")
+
+    tournament_participants = services.get_participants(db, db_tournament.id)
+    relogin_attempt_limit = max(1, len(tournament_participants) * 2)
+    limiter_key = _relogin_limiter_key(code)
+    if relogin_rate_limiter.is_limited(limiter_key, relogin_attempt_limit):
+        raise HTTPException(
+            status_code=429, detail="Too many relogin attempts. Please try again later."
+        )
 
     try:
         participant = services.relogin_with_reconnect_code(
@@ -111,7 +115,6 @@ def relogin_participant(
             relogin_rate_limiter.register_failure(limiter_key)
         raise
 
-    relogin_rate_limiter.reset(limiter_key)
     return participant
 
 
