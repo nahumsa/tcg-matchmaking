@@ -51,6 +51,8 @@ describe('ParticipantJoin', () => {
     expect(screen.getByPlaceholderText(/e.g. Ash Ketchum/i)).toBeInTheDocument();
     expect(screen.getAllByLabelText('Tournament Code')[0]).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Join Tournament/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /New Player/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: /Reconnect/i })).toBeInTheDocument();
     expect(screen.getByText(/Deck Pokémon/i)).toBeInTheDocument();
   });
 
@@ -251,10 +253,12 @@ describe('ParticipantJoin', () => {
 
     await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
 
+    fireEvent.click(screen.getByRole('tab', { name: /Reconnect/i }));
+
     fireEvent.change(screen.getByLabelText('Reconnect Code'), {
       target: { value: 'my-secret' }
     });
-    fireEvent.change(screen.getAllByLabelText('Tournament Code')[1], {
+    fireEvent.change(screen.getByLabelText('Tournament Code'), {
       target: { value: 'ABCDEF' }
     });
     fireEvent.click(screen.getByRole('button', { name: /Reconnect/i }));
