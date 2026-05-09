@@ -53,8 +53,7 @@ def test_table_assignment_logic():
         # We need to run the async function
         import asyncio
 
-        loop = asyncio.get_event_loop()
-        db_matches = loop.run_until_complete(generate_pairings(db, tournament))
+        db_matches = asyncio.run(generate_pairings(db, tournament))
 
         # Check if they are sorted and assigned table numbers
         # (p1, p2) should be Table 1, (p3, p4) should be Table 2

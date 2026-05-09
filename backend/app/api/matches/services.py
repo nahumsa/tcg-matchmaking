@@ -1,5 +1,4 @@
 from typing import List
-
 from sqlalchemy.orm import Session
 
 from backend.app.adapters.sqlalchemy_repositories import (
@@ -12,6 +11,18 @@ from backend.app.api.tournaments.models import Tournament
 from backend.app.api.tournaments.use_cases import calculate_swiss_rounds
 
 from . import models, schemas, use_cases
+
+
+class MatchServiceError(Exception):
+    """Base service-layer exception for match operations."""
+
+
+class TournamentNotFoundError(MatchServiceError):
+    pass
+
+
+class MatchNotFoundError(MatchServiceError):
+    pass
 
 
 def _set_rounds_on_first_pairing(
@@ -92,11 +103,11 @@ async def report_match_in_tournament(
     match_repo = SqlAlchemyMatchRepository(db)
     tournament = tournament_repo.get_by_code(code)
     if not tournament:
-        return None
+        raise TournamentNotFoundError
 
     match = match_repo.get_by_id(match_id)
     if not match:
-        return None
+        raise MatchNotFoundError
 
     use_cases.assert_match_belongs_to_tournament(match=match, tournament=tournament)
     use_cases.assert_report_permission(match=match, update=update)
@@ -109,7 +120,7 @@ async def report_match_legacy(
     match_repo = SqlAlchemyMatchRepository(db)
     match = match_repo.get_by_id(match_id)
     if not match:
-        return None
+        raise MatchNotFoundError
 
     use_cases.assert_report_permission(match=match, update=update)
     return await report_match(db=db, match_id=match_id, update=update)
