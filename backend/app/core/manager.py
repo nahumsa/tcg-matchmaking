@@ -14,7 +14,7 @@ class ConnectionManager:
         self.active_connections[code].append(websocket)
 
     def disconnect(self, websocket: WebSocket, code: str):
-        if code in self.active_connections:
+        if code in self.active_connections and websocket in self.active_connections[code]:
             self.active_connections[code].remove(websocket)
             if not self.active_connections[code]:
                 del self.active_connections[code]

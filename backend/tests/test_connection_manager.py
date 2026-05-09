@@ -29,3 +29,25 @@ async def test_broadcast_prunes_failed_connections_and_continues() -> None:
 
     assert working.messages == [payload]
     assert manager.active_connections["ABC123"] == [working]
+
+
+@pytest.mark.anyio
+async def test_broadcast_ignores_already_disconnected_stale_socket() -> None:
+    manager = ConnectionManager()
+    working = _WorkingSocket()
+    failing = _FailingSocket()
+
+    manager.active_connections["ABC123"] = [working, failing]
+
+    original_disconnect = manager.disconnect
+
+    def racing_disconnect(websocket, code):
+        if websocket is failing and code in manager.active_connections:
+            manager.active_connections[code].remove(websocket)
+        original_disconnect(websocket, code)
+
+    manager.disconnect = racing_disconnect
+
+    await manager.broadcast("ABC123", {"event": "match_reported"})
+
+    assert manager.active_connections["ABC123"] == [working]
