@@ -1,4 +1,5 @@
 import pytest
+from fastapi import WebSocketDisconnect
 
 from backend.app.core.manager import ConnectionManager
 
@@ -13,7 +14,12 @@ class _WorkingSocket:
 
 class _FailingSocket:
     async def send_json(self, message: dict) -> None:
-        raise RuntimeError("socket closed")
+        raise WebSocketDisconnect(code=1006)
+
+
+class _BuggySocket:
+    async def send_json(self, message: dict) -> None:
+        raise TypeError("Object of type set is not JSON serializable")
 
 
 @pytest.mark.anyio
@@ -72,3 +78,19 @@ async def test_broadcast_ignores_stale_socket_when_code_already_removed() -> Non
     await manager.broadcast("ABC123", {"event": "match_reported"})
 
     assert "ABC123" not in manager.active_connections
+
+
+@pytest.mark.anyio
+async def test_broadcast_propagates_payload_errors_without_pruning_connections() -> (
+    None
+):
+    manager = ConnectionManager()
+    working = _WorkingSocket()
+    buggy = _BuggySocket()
+
+    manager.active_connections["ABC123"] = [working, buggy]
+
+    with pytest.raises(TypeError):
+        await manager.broadcast("ABC123", {"event": "match_reported", "bad": {1, 2}})
+
+    assert manager.active_connections["ABC123"] == [working, buggy]
