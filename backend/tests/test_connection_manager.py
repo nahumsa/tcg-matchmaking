@@ -22,6 +22,16 @@ class _BuggySocket:
         raise TypeError("Object of type set is not JSON serializable")
 
 
+class _ClosedRuntimeSocket:
+    async def send_json(self, message: dict) -> None:
+        raise RuntimeError("WebSocket is not connected")
+
+
+class _UnexpectedRuntimeSocket:
+    async def send_json(self, message: dict) -> None:
+        raise RuntimeError("database write failed")
+
+
 @pytest.mark.anyio
 async def test_broadcast_prunes_failed_connections_and_continues() -> None:
     manager = ConnectionManager()
@@ -94,3 +104,31 @@ async def test_broadcast_propagates_payload_errors_without_pruning_connections()
         await manager.broadcast("ABC123", {"event": "match_reported", "bad": {1, 2}})
 
     assert manager.active_connections["ABC123"] == [working, buggy]
+
+
+@pytest.mark.anyio
+async def test_broadcast_prunes_runtime_websocket_disconnect_errors() -> None:
+    manager = ConnectionManager()
+    working = _WorkingSocket()
+    closed = _ClosedRuntimeSocket()
+
+    manager.active_connections["ABC123"] = [working, closed]
+
+    await manager.broadcast("ABC123", {"event": "match_reported"})
+
+    assert manager.active_connections["ABC123"] == [working]
+    assert working.messages == [{"event": "match_reported"}]
+
+
+@pytest.mark.anyio
+async def test_broadcast_propagates_unexpected_runtime_errors() -> None:
+    manager = ConnectionManager()
+    working = _WorkingSocket()
+    unexpected = _UnexpectedRuntimeSocket()
+
+    manager.active_connections["ABC123"] = [working, unexpected]
+
+    with pytest.raises(RuntimeError, match="database write failed"):
+        await manager.broadcast("ABC123", {"event": "match_reported"})
+
+    assert manager.active_connections["ABC123"] == [working, unexpected]
