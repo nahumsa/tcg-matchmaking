@@ -2,6 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from .core.manager import manager
+from .core.config import settings
 from .api.tournaments.router import router as tournaments_router
 from .api.participants.router import router as participants_router
 from .api.matches.router import router as matches_router
@@ -11,8 +12,8 @@ app = FastAPI(title="Swiss Matchmaking System")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development, allow all. Update for production.
-    allow_credentials=True,
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -42,7 +42,13 @@ export function useTournamentSocket({
     const connect = () => {
       ws = new WebSocket(`${config.wsUrl}/ws/${code}`);
       ws.onopen = () => onOpenRef.current?.();
-      ws.onmessage = (event) => onMessageRef.current(JSON.parse(event.data));
+      ws.onmessage = (event) => {
+        try {
+          onMessageRef.current(JSON.parse(event.data));
+        } catch {
+          onErrorRef.current?.();
+        }
+      };
       ws.onerror = () => onErrorRef.current?.();
       ws.onclose = () => {
         onCloseRef.current?.();

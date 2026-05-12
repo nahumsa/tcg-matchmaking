@@ -127,11 +127,16 @@ def report_match(
         participants.save(player2)
     matches.save(match)
 
-    round_matches = [
-        m
-        for m in matches.get_by_tournament(tournament.id)
-        if m.round_number == match.round_number
-    ]
+    if hasattr(matches, "get_by_tournament_round"):
+        round_matches = matches.get_by_tournament_round(
+            tournament.id, match.round_number
+        )
+    else:
+        round_matches = [
+            m
+            for m in matches.get_by_tournament(tournament.id)
+            if m.round_number == match.round_number
+        ]
     if match.round_number == tournament.rounds and all(
         m.is_completed for m in round_matches
     ):

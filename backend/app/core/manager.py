@@ -1,4 +1,4 @@
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 from typing import Dict, List
 
 
@@ -14,15 +14,30 @@ class ConnectionManager:
         self.active_connections[code].append(websocket)
 
     def disconnect(self, websocket: WebSocket, code: str):
-        if code in self.active_connections:
+        if (
+            code in self.active_connections
+            and websocket in self.active_connections[code]
+        ):
             self.active_connections[code].remove(websocket)
             if not self.active_connections[code]:
                 del self.active_connections[code]
 
     async def broadcast(self, code: str, message: dict):
         if code in self.active_connections:
-            for connection in self.active_connections[code]:
-                await connection.send_json(message)
+            stale_connections: list[WebSocket] = []
+            for connection in list(self.active_connections[code]):
+                try:
+                    await connection.send_json(message)
+                except (WebSocketDisconnect, OSError):
+                    stale_connections.append(connection)
+                except RuntimeError as exc:
+                    if "websocket" in str(exc).lower():
+                        stale_connections.append(connection)
+                    else:
+                        raise
+
+            for connection in stale_connections:
+                self.disconnect(connection, code)
 
 
 manager = ConnectionManager()

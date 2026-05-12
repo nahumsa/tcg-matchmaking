@@ -123,6 +123,18 @@ class SqlAlchemyMatchRepository:
     def get_by_tournament(self, tournament_id: int) -> List[Match]:
         return self.db.query(Match).filter(Match.tournament_id == tournament_id).all()
 
+    def get_by_tournament_round(
+        self, tournament_id: int, round_number: int
+    ) -> List[Match]:
+        return (
+            self.db.query(Match)
+            .filter(
+                Match.tournament_id == tournament_id,
+                Match.round_number == round_number,
+            )
+            .all()
+        )
+
     def get_by_id(self, match_id: int) -> Optional[Match]:
         return self.db.query(Match).filter(Match.id == match_id).first()
 
