@@ -1,138 +1,173 @@
 # Swiss Matchmaking System
 
-A robust and accessible Swiss-system matchmaking platform for tournament organizers and participants.
+A full-stack Swiss-system tournament matchmaking app for organizers and players, with live updates and deterministic round management.
 
-**This project is an attempt to use AI Coding and learn from it.**
+**This project is an attempt to use AI coding and learn from it.**
+
+## Features
+
+- **Tournament lifecycle management**: create, run, and complete tournaments with explicit state transitions.
+- **Swiss round generation**: create next-round pairings with score-aware ordering and repeat-opponent avoidance.
+- **Participant management**: join by room code, prevent duplicate names within a tournament, remove participants when needed.
+- **Match reporting and scoring**: submit results with win/draw/loss point updates and automatic tournament completion checks.
+- **Bye support**: auto-generated and auto-scored bye matches for odd player counts.
+- **Live UI synchronization**: WebSocket event broadcasts for pairings and result updates.
+- **Validation and integrity rules**: domain guards for immutable completed tournaments and safe round progression.
+
+## Architectural Choices
+
+### 1) Domain-oriented backend modules
+
+The backend is organized by domain (`tournaments`, `participants`, `matches`) under `backend/app/api/`.
+Each domain keeps a consistent internal shape:
+
+- `models.py` for ORM entities
+- `schemas.py` for API contracts
+- `use_cases.py` for business rules
+- `services.py` for orchestration and side effects
+- `router.py` for HTTP route wiring
+
+This keeps feature logic cohesive and reduces cross-module coupling.
+
+### 2) Layered rule separation
+
+The backend follows explicit layers:
+
+- **Routers**: request/response handling and route validation.
+- **Use cases**: core Swiss and tournament business logic.
+- **Services**: coordination of repositories, use cases, and side effects.
+- **Adapters/ports**: persistence contracts and SQLAlchemy implementations.
+
+This design ensures business logic stays testable and is not tied directly to HTTP or database implementation details.
+
+### 3) Ports and adapters for persistence boundaries
+
+Repository contracts live in `backend/app/application/ports.py`, and SQLAlchemy-backed adapters live in `backend/app/adapters/sqlalchemy_repositories.py`.
+This allows domain workflows to depend on interfaces rather than concrete storage details.
+
+### 4) Real-time event architecture
+
+Domain flows that change tournament state emit WebSocket events through service orchestration (`backend/app/core/manager.py`).
+Clients can subscribe to live updates instead of polling, improving UX for active rounds.
+
+### 5) Full-stack type-safe and testable frontend
+
+Frontend uses React + TypeScript + Vite + TailwindCSS with component-level tests via Vitest + Testing Library.
+TypeScript build checks and linting are part of CI and local pre-commit workflows.
 
 ## Tech Stack
 
-- **Backend:** Python (FastAPI), PostgreSQL, SQLAlchemy, Alembic, WebSockets.
-- **Frontend:** React, TypeScript, TailwindCSS, React Router.
+- **Backend:** FastAPI, SQLAlchemy, Alembic, PostgreSQL, WebSockets, Pytest, Ruff
+- **Frontend:** React, TypeScript, Vite, TailwindCSS, Vitest, Testing Library, ESLint
+- **Tooling:** `uv`, pre-commit, GitHub Actions, Docker Compose
 
 ## Project Structure
 
-The backend follows a domain-driven MVC (Model-View-Controller) architecture:
-
-```
+```text
 backend/app/
-├── api/                # Domain-specific modules
-│   ├── tournaments/    # Tournament management domain
+├── adapters/                       # SQLAlchemy repository implementations
+├── application/
+│   └── ports.py                    # Repository/service contracts
+├── api/
+│   ├── tournaments/                # Tournament domain
 │   │   ├── models.py
 │   │   ├── schemas.py
 │   │   ├── use_cases.py
 │   │   ├── services.py
 │   │   └── router.py
-│   ├── participants/   # Participant management domain
+│   ├── participants/               # Participant domain
 │   │   ├── models.py
 │   │   ├── schemas.py
 │   │   ├── use_cases.py
 │   │   ├── services.py
 │   │   └── router.py
-│   └── matches/        # Match and pairing domain
+│   └── matches/                    # Match and Swiss pairing domain
 │       ├── models.py
 │       ├── schemas.py
 │       ├── use_cases.py
 │       ├── services.py
-│       ├── pairing.py  # Swiss pairing logic
+│       ├── pairing.py
 │       └── router.py
-├── core/               # Shared components
-│   ├── config.py       # Configuration and settings
-│   ├── database.py     # Database connection and base
-│   └── manager.py      # WebSocket connection manager
-└── main.py             # FastAPI application entry point
+├── core/
+│   ├── config.py                   # Settings
+│   ├── database.py                 # Engine/session/base
+│   └── manager.py                  # WebSocket connection manager
+└── main.py                         # FastAPI app entrypoint
 ```
-
-## Domain Use Cases
-
-### Tournaments Domain (`api/tournaments`)
-
-- Organizer creates a tournament by providing a name and number of rounds. The tournament use case generates a unique uppercase room code and persists the initial tournament state as `PENDING`.
-- Organizer retrieves a tournament by room code to open the admin dashboard or validate that a player is joining the correct event.
-- Tournament mutation guard prevents changes after completion. Any flow that affects roster, rounds, or results must pass the domain rule that a `COMPLETED` tournament is immutable.
-- Room-code generation is centralized as a domain behavior, ensuring uniqueness checks always happen through the tournament repository instead of being duplicated in routers or service handlers.
-
-### Participants Domain (`api/participants`)
-
-- Player joins a tournament with a display name and room code. The participant join use case validates tournament mutability and rejects duplicate names within the same tournament.
-- Organizer removes a participant before or during active rounds when corrections are needed. The use case enforces ownership (participant must belong to the target tournament) and completion constraints.
-- Organizer and players list participants for lobby and round screens, relying on repository-backed reads scoped by tournament id.
-- Potential pairing suggestions are computed per participant by excluding already played opponents and filtering to nearby score bands, helping manual corrections without violating Swiss pairing intent.
-
-### Matches Domain (`api/matches`)
-
-- Organizer generates next-round Swiss pairings. The use case validates preconditions (tournament not completed, participants exist, previous round completed) and determines the next round number.
-- Pairings are sorted by combined points to improve table ordering quality, producing stable table assignments where higher-performing players are placed earlier.
-- Bye handling is part of match generation: when an odd number of players exists, a bye match is created, auto-completed, and points are granted through the same domain flow.
-- Score reporting updates match completion status and participant points (win/draw/loss logic), then checks final-round completion to automatically mark the tournament as `COMPLETED`.
-- Match reporting and pairing generation emit websocket events through services so UI clients receive live updates while domain rules remain concentrated in use cases.
-
-## Development Tools
-
-### CI/CD Pipeline
-The project uses GitHub Actions for continuous integration. Every Pull Request to `main` triggers:
-- **Backend:** Linting (Ruff), Testing (Pytest), Coverage Report, and Docker build check.
-- **Frontend:** Linting (ESLint), Type-checking (TSC), Testing (Vitest), Coverage Report, and Docker build check.
-- **Coverage Summary:** A combined report is posted as a comment on the PR.
-
-Threshold: **80% coverage** is the target for both modules.
-
-### Pre-commit Hooks
-To ensure code quality locally, the project includes `pre-commit` hooks.
-1. Install pre-commit:
-   ```bash
-   cd backend && uv run pre-commit install
-   ```
-2. (Optional) Run against all files:
-   ```bash
-   cd backend && uv run pre-commit run --all-files
-   ```
-These hooks will automatically run backend/frontend linting, type-checking, and tests on every commit.
 
 ## Getting Started
 
-### Backend
+### Local development (recommended)
 
-1. Install `uv` if you haven't already: [astral.sh/uv](https://astral.sh/uv)
-2. Sync the project environment: `cd backend && uv sync`
-3. Run the app: `PYTHONPATH=.. uv --project backend run uvicorn backend.app.main:app --reload`
-
-### Frontend
-
-1. Navigate to the frontend directory: `cd frontend`
-2. Install dependencies: `npm install`
-3. Run the development server: `npm run dev`
-
-## Running with Docker
-
-The easiest way to run the entire stack (Backend, Frontend, and PostgreSQL) is using Docker Compose:
-
-1. Ensure you have Docker and Docker Compose installed.
-2. Run the following command from the project root:
-
-   ```bash
-   docker compose up -d
-   ```
-
-3. Access the application:
-   - **Frontend:** [http://localhost:8080](http://localhost:8080)
-   - **Backend API:** [http://localhost:8000](http://localhost:8000)
-   - **Health Check:** [http://localhost:8000/health](http://localhost:8000/health)
-
-## Testing
-
-### Backend
-
-Run tests with coverage:
+From project root:
 
 ```bash
-uv --project backend run pytest --cov=backend/app backend/tests/
+make setup
+make db-up
+make backend-dev
+make frontend-dev
+```
+
+### Backend (manual)
+
+```bash
+uv sync --project backend --dev
+PYTHONPATH=. uv run --project backend uvicorn backend.app.main:app --reload
+```
+
+### Frontend (manual)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## Run with Docker
+
+```bash
+docker compose up -d
+```
+
+- Frontend: <http://localhost:8080>
+- Backend API: <http://localhost:8000>
+- Health: <http://localhost:8000/health>
+
+## Quality and CI
+
+PRs to `main` run backend and frontend pipelines:
+
+- Backend lint + format check (Ruff)
+- Backend tests + coverage
+- Frontend lint (ESLint)
+- Frontend type-check (`tsc -b`)
+- Frontend tests + coverage
+
+Coverage target is **80%** across changed areas.
+
+## Testing and Linting
+
+### Backend
+
+```bash
+uv run --project backend ruff check .
+uv run --project backend ruff format --check .
+PYTHONPATH=. uv run --project backend pytest backend/tests
 ```
 
 ### Frontend
 
-Run Vitest tests:
-
 ```bash
 cd frontend
+npm run lint
+npx tsc -b
 npm test
+```
+
+### Pre-commit
+
+From repo root:
+
+```bash
+uv run --project backend pre-commit run --all-files
 ```
